@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,11 +37,19 @@ import coil.compose.AsyncImage
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
+    initialQuery: String? = null,
     onBackClick: () -> Unit
 ) {
     val results by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val query by viewModel.searchQuery.collectAsState()
+
+    // Trigger initial search if query is passed from scanner
+    LaunchedEffect(initialQuery) {
+        if (initialQuery != null) {
+            viewModel.onQueryChange(initialQuery)
+        }
+    }
 
     Scaffold(
         topBar = {

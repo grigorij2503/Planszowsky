@@ -15,7 +15,8 @@ data class GameEntity(
     val minPlayers: String?,
     val maxPlayers: String?,
     val playingTime: String?,
-    val isOwned: Boolean
+    val isOwned: Boolean,
+    val isWishlisted: Boolean
 )
 
 fun GameEntity.toDomainModel(): Game {
@@ -29,7 +30,8 @@ fun GameEntity.toDomainModel(): Game {
         minPlayers = minPlayers,
         maxPlayers = maxPlayers,
         playingTime = playingTime,
-        isOwned = isOwned
+        isOwned = isOwned,
+        isWishlisted = isWishlisted
     )
 }
 
@@ -44,6 +46,7 @@ fun Game.toEntity(): GameEntity {
         minPlayers = minPlayers,
         maxPlayers = maxPlayers,
         playingTime = playingTime,
-        isOwned = isOwned
+        isOwned = isOwned,
+        isWishlisted = isWishlisted
     )
 }

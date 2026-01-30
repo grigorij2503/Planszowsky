@@ -8,6 +8,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -51,6 +53,17 @@ fun DetailsScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { viewModel.toggleWishlist() },
+                        modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
+                    ) {
+                        Icon(
+                            imageVector = if (game?.isWishlisted == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Wishlist",
+                            tint = if (game?.isWishlisted == true) Color.Red else Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
                     IconButton(
                         onClick = { 
                             viewModel.deleteGame()

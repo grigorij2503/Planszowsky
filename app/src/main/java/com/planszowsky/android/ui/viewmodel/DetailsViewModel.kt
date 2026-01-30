@@ -36,4 +36,13 @@ class DetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun toggleWishlist() {
+        viewModelScope.launch {
+            _game.value?.let { currentNewGame ->
+                repository.toggleWishlist(currentNewGame)
+                _game.value = repository.getGame(gameId)
+            }
+        }
+    }
 }

@@ -39,7 +39,8 @@ fun CollectionScreen(
     viewModel: CollectionViewModel = hiltViewModel(),
     onAddGameClick: () -> Unit,
     onGameClick: (String) -> Unit,
-    onRandomizerClick: () -> Unit
+    onRandomizerClick: () -> Unit,
+    onScanClick: () -> Unit
 ) {
     val games by viewModel.games.collectAsState()
     
@@ -62,12 +63,24 @@ fun CollectionScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(nestedScrollConnection),
         floatingActionButton = {
-            LargeFloatingActionButton(
-                onClick = onAddGameClick,
-                containerColor = MaterialTheme.colorScheme.primary,
-                shape = RoundedCornerShape(24.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Dodaj", modifier = Modifier.size(36.dp))
+            Column(horizontalAlignment = Alignment.End) {
+                // Mały przycisk skanowania nad głównym FABem dla prostoty (zamiast pełnego expandera na razie)
+                SmallFloatingActionButton(
+                    onClick = onScanClick,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Text("📷", fontSize = 20.sp)
+                }
+
+                LargeFloatingActionButton(
+                    onClick = onAddGameClick,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Dodaj", modifier = Modifier.size(36.dp))
+                }
             }
         }
     ) { padding ->

@@ -25,8 +25,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.planszowsky.android.ui.screens.CollectionScreen
 import com.planszowsky.android.ui.screens.DetailsScreen
+import com.planszowsky.android.ui.screens.ProfileScreen
 import com.planszowsky.android.ui.screens.RandomizerScreen
+import com.planszowsky.android.ui.screens.ScanScreen
 import com.planszowsky.android.ui.screens.SearchScreen
+import com.planszowsky.android.ui.screens.WishlistScreen
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Collection : Screen("collection", "Kolekcja", Icons.Default.Home)
@@ -83,14 +86,41 @@ fun PlanszowskyMainContainer() {
                 CollectionScreen(
                     onAddGameClick = { navController.navigate("search") },
                     onGameClick = { gameId -> navController.navigate("details/$gameId") },
-                    onRandomizerClick = { navController.navigate("randomizer") }
+                    onRandomizerClick = { navController.navigate("randomizer") },
+                    onScanClick = { navController.navigate("scan") }
                 )
             }
-            composable(Screen.Wishlist.route) { PlaceholderScreen("Wishlist") }
-            composable(Screen.Profile.route) { PlaceholderScreen("Profil") }
+            composable(Screen.Wishlist.route) { 
+                WishlistScreen(
+                    onGameClick = { gameId -> navController.navigate("details/$gameId") }
+                )
+            }
+            composable(Screen.Profile.route) { ProfileScreen() }
             
-            composable("search") {
-                SearchScreen(onBackClick = { navController.popBackStack() })
+            composable(
+                route = "search?query={query}",
+                arguments = listOf(navArgument("query") { 
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                })
+            ) { backStackEntry ->
+                val initialQuery = backStackEntry.arguments?.getString("query")
+                SearchScreen(
+                    initialQuery = initialQuery,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("scan") {
+                ScanScreen(
+                    onTextScanned = { text ->
+                        navController.navigate("search?query=$text") {
+                            popUpTo("scan") { inclusive = true }
+                        }
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
             }
 
             composable("randomizer") {
