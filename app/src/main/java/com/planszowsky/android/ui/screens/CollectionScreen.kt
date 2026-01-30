@@ -1,88 +1,191 @@
 package com.planszowsky.android.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.staggeredgrid.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.planszowsky.android.domain.model.Game
+import com.planszowsky.android.ui.theme.GradientOverlay
 import com.planszowsky.android.ui.viewmodel.CollectionViewModel
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionScreen(
     viewModel: CollectionViewModel = hiltViewModel(),
     onAddGameClick: () -> Unit,
-    onGameClick: (String) -> Unit
+    onGameClick: (String) -> Unit,
+    onRandomizerClick: () -> Unit
 ) {
     val games by viewModel.games.collectAsState()
+    
+    // Konfiguracja chowanego paska wyszukiwania
+    val searchBarHeight = 70.dp
+    val searchBarHeightPx = with(LocalDensity.current) { searchBarHeight.toPx() }
+    val searchBarOffsetHeightPx = remember { mutableStateOf(0f) }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val delta = available.y
+                val newOffset = searchBarOffsetHeightPx.value + delta
+                searchBarOffsetHeightPx.value = newOffset.coerceIn(-searchBarHeightPx, 0f)
+                return Offset.Zero
+            }
+        }
+    }
 
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Moja Kolekcja") })
-        },
+        modifier = Modifier.nestedScroll(nestedScrollConnection),
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddGameClick) {
-                Icon(Icons.Default.Add, contentDescription = "Dodaj grę")
+            LargeFloatingActionButton(
+                onClick = onAddGameClick,
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Dodaj", modifier = Modifier.size(36.dp))
             }
         }
     ) { padding ->
-        LazyColumn(contentPadding = padding) {
-            items(games) { game ->
-                GameItem(game, onClick = { onGameClick(game.id) })
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            // Główna zawartość
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    top = searchBarHeight + 16.dp, 
+                    start = 12.dp, 
+                    end = 12.dp, 
+                    bottom = 100.dp
+                ),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalItemSpacing = 12.dp
+            ) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Twoja Kolekcja",
+                            style = MaterialTheme.typography.headlineLarge,
+                        )
+                        
+                        IconButton(
+                            onClick = onRandomizerClick,
+                            modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
+                        ) {
+                            Text("🎰", fontSize = 20.sp)
+                        }
+                    }
+                }
+                items(games) { game ->
+                    GameCard(game, onClick = { onGameClick(game.id) })
+                }
+            }
+
+            // Pływający pasek wyszukiwania (Floating Search Bar)
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth()
+                    .height(searchBarHeight - 16.dp)
+                    .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) },
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                tonalElevation = 8.dp,
+                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onAddGameClick() }
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Szukaj w swojej kolekcji...", color = Color.Gray)
+                }
             }
         }
     }
 }
 
 @Composable
-fun GameItem(game: Game, onClick: () -> Unit) {
+fun GameCard(game: Game, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
-            .clickable(onClick = onClick)
+            .clip(RoundedCornerShape(24.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 120.dp)
+                .background(Color.DarkGray)
         ) {
             AsyncImage(
-                model = game.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                contentScale = ContentScale.Crop
+                model = game.imageUrl ?: game.thumbnailUrl,
+                contentDescription = game.title,
+                modifier = Modifier.fillMaxWidth(),
+                contentScale = ContentScale.FillWidth
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = game.title, style = MaterialTheme.typography.titleMedium)
-                game.yearPublished?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodySmall)
-                }
+
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color.Transparent, GradientOverlay),
+                            startY = 100f
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = game.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

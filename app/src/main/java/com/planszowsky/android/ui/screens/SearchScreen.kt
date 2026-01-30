@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -28,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.planszowsky.android.ui.viewmodel.SearchViewModel
+
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,9 +80,16 @@ fun SearchScreen(
                         ListItem(
                             headlineContent = { Text(game.title) },
                             supportingContent = { Text(game.yearPublished ?: "") },
+                            leadingContent = {
+                                AsyncImage(
+                                    model = "https://picsum.photos/id/10/100/100.jpg", // Testowy obrazek bezpośrednio
+                                    contentDescription = null,
+                                    modifier = Modifier.size(50.dp)
+                                )
+                            },
                             modifier = Modifier.clickable { 
                                 viewModel.addToCollection(game)
-                                onBackClick() // Wróć do listy kolekcji po dodaniu
+                                onBackClick()
                             }
                         )
                     }
