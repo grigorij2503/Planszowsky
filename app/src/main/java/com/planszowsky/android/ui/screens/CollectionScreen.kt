@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -45,6 +47,8 @@ fun CollectionScreen(
     onScanClick: () -> Unit
 ) {
     val games by viewModel.games.collectAsState()
+    val categories by viewModel.categories.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
     
     // Konfiguracja chowanego paska wyszukiwania
     val searchBarHeight = 70.dp
@@ -108,21 +112,46 @@ fun CollectionScreen(
                 verticalItemSpacing = 12.dp
             ) {
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.collection_title),
-                            style = MaterialTheme.typography.headlineLarge,
-                        )
-                        
-                        IconButton(
-                            onClick = onRandomizerClick,
-                            modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("🎰", fontSize = 20.sp)
+                            Text(
+                                text = stringResource(R.string.collection_title),
+                                style = MaterialTheme.typography.headlineLarge,
+                            )
+                            
+                            IconButton(
+                                onClick = onRandomizerClick,
+                                modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
+                            ) {
+                                Text("🎰", fontSize = 20.sp)
+                            }
+                        }
+
+                        if (categories.isNotEmpty()) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                item {
+                                    FilterChip(
+                                        selected = selectedCategory == null,
+                                        onClick = { viewModel.selectCategory(null) },
+                                        label = { Text(stringResource(R.string.all_categories)) }
+                                    )
+                                }
+                                items(categories) { category ->
+                                    FilterChip(
+                                        selected = selectedCategory == category,
+                                        onClick = { viewModel.selectCategory(category) },
+                                        label = { Text(category) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }

@@ -70,7 +70,22 @@ data class BggThingItem(
     var maxPlayers: BggValue? = null,
 
     @field:Element(name = "playingtime", required = false)
-    var playingTime: BggValue? = null
+    var playingTime: BggValue? = null,
+
+    @field:ElementList(inline = true, entry = "link", required = false)
+    var links: List<BggLink>? = null
+)
+
+@Root(name = "link", strict = false)
+data class BggLink(
+    @field:Attribute(name = "type")
+    var type: String = "",
+    
+    @field:Attribute(name = "id")
+    var id: String = "",
+    
+    @field:Attribute(name = "value")
+    var value: String = ""
 )
 
 @Root(name = "name", strict = false)

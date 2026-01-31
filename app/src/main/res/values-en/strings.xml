@@ -28,6 +28,7 @@
     <string name="empty_collection_warning">"Add games to your collection to spin!"</string>
     <string name="search_title">"Search Game"</string>
     <string name="search_field_hint">"Enter game title…"</string>
+    <string name="all_categories">"All"</string>
     <string name="wishlist_title">"Wishlist"</string>
     <string name="wishlist_empty">"Your wishlist is empty."</string>
     <string name="profile_title">"Your Profile"</string>

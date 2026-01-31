@@ -13,5 +13,6 @@ data class Game(
     val isOwned: Boolean = false,
     val isWishlisted: Boolean = false,
     val isBorrowed: Boolean = false,
-    val borrowedTo: String? = null
+    val borrowedTo: String? = null,
+    val categories: List<String> = emptyList()
 )

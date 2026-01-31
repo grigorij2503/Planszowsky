@@ -108,6 +108,8 @@ class GameRepositoryImpl @Inject constructor(
                 ?: item.names?.firstOrNull()?.value 
                 ?: "Unknown"
 
+            val categories = item.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList()
+
             Game(
                 id = item.id,
                 title = primaryName,
@@ -118,7 +120,8 @@ class GameRepositoryImpl @Inject constructor(
                 minPlayers = item.minPlayers?.value,
                 maxPlayers = item.maxPlayers?.value,
                 playingTime = item.playingTime?.value,
-                isOwned = false 
+                isOwned = false,
+                categories = categories
             )
         } catch (e: Exception) {
             e.printStackTrace()

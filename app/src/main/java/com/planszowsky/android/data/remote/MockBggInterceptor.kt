@@ -55,6 +55,9 @@ class MockBggInterceptor : Interceptor {
                 <minplayers value="3"/>
                 <maxplayers value="6"/>
                 <playingtime value="30"/>
+                <link type="boardgamecategory" id="1002" value="Card Game"/>
+                <link type="boardgamecategory" id="1039" value="Party Game"/>
+                <link type="boardgamecategory" id="1015" value="Humor"/>
             </item>
         </items>
     """.trimIndent()
@@ -70,6 +73,8 @@ class MockBggInterceptor : Interceptor {
                 <minplayers value="3"/>
                 <maxplayers value="4"/>
                 <playingtime value="120"/>
+                <link type="boardgamecategory" id="1021" value="Economic"/>
+                <link type="boardgamecategory" id="1016" value="Negotiation"/>
             </item>
         </items>
     """.trimIndent()
@@ -85,6 +90,8 @@ class MockBggInterceptor : Interceptor {
                 <minplayers value="2"/>
                 <maxplayers value="5"/>
                 <playingtime value="60"/>
+                <link type="boardgamecategory" id="1050" value="Adventure"/>
+                <link type="boardgamecategory" id="1047" value="Trains"/>
             </item>
         </items>
     """.trimIndent()

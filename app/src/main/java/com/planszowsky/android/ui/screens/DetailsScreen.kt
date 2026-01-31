@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -126,6 +127,19 @@ fun DetailsScreen(
                             MetadataChip(icon = "👥", label = "${g.minPlayers}-${g.maxPlayers}")
                             MetadataChip(icon = "⏳", label = "${g.playingTime}m")
                             MetadataChip(icon = "🧠", label = "3.5/5")
+                        }
+                        
+                        if (g.categories.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                g.categories.forEach { category ->
+                                    CategoryChip(category)
+                                }
+                            }
                         }
                         
                         Spacer(modifier = Modifier.height(32.dp))
@@ -270,5 +284,22 @@ fun MetadataChip(icon: String, label: String) {
             Spacer(modifier = Modifier.width(6.dp))
             Text(text = label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         }
+    }
+}
+
+@Composable
+fun CategoryChip(category: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(8.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+    ) {
+        Text(
+            text = category,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
