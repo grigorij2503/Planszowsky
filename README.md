@@ -1,42 +1,42 @@
 # Planszowsky 🎲
 
-Planszowsky to nowoczesna aplikacja na Androida służąca do zarządzania osobistą kolekcją gier planszowych. Stworzona z myślą o pasjonatach, oferuje "soczysty" i imersyjny interfejs, który stawia okładki gier na pierwszym miejscu.
+Planszowsky is a modern Android application for managing your personal board game collection. Designed for enthusiasts, it features a "juicy" and immersive interface that puts game covers front and center.
 
-## ✨ Funkcje
+## ✨ Features
 
-- **Twoja Kolekcja (Masonry Grid):** Przeglądaj swoje gry w dynamicznym, pinterestowym układzie z pełnowymiarowymi okładkami.
-- **Skaner Tytułów i Kodów Kreskowych:** Szybko dodawaj gry do bazy, skanując ich tytuł z pudełka (OCR) lub kod EAN (Barcode) przy użyciu Google ML Kit.
-- **Wyszukiwarka BGG:** Integracja z bazą BoardGameGeek (pobieranie opisów, statystyk graczy i czasu rozgrywki).
-- **Szczegóły Gry:** Pełny podgląd informacji o grze z płynną animacją przejść i metadanymi.
-- **System Pożyczania:** Zarządzaj swoją kolekcją, oznaczając gry jako pożyczone. Dodawaj notatki, komu przekazałeś dany tytuł, i śledź status na głównej liście.
-- **Co zagramy? (Randomizer):** Nie wiesz, co wybrać? Użyj wbudowanej "maszyny losującej" (🎰), aby wylosować tytuł z Twojej kolekcji.
-- **Wishlist:** Zapisuj gry, które chcesz kupić w przyszłości, w osobnej, czytelnej sekcji.
-- **Import z BGG:** Opcja szybkiego przeniesienia swojej kolekcji z serwisu BoardGameGeek.
+- **Your Collection (Masonry Grid):** Browse your games in a dynamic, Pinterest-style layout with full-size covers.
+- **Title and Barcode Scanner:** Quickly add games to your database by scanning the title from the box (OCR) or the EAN barcode using Google ML Kit.
+- **BGG Integration:** Connected with the BoardGameGeek database (fetch descriptions, player counts, and playtimes).
+- **Game Details:** Full view of game information with smooth transitions and metadata chips.
+- **Borrowing System:** Manage your collection by marking games as borrowed. Add notes about who has the game and track status on the main list.
+- **What Shall We Play? (Randomizer):** Can't decide? Use the built-in "slot machine" (🎰) to pick a random title from your collection.
+- **Wishlist:** Save games you want to buy in a separate, clear section.
+- **BGG Import:** Quickly transfer your collection from the BoardGameGeek service.
 
-## 🛠️ Technologia
+## 🛠️ Technology
 
-Projekt wykorzystuje najnowsze standardy tworzenia aplikacji na Androida (Modern Android Development):
+The project uses the latest Android development standards (Modern Android Development):
 
-- **Język:** Kotlin
-- **UI:** Jetpack Compose (Deklaratywny interfejs użytkownika)
-- **Architektura:** MVVM (Model-View-ViewModel) + Clean Architecture
-- **Wstrzykiwanie zależności:** Hilt
-- **Baza danych:** Room (Lokalne przechowywanie kolekcji)
-- **Sieć:** Retrofit 3 + OkHttp 5 (Obsługa API BGG)
-- **Analiza Obrazu:** CameraX + Google ML Kit (OCR & Barcode Scanning)
-- **Obrazy:** Coil (Asynchroniczne ładowanie okładek)
-- **Design:** Material 3 (Material You) z pełnym wsparciem dla Dark Mode.
+- **Language:** Kotlin
+- **UI:** Jetpack Compose (Declarative UI)
+- **Architecture:** MVVM (Model-View-ViewModel) + Clean Architecture
+- **Dependency Injection:** Hilt
+- **Database:** Room (Local collection storage)
+- **Networking:** Retrofit 3 + OkHttp 5 (BGG API support)
+- **Image Analysis:** CameraX + Google ML Kit (OCR & Barcode Scanning)
+- **Images:** Coil (Asynchronous cover loading)
+- **Design:** Material 3 (Material You) with full Dark Mode support.
 
-## 🚀 Uruchomienie
+## 🚀 Getting Started
 
-1. Sklonuj repozytorium.
-2. Otwórz projekt w najnowszej wersji **Android Studio**.
-3. (Opcjonalnie) Dodaj swój klucz API BoardGameGeek w `AppModule.kt`. Obecnie aplikacja korzysta z trybu `Mock` dla ułatwienia testowania interfejsu.
-4. Zbuduj i uruchom na emulatorze lub fizycznym urządzeniu z systemem Android 8.0+.
+1. Clone the repository.
+2. Open the project in the latest version of **Android Studio**.
+3. (Optional) Add your BoardGameGeek API key in `AppModule.kt`. Currently, the app uses a `Mock` mode for easier UI testing.
+4. Build and run on an emulator or physical device with Android 8.0+.
 
-## ⚖️ Licencja i Dane
+## ⚖️ License and Data
 
-Aplikacja korzysta z danych udostępnianych przez serwis **BoardGameGeek.com**. Wszystkie informacje o grach, ich opisy oraz niektóre grafiki są własnością ich twórców oraz serwisu BGG. Projekt ma charakter hobbystyczny/lokalnego katalogu.
+The application uses data provided by **BoardGameGeek.com**. All game information, descriptions, and some graphics are the property of their respective creators and BGG. This project is for hobbyist/local catalog purposes.
 
 ---
-Stworzone z ❤️ dla społeczności graczy planszowych.
+Created with ❤️ for the board gaming community.

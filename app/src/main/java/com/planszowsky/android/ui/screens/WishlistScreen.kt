@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.planszowsky.android.R
 import com.planszowsky.android.ui.viewmodel.WishlistViewModel
 
 @Composable
@@ -31,7 +34,7 @@ fun WishlistScreen(
         ) {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Text(
-                    text = "Wishlist",
+                    text = stringResource(R.string.wishlist_title),
                     style = MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -39,8 +42,8 @@ fun WishlistScreen(
             
             if (games.isEmpty()) {
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(top = 100.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text("Twoja lista życzeń jest pusta.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                    Box(modifier = Modifier.fillMaxWidth().padding(top = 100.dp), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.wishlist_empty), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                     }
                 }
             }

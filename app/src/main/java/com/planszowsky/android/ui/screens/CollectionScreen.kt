@@ -22,12 +22,14 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.planszowsky.android.R
 import com.planszowsky.android.domain.model.Game
 import com.planszowsky.android.ui.theme.GradientOverlay
 import com.planszowsky.android.ui.viewmodel.CollectionViewModel
@@ -81,7 +83,7 @@ fun CollectionScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(24.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Dodaj", modifier = Modifier.size(36.dp))
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button), modifier = Modifier.size(36.dp))
                 }
             }
         }
@@ -112,7 +114,7 @@ fun CollectionScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Twoja Kolekcja",
+                            text = stringResource(R.string.collection_title),
                             style = MaterialTheme.typography.headlineLarge,
                         )
                         
@@ -150,7 +152,7 @@ fun CollectionScreen(
                 ) {
                     Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Szukaj w swojej kolekcji...", color = Color.Gray)
+                    Text(stringResource(R.string.search_hint), color = Color.Gray)
                 }
             }
         }
@@ -203,7 +205,7 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                         modifier = Modifier.padding(bottom = 4.dp)
                     ) {
                         Text(
-                            text = "POŻYCZONA",
+                            text = stringResource(R.string.borrowed_badge),
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             color = Color.White,

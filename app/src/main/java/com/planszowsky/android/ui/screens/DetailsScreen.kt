@@ -19,11 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.planszowsky.android.R
 import com.planszowsky.android.domain.model.Game
 import com.planszowsky.android.ui.viewmodel.DetailsViewModel
 
@@ -50,7 +52,7 @@ fun DetailsScreen(
                         onClick = onBackClick,
                         modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button))
                     }
                 },
                 actions = {
@@ -72,7 +74,7 @@ fun DetailsScreen(
                         },
                         modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Usuń")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_button))
                     }
                 }
             )
@@ -139,7 +141,7 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(32.dp))
                         
                         Text(
-                            text = "Opis",
+                            text = stringResource(R.string.description_label),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -147,7 +149,7 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         Text(
-                            text = g.description ?: "Brak opisu.",
+                            text = g.description ?: stringResource(R.string.no_description),
                             style = MaterialTheme.typography.bodyLarge,
                             lineHeight = 24.sp,
                             color = Color.White.copy(alpha = 0.8f)
@@ -183,13 +185,13 @@ fun BorrowingSection(
             ) {
                 Column {
                     Text(
-                        text = "Pożyczona",
+                        text = stringResource(R.string.borrowed_label),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     if (isBorrowed) {
                         Text(
-                            text = if (borrowedTo.isNotEmpty()) "Komu: $borrowedTo" else "Brak opisu komu",
+                            text = if (borrowedTo.isNotEmpty()) stringResource(R.string.borrowed_to_prefix, borrowedTo) else stringResource(R.string.no_borrower_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -217,7 +219,7 @@ fun BorrowingSection(
                         contentColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Edytuj opis")
+                    Text(stringResource(R.string.edit_desc_button))
                 }
             }
         }
@@ -226,12 +228,12 @@ fun BorrowingSection(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("Komu pożyczyłeś grę?") },
+            title = { Text(stringResource(R.string.borrow_dialog_title)) },
             text = {
                 OutlinedTextField(
                     value = tempBorrowedTo,
                     onValueChange = { tempBorrowedTo = it },
-                    label = { Text("Imię / Opis") },
+                    label = { Text(stringResource(R.string.name_hint)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
@@ -241,12 +243,12 @@ fun BorrowingSection(
                     onStatusChange(true, tempBorrowedTo)
                     showEditDialog = false
                 }) {
-                    Text("Zapisz")
+                    Text(stringResource(R.string.save_button))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Anuluj")
+                    Text(stringResource(R.string.cancel_button))
                 }
             }
         )

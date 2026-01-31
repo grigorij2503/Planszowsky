@@ -13,11 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.planszowsky.android.R
 import com.planszowsky.android.ui.viewmodel.RandomizerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,10 +35,10 @@ fun RandomizerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Co zagramy?") },
+                title = { Text(stringResource(R.string.randomizer_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button))
                     }
                 }
             )
@@ -51,7 +53,7 @@ fun RandomizerScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Nie wiesz co wybrać?",
+                text = stringResource(R.string.cant_decide),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White.copy(alpha = 0.7f)
             )
@@ -107,7 +109,7 @@ fun RandomizerScreen(
                 )
             ) {
                 Text(
-                    text = if (isSpinning) "Losowanie..." else "Wylosuj grę!",
+                    text = if (isSpinning) stringResource(R.string.spinning) else stringResource(R.string.spin_button),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -115,7 +117,7 @@ fun RandomizerScreen(
             
             if (games.isEmpty()) {
                 Text(
-                    text = "Dodaj gry do kolekcji, aby losować!",
+                    text = stringResource(R.string.empty_collection_warning),
                     modifier = Modifier.padding(top = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error

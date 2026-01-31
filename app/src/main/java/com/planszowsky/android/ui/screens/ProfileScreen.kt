@@ -10,10 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.planszowsky.android.R
 import com.planszowsky.android.ui.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +53,7 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Twój Profil",
+            text = stringResource(R.string.profile_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
@@ -65,7 +67,7 @@ fun ProfileScreen(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "Import z BoardGameGeek",
+                    text = stringResource(R.string.bgg_import_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -73,7 +75,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Wpisz swoją nazwę użytkownika BGG, aby zaimportować kolekcję.",
+                    text = stringResource(R.string.bgg_import_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.6f)
                 )
@@ -83,7 +85,7 @@ fun ProfileScreen(
                 OutlinedTextField(
                     value = username,
                     onValueChange = { viewModel.onUsernameChange(it) },
-                    label = { Text("Nazwa użytkownika BGG") },
+                    label = { Text(stringResource(R.string.bgg_username_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
@@ -101,7 +103,7 @@ fun ProfileScreen(
                     if (isImporting) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
                     } else {
-                        Text("Importuj kolekcję")
+                        Text(stringResource(R.string.import_button))
                     }
                 }
             }
@@ -110,12 +112,12 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.weight(1f))
         
         Text(
-            text = "Planszowsky v1.0",
+            text = stringResource(R.string.app_version),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.3f)
         )
         Text(
-            text = "Dane dostarczane przez BoardGameGeek.com",
+            text = stringResource(R.string.bgg_data_source),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.3f)
         )

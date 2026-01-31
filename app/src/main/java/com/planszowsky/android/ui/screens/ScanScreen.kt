@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -26,6 +27,7 @@ import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.planszowsky.android.R
 import com.planszowsky.android.util.GameScannerAnalyzer
 import java.util.concurrent.Executors
 
@@ -45,10 +47,10 @@ fun ScanScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Potrzebujemy dostępu do aparatu, aby zeskanować tytuł gry.")
+            Text(stringResource(R.string.camera_permission_req))
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                Text("Udziel uprawnień")
+                Text(stringResource(R.string.grant_permission))
             }
         }
     }
@@ -124,7 +126,7 @@ fun CameraPreview(
                 onClick = onBackClick,
                 modifier = Modifier.background(Color.Black.copy(0.5f), RoundedCornerShape(50))
             ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wstecz", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button), tint = Color.White)
             }
             
             Spacer(modifier = Modifier.weight(1f))
@@ -136,12 +138,12 @@ fun CameraPreview(
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
                     Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        val label = if (detectedValue.all { it.isDigit() }) "Wykryto kod kreskowy:" else "Wykryto tytuł:"
+                        val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
                         Text(label, style = MaterialTheme.typography.labelSmall)
                         Text(detectedValue, style = MaterialTheme.typography.titleMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(onClick = { onResultScanned(detectedValue) }) {
-                            Text("Szukaj tej gry")
+                            Text(stringResource(R.string.search_this_game))
                         }
                     }
                 }
