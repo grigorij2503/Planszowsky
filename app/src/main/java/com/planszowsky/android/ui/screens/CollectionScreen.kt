@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.planszowsky.android.domain.model.Game
 import com.planszowsky.android.ui.theme.GradientOverlay
@@ -63,7 +63,9 @@ fun CollectionScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(nestedScrollConnection),
         floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
                 // Mały przycisk skanowania nad głównym FABem dla prostoty (zamiast pełnego expandera na razie)
                 SmallFloatingActionButton(
                     onClick = onScanClick,
@@ -87,6 +89,7 @@ fun CollectionScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Główna zawartość

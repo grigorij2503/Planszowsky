@@ -6,7 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -22,7 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.planszowsky.android.domain.model.Game
 import com.planszowsky.android.ui.viewmodel.DetailsViewModel
@@ -50,7 +50,7 @@ fun DetailsScreen(
                         onClick = onBackClick,
                         modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
                     ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Wstecz")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Wstecz")
                     }
                 },
                 actions = {

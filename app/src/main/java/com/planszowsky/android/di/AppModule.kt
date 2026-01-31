@@ -33,7 +33,7 @@ object AppModule {
             AppDatabase::class.java,
             "planszowsky_db"
         )
-        .fallbackToDestructiveMigration()
+        .fallbackToDestructiveMigration(true)
         .build()
     }
 
@@ -55,6 +55,7 @@ object AppModule {
             .build()
     }
 
+    @Suppress("DEPRECATION")
     @Provides
     @Singleton
     fun provideBggApi(okHttpClient: OkHttpClient): BggApi {

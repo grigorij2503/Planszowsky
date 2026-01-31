@@ -29,14 +29,12 @@ fun PlanszowskyTheme(
 ) {
     val colorScheme = DarkColorScheme
     val view = LocalView.current
-    
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = Color.Transparent.toArgb()
-            window.navigationBarColor = Color.Transparent.toArgb()
-            
             val windowInsetsController = WindowCompat.getInsetsController(window, view)
+            // Ustawiamy ikony na jasne, ponieważ mamy ciemne tło (Dark Mode)
             windowInsetsController.isAppearanceLightStatusBars = false
             windowInsetsController.isAppearanceLightNavigationBars = false
         }
