@@ -8,6 +8,7 @@ interface GameRepository {
     fun getWishlistedGames(): Flow<List<Game>>
     suspend fun getGame(id: String): Game?
     suspend fun saveGame(game: Game)
+    suspend fun updateGame(game: Game)
     suspend fun toggleWishlist(game: Game)
     suspend fun deleteGame(game: Game)
     suspend fun searchRemoteGames(query: String): List<Game>

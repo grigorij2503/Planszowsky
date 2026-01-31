@@ -16,7 +16,9 @@ data class GameEntity(
     val maxPlayers: String?,
     val playingTime: String?,
     val isOwned: Boolean,
-    val isWishlisted: Boolean
+    val isWishlisted: Boolean,
+    val isBorrowed: Boolean = false,
+    val borrowedTo: String? = null
 )
 
 fun GameEntity.toDomainModel(): Game {
@@ -31,7 +33,9 @@ fun GameEntity.toDomainModel(): Game {
         maxPlayers = maxPlayers,
         playingTime = playingTime,
         isOwned = isOwned,
-        isWishlisted = isWishlisted
+        isWishlisted = isWishlisted,
+        isBorrowed = isBorrowed,
+        borrowedTo = borrowedTo
     )
 }
 
@@ -47,6 +51,8 @@ fun Game.toEntity(): GameEntity {
         maxPlayers = maxPlayers,
         playingTime = playingTime,
         isOwned = isOwned,
-        isWishlisted = isWishlisted
+        isWishlisted = isWishlisted,
+        isBorrowed = isBorrowed,
+        borrowedTo = borrowedTo
     )
 }

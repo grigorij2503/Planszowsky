@@ -193,6 +193,21 @@ fun GameCard(game: Game, onClick: () -> Unit) {
                     .align(Alignment.BottomStart)
                     .padding(12.dp)
             ) {
+                if (game.isBorrowed) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    ) {
+                        Text(
+                            text = "POŻYCZONA",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
                 Text(
                     text = game.title,
                     style = MaterialTheme.typography.titleMedium,

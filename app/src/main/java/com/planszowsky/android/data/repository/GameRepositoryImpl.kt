@@ -69,6 +69,10 @@ class GameRepositoryImpl @Inject constructor(
         dao.insertGame(game.copy(isOwned = true).toEntity())
     }
 
+    override suspend fun updateGame(game: Game) {
+        dao.insertGame(game.toEntity())
+    }
+
     override suspend fun toggleWishlist(game: Game) {
         dao.insertGame(game.copy(isWishlisted = !game.isWishlisted).toEntity())
     }

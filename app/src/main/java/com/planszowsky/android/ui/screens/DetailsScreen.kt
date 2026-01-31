@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -126,6 +127,16 @@ fun DetailsScreen(
                         }
                         
                         Spacer(modifier = Modifier.height(32.dp))
+
+                        BorrowingSection(
+                            isBorrowed = g.isBorrowed,
+                            borrowedTo = g.borrowedTo ?: "",
+                            onStatusChange = { isBorrowed, borrowedTo ->
+                                viewModel.updateBorrowedStatus(isBorrowed, borrowedTo)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
                         
                         Text(
                             text = "Opis",
@@ -147,6 +158,98 @@ fun DetailsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun BorrowingSection(
+    isBorrowed: Boolean,
+    borrowedTo: String,
+    onStatusChange: (Boolean, String?) -> Unit
+) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    var tempBorrowedTo by remember(borrowedTo) { mutableStateOf(borrowedTo) }
+
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Pożyczona",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (isBorrowed) {
+                        Text(
+                            text = if (borrowedTo.isNotEmpty()) "Komu: $borrowedTo" else "Brak opisu komu",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Switch(
+                    checked = isBorrowed,
+                    onCheckedChange = { 
+                        if (it) {
+                            showEditDialog = true
+                        } else {
+                            onStatusChange(false, null)
+                        }
+                    }
+                )
+            }
+            
+            if (isBorrowed) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text("Edytuj opis")
+                }
+            }
+        }
+    }
+
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            title = { Text("Komu pożyczyłeś grę?") },
+            text = {
+                OutlinedTextField(
+                    value = tempBorrowedTo,
+                    onValueChange = { tempBorrowedTo = it },
+                    label = { Text("Imię / Opis") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onStatusChange(true, tempBorrowedTo)
+                    showEditDialog = false
+                }) {
+                    Text("Zapisz")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Anuluj")
+                }
+            }
+        )
     }
 }
 

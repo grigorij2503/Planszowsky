@@ -8,6 +8,7 @@ Planszowsky to nowoczesna aplikacja na Androida służąca do zarządzania osobi
 - **Skaner Tytułów i Kodów Kreskowych:** Szybko dodawaj gry do bazy, skanując ich tytuł z pudełka (OCR) lub kod EAN (Barcode) przy użyciu Google ML Kit.
 - **Wyszukiwarka BGG:** Integracja z bazą BoardGameGeek (pobieranie opisów, statystyk graczy i czasu rozgrywki).
 - **Szczegóły Gry:** Pełny podgląd informacji o grze z płynną animacją przejść i metadanymi.
+- **System Pożyczania:** Zarządzaj swoją kolekcją, oznaczając gry jako pożyczone. Dodawaj notatki, komu przekazałeś dany tytuł, i śledź status na głównej liście.
 - **Co zagramy? (Randomizer):** Nie wiesz, co wybrać? Użyj wbudowanej "maszyny losującej" (🎰), aby wylosować tytuł z Twojej kolekcji.
 - **Wishlist:** Zapisuj gry, które chcesz kupić w przyszłości, w osobnej, czytelnej sekcji.
 - **Import z BGG:** Opcja szybkiego przeniesienia swojej kolekcji z serwisu BoardGameGeek.
@@ -21,7 +22,7 @@ Projekt wykorzystuje najnowsze standardy tworzenia aplikacji na Androida (Modern
 - **Architektura:** MVVM (Model-View-ViewModel) + Clean Architecture
 - **Wstrzykiwanie zależności:** Hilt
 - **Baza danych:** Room (Lokalne przechowywanie kolekcji)
-- **Sieć:** Retrofit 2 + OkHttp (Obsługa API BGG)
+- **Sieć:** Retrofit 3 + OkHttp 5 (Obsługa API BGG)
 - **Analiza Obrazu:** CameraX + Google ML Kit (OCR & Barcode Scanning)
 - **Obrazy:** Coil (Asynchroniczne ładowanie okładek)
 - **Design:** Material 3 (Material You) z pełnym wsparciem dla Dark Mode.

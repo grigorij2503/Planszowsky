@@ -11,5 +11,7 @@ data class Game(
     val maxPlayers: String? = null,
     val playingTime: String? = null,
     val isOwned: Boolean = false,
-    val isWishlisted: Boolean = false
+    val isWishlisted: Boolean = false,
+    val isBorrowed: Boolean = false,
+    val borrowedTo: String? = null
 )
