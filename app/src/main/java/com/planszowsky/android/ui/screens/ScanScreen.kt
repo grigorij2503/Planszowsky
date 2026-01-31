@@ -64,6 +64,14 @@ fun CameraPreview(
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var detectedValue by remember { mutableStateOf("") }
 
+    // Efekt czyszczenia wykrytej wartości po 5 sekundach
+    LaunchedEffect(detectedValue) {
+        if (detectedValue.isNotBlank()) {
+            kotlinx.coroutines.delay(5000)
+            detectedValue = ""
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
