@@ -121,6 +121,11 @@ fun ProfileScreen(
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.3f)
         )
+        Text(
+            text = stringResource(R.string.legal_disclaimer),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White.copy(alpha = 0.3f)
+        )
         
         Spacer(modifier = Modifier.height(24.dp))
     }

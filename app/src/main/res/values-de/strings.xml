@@ -37,4 +37,5 @@
     <string name="import_button">"Sammlung importieren"</string>
     <string name="app_version">"Planszowsky v1.0"</string>
     <string name="bgg_data_source">"Daten von BoardGameGeek.com bereitgestellt"</string>
+    <string name="legal_disclaimer">"Planszowsky ist ein inoffizielles Projekt und steht in keiner Verbindung zu BGG."</string>
 </resources>

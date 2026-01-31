@@ -34,9 +34,18 @@ The project uses the latest Android development standards (Modern Android Develo
 3. (Optional) Add your BoardGameGeek API key in `AppModule.kt`. Currently, the app uses a `Mock` mode for easier UI testing.
 4. Build and run on an emulator or physical device with Android 8.0+.
 
-## ⚖️ License and Data
+## ⚖️ Legal and Licensing
 
-The application uses data provided by **BoardGameGeek.com**. All game information, descriptions, and some graphics are the property of their respective creators and BGG. This project is for hobbyist/local catalog purposes.
+### License
+This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for more details.
+
+### Data and Attribution
+- **BoardGameGeek:** This application uses data from [BoardGameGeek.com](https://boardgamegeek.com). All game titles, descriptions, and metadata are the property of their respective owners and BGG.
+- **Game Covers:** Board game cover images are property of their respective publishers and designers. This app displays them for informational and cataloging purposes only (Fair Use).
+- **ML Kit:** Image processing and scanning are powered by Google ML Kit. All processing happens locally on the device.
+
+### Disclaimer
+Planszowsky is an unofficial fan project and is not affiliated with or endorsed by BoardGameGeek.
 
 ---
 Created with ❤️ for the board gaming community.
