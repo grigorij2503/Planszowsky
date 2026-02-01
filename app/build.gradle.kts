@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
@@ -20,6 +23,15 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Gemini API Key configuration
+        val properties = Properties()
+        val localPropertiesFile = project.rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(FileInputStream(localPropertiesFile))
+        }
+        val geminiKey = properties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -37,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -97,6 +110,9 @@ dependencies {
     // ML Kit
     implementation(libs.mlkit.text.recognition)
     implementation(libs.mlkit.barcode.scanning)
+    
+    // Gemini AI SDK
+    implementation(libs.generativeai)
 
     // Accompanist Permissions
     implementation(libs.accompanist.permissions)

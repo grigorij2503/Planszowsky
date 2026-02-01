@@ -39,4 +39,15 @@
     <string name="app_version">"Planszowsky v1.0"</string>
     <string name="bgg_data_source">"Daten von BoardGameGeek.com bereitgestellt"</string>
     <string name="legal_disclaimer">"Planszowsky ist ein inoffizielles Projekt und steht in keiner Verbindung zu BGG."</string>
+
+    <!-- Expert AI -->
+    <string name="expert_welcome">"Hallo! Ich bin ein Experte für das Spiel \"%1$s\". Wie kann ich dir helfen? Frag ruhig nach Regeln, Setup oder Strategien!"</string>
+    <string name="expert_system_instruction">"Du bist ein Brettspiel-Experte. Deine Aufgabe ist es, Spielern während ihres Gameplays von \"%1$s\" zu helfen. Antworte kurz, prägnant und auf den Punkt. Konzentriere dich auf die Erklärung von Regeln und Mechaniken. Wenn eine Frage nicht zu diesem Spiel passt, bitte höflich darum, zum Thema zurückzukehren. Erfinde keine Regeln - wenn du etwas nie weißt, sag, dass es in der Anleitung nachgeschlagen werden muss. Antworte in der Sprache des Benutzers."</string>
+    <string name="expert_api_error">"KONFIGURATIONSFEHLER: GEMINI_API_KEY fehlt in local.properties."</string>
+    <string name="expert_init_error">"AI konnte nicht initialisiert werden: %1$s"</string>
+    <string name="expert_chat_title">"Experte: %1$s"</string>
+    <string name="expert_hint">"Stell eine Frage zum Spiel…"</string>
+    <string name="expert_label_user">"Du"</string>
+    <string name="expert_label_ai">"KI-Experte"</string>
+    <string name="expert_label_system">"System"</string>
 </resources>
