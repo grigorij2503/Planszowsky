@@ -158,6 +158,12 @@ fun CollectionScreen(
                 items(games) { game ->
                     GameCard(game, onClick = { onGameClick(game.id) })
                 }
+                
+                // Spacer ensuring scroll is always possible (so search bar can hide)
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+                    Spacer(modifier = Modifier.height(screenHeight - searchBarHeight))
+                }
             }
 
             // Pływający pasek wyszukiwania (Floating Search Bar)
