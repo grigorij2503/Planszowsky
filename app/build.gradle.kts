@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.compose.compiler)
@@ -36,9 +35,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
     }
@@ -50,10 +46,6 @@ android {
             useLegacyPackaging = false
         }
     }
-}
-
-kotlin {
-    jvmToolchain(17)
 }
 
 dependencies {
@@ -85,7 +77,10 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.simplexml)
+    implementation(libs.retrofit.converter.jackson)
+    implementation(libs.jackson.dataformat.xml)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.stax.api)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
 

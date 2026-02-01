@@ -1,98 +1,105 @@
 package com.planszowsky.android.data.remote
 
-import org.simpleframework.xml.Attribute
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
-import org.simpleframework.xml.Root
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 
-@Root(name = "items", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "items")
 data class BggSearchResponse(
-    @field:ElementList(inline = true, required = false)
+    @field:JacksonXmlProperty(localName = "item")
+    @field:JacksonXmlElementWrapper(useWrapping = false)
     var items: List<BggSearchItem>? = null
 )
 
-@Root(name = "item", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggSearchItem(
-    @field:Attribute(name = "id")
+    @field:JacksonXmlProperty(isAttribute = true)
     var id: String = "",
     
-    @field:Element(name = "name", required = false)
+    @field:JacksonXmlProperty(localName = "name")
     var name: BggName? = null,
     
-    @field:Element(name = "yearpublished", required = false)
+    @field:JacksonXmlProperty(localName = "yearpublished")
     var yearPublished: BggValue? = null
 )
 
-@Root(name = "name", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggName(
-    @field:Attribute(name = "value")
+    @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
 )
 
-@Root(name = "yearpublished", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggValue(
-    @field:Attribute(name = "value")
+    @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
 )
 
 
 // Details
-@Root(name = "items", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "items")
 data class BggThingResponse(
-    @field:ElementList(inline = true, required = false)
+    @field:JacksonXmlProperty(localName = "item")
+    @field:JacksonXmlElementWrapper(useWrapping = false)
     var items: List<BggThingItem>? = null
 )
 
-@Root(name = "item", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggThingItem(
-    @field:Attribute(name = "id")
+    @field:JacksonXmlProperty(isAttribute = true)
     var id: String = "",
 
-    @field:Element(name = "thumbnail", required = false)
+    @field:JacksonXmlProperty(localName = "thumbnail")
     var thumbnail: String? = null,
 
-    @field:Element(name = "image", required = false)
+    @field:JacksonXmlProperty(localName = "image")
     var image: String? = null,
     
-    @field:Element(name = "description", required = false)
+    @field:JacksonXmlProperty(localName = "description")
     var description: String? = null,
     
-    @field:ElementList(inline = true, entry = "name", required = false)
+    @field:JacksonXmlProperty(localName = "name")
+    @field:JacksonXmlElementWrapper(useWrapping = false)
     var names: List<BggThingName>? = null,
 
-    @field:Element(name = "yearpublished", required = false)
+    @field:JacksonXmlProperty(localName = "yearpublished")
     var yearPublished: BggValue? = null,
     
-    @field:Element(name = "minplayers", required = false)
+    @field:JacksonXmlProperty(localName = "minplayers")
     var minPlayers: BggValue? = null,
 
-    @field:Element(name = "maxplayers", required = false)
+    @field:JacksonXmlProperty(localName = "maxplayers")
     var maxPlayers: BggValue? = null,
 
-    @field:Element(name = "playingtime", required = false)
+    @field:JacksonXmlProperty(localName = "playingtime")
     var playingTime: BggValue? = null,
 
-    @field:ElementList(inline = true, entry = "link", required = false)
+    @field:JacksonXmlProperty(localName = "link")
+    @field:JacksonXmlElementWrapper(useWrapping = false)
     var links: List<BggLink>? = null
 )
 
-@Root(name = "link", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggLink(
-    @field:Attribute(name = "type")
+    @field:JacksonXmlProperty(isAttribute = true)
     var type: String = "",
     
-    @field:Attribute(name = "id")
+    @field:JacksonXmlProperty(isAttribute = true)
     var id: String = "",
     
-    @field:Attribute(name = "value")
+    @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
 )
 
-@Root(name = "name", strict = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BggThingName(
-    @field:Attribute(name = "type")
+    @field:JacksonXmlProperty(isAttribute = true)
     var type: String = "",
     
-    @field:Attribute(name = "value")
+    @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
 )
