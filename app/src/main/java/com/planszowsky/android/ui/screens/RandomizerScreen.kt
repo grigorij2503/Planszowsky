@@ -91,7 +91,7 @@ fun RandomizerScreen(
                         )
                     }
                 } else {
-                    Text(text = "🎰", fontSize = 64.sp)
+                    Text(text = "🎲", fontSize = 64.sp)
                 }
             }
 

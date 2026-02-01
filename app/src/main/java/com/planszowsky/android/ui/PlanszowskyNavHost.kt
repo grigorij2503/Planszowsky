@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
@@ -32,7 +33,7 @@ import com.planszowsky.android.ui.screens.SearchScreen
 import com.planszowsky.android.ui.screens.WishlistScreen
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Collection : Screen("collection", "Kolekcja", Icons.Default.Home)
+    object Collection : Screen("collection", "Kolekcja", Icons.Default.Casino)
     object Wishlist : Screen("wishlist", "Wishlist", Icons.Default.Favorite)
     object Profile : Screen("profile", "Profil", Icons.Default.AccountCircle)
 }

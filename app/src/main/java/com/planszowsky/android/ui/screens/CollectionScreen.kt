@@ -127,7 +127,7 @@ fun CollectionScreen(
                                 onClick = onRandomizerClick,
                                 modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
                             ) {
-                                Text("🎰", fontSize = 20.sp)
+                                Text("🎲", fontSize = 20.sp)
                             }
                         }
 

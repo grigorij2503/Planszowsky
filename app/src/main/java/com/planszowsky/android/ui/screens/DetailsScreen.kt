@@ -58,7 +58,7 @@ fun DetailsScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Chat,
-                        contentDescription = "Zapytaj Eksperta"
+                        contentDescription = "Zapytaj Mistrza Gry"
                     )
                 }
             }
