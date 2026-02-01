@@ -52,7 +52,9 @@ class SearchViewModel @Inject constructor(
 
     private suspend fun performSearch(query: String) {
         _isLoading.value = true
-        _searchResults.value = repository.searchRemoteGames(query)
+        // Basic sanitation to avoid API errors with weird OCR characters
+        val cleanQuery = query.trim() 
+        _searchResults.value = repository.searchRemoteGames(cleanQuery)
         _isLoading.value = false
     }
 
