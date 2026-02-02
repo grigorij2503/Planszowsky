@@ -39,4 +39,15 @@
     <string name="app_version">"Planszowsky v1.0"</string>
     <string name="bgg_data_source">"Data provided by BoardGameGeek.com"</string>
     <string name="legal_disclaimer">"Planszowsky is an unofficial project and is not affiliated with BGG."</string>
+
+    <!-- Expert AI -->
+    <string name="expert_welcome">"Welcome to the table! I\'m your Game Master for \"%1$s\". How can I help? Feel free to ask about rules, setup, or strategy!"</string>
+    <string name="expert_system_instruction">"You are a Game Master. Your task is to help players during their gameplay of: \"%1$s\". Respond with passion, briefly, and to the point. Focus on explaining rules and mechanics. If a question is not about this game, politely ask to return to the table. Do not make up rules - if you don\'t know something, suggest checking the manual. Respond in the user\'s language."</string>
+    <string name="expert_api_error">"SILENCE: The Game Master has lost their voice (Missing API Key)."</string>
+    <string name="expert_init_error">"The Game Master needs a break: %1$s"</string>
+    <string name="expert_chat_title">"Game Master: %1$s"</string>
+    <string name="expert_hint">"Ask the Game Master…"</string>
+    <string name="expert_label_user">"Player"</string>
+    <string name="expert_label_ai">"Planszowsky"</string>
+    <string name="expert_label_system">"System"</string>
 </resources>

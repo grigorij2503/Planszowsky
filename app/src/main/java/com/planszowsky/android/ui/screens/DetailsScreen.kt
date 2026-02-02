@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -37,9 +38,31 @@ fun DetailsScreen(
     onBackClick: () -> Unit
 ) {
     val game by viewModel.game.collectAsState()
+    var showChat by remember { mutableStateOf(false) }
+
+    if (showChat && game != null) {
+        ExpertChatBottomSheet(
+            gameTitle = game!!.title,
+            onDismiss = { showChat = false }
+        )
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            if (game != null) {
+                FloatingActionButton(
+                    onClick = { showChat = true },
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Chat,
+                        contentDescription = "Zapytaj Mistrza Gry"
+                    )
+                }
+            }
+        },
         topBar = {
             TopAppBar(
                 title = { },

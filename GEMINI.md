@@ -9,7 +9,7 @@
 *   **Smart Scanning:** Hybrid OCR (Text) and Barcode (EAN) scanner using Google ML Kit to quickly add games.
 *   **Borrowing System:** Track games lent to friends.
 *   **Randomizer:** "Slot machine" feature to pick a game to play.
-*   **BGG Integration:** Fetches game metadata (currently mocked due to API auth changes).
+*   **Expert AI:** "Ask the Expert" feature using Gemini 1.5 Flash to answer rule questions.
 *   **Wishlist:** Separate list for wanted games.
 
 ## Technical Architecture
@@ -22,6 +22,7 @@ The project follows **Modern Android Development (MAD)** standards:
 *   **DI:** Hilt
 *   **Database:** Room (SQLite)
 *   **Network:** Retrofit + OkHttp + Jackson (for XML)
+*   **AI:** Google AI SDK (Gemini 1.5 Flash)
 *   **Image Loading:** Coil
 *   **Camera/ML:** CameraX + ML Kit (Text Recognition, Barcode Scanning)
 
@@ -30,6 +31,9 @@ The project follows **Modern Android Development (MAD)** standards:
 *   **Entry Points:**
     *   `app/src/main/java/com/planszowsky/android/PlanszowskyApp.kt`: Application class (Hilt setup).
     *   `app/src/main/java/com/planszowsky/android/MainActivity.kt`: Main activity hosting the Compose UI.
+*   **AI Expert Module:**
+    *   `app/src/main/java/com/planszowsky/android/ui/viewmodel/ExpertViewModel.kt`: Manages AI chat sessions.
+    *   `app/src/main/java/com/planszowsky/android/ui/screens/ExpertChatBottomSheet.kt`: UI for the expert chat.
 *   **Dependency Injection:**
     *   `app/src/main/java/com/planszowsky/android/di/AppModule.kt`: Provides `AppDatabase`, `OkHttpClient` (with Mock interceptor), and `BggApi`.
 *   **Data Layer:**
@@ -40,6 +44,7 @@ The project follows **Modern Android Development (MAD)** standards:
     *   `app/src/main/java/com/planszowsky/android/ui/viewmodel/`: ViewModels managing UI state.
 *   **Utilities:**
     *   `app/src/main/java/com/planszowsky/android/util/GameScannerAnalyzer.kt`: Core logic for CameraX image analysis.
+    *   `app/src/main/java/com/planszowsky/android/util/StringExt.kt`: String utilities (Levenshtein, OCR cleaning).
 
 ## Building and Running
 
@@ -47,6 +52,12 @@ The project follows **Modern Android Development (MAD)** standards:
 *   JDK 17
 *   Android Studio (Latest)
 *   Android SDK 36 (Preview/Beta support might be needed due to bleeding edge config)
+
+### API Setup
+1.  **BGG API:** Currently in **MOCK MODE**.
+2.  **Gemini AI:** 
+    *   Create a key at [Google AI Studio](https://aistudio.google.com/).
+    *   Add `GEMINI_API_KEY=your_key` to `local.properties`.
 
 ### Commands
 *   **Build Debug APK:**
@@ -61,9 +72,15 @@ The project follows **Modern Android Development (MAD)** standards:
 ## Development Status & Conventions
 
 *   **BGG API:** Currently in **MOCK MODE**. The `MockBggInterceptor` in `AppModule.kt` intercepts requests to `boardgamegeek.com/xmlapi2/` and returns static data (Ticket to Ride, Catan, etc.).
-    *   *To enable real API:* You would need to remove the interceptor and potentially handle the new BGG Auth requirements (though XMLAPI2 is usually public, recent changes might require a token or session cookie).
-*   **Scanner:** The scanner uses a frame buffer to stabilize OCR results.
-*   **Permissions:** Camera and Internet permissions are required and declared in `AndroidManifest.xml`.
+*   **Scanner:** Uses 'Central Bias' scoring and frame buffer to stabilize OCR results.
+*   **Fuzzy Logic:** `StringExt.kt` contains Levenshtein distance implementation for future fuzzy search improvements.
+
+## Production Migration Path (AI Expert)
+
+When moving to a production/paid model:
+1.  **Security:** Migrate from `Google AI SDK` to **Firebase Vertex AI** to enable **App Check** (protection against API key theft).
+2.  **Monetization:** Implement In-App Purchases (Google Play Billing) to gate the `showChat` state in `DetailsScreen`.
+3.  **Limits:** Monitor quotas in Google Cloud Console.
 
 ## Common Tasks
 

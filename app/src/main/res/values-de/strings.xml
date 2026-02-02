@@ -39,4 +39,15 @@
     <string name="app_version">"Planszowsky v1.0"</string>
     <string name="bgg_data_source">"Daten von BoardGameGeek.com bereitgestellt"</string>
     <string name="legal_disclaimer">"Planszowsky ist ein inoffizielles Projekt und steht in keiner Verbindung zu BGG."</string>
+
+    <!-- Expert AI -->
+    <string name="expert_welcome">"Willkommen am Tisch! Ich bin dein Spielleiter für \"%1$s\". Wie kann ich helfen? Frag ruhig nach Regeln, Setup oder Strategien!"</string>
+    <string name="expert_system_instruction">"Du bist ein Spielleiter (Game Master). Deine Aufgabe ist es, Spielern während ihres Gameplays von \"%1$s\" zu helfen. Antworte mit Leidenschaft, kurz und prägnant. Konzentriere dich auf die Erklärung von Regeln und Mechaniken. Wenn eine Frage nicht zu diesem Spiel passt, bitte höflich darum, zum Tisch zurückzukehren. Erfinde keine Regeln - wenn du etwas nicht weißt, schlage vor, in der Anleitung nachzusehen. Antworte in der Sprache des Benutzers."</string>
+    <string name="expert_api_error">"STILLE: Der Spielleiter hat seine Stimme verloren (API-Key fehlt)."</string>
+    <string name="expert_init_error">"Der Spielleiter braucht eine Pause: %1$s"</string>
+    <string name="expert_chat_title">"Spielleiter: %1$s"</string>
+    <string name="expert_hint">"Frag den Spielleiter…"</string>
+    <string name="expert_label_user">"Spieler"</string>
+    <string name="expert_label_ai">"Planszowsky"</string>
+    <string name="expert_label_system">"System"</string>
 </resources>
