@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.planszowsky.android.ui.screens.CollectionScreen
 import com.planszowsky.android.ui.screens.DetailsScreen
+import com.planszowsky.android.ui.screens.DiceScreen
 import com.planszowsky.android.ui.screens.ProfileScreen
 import com.planszowsky.android.ui.screens.RandomizerScreen
 import com.planszowsky.android.ui.screens.ScanScreen
@@ -33,7 +34,8 @@ import com.planszowsky.android.ui.screens.SearchScreen
 import com.planszowsky.android.ui.screens.WishlistScreen
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Collection : Screen("collection", "Kolekcja", Icons.Default.Casino)
+    object Collection : Screen("collection", "Kolekcja", Icons.Default.Home)
+    object DiceRoller : Screen("dice_roller", "Kostki", Icons.Default.Casino)
     object Wishlist : Screen("wishlist", "Wishlist", Icons.Default.Favorite)
     object Profile : Screen("profile", "Profil", Icons.Default.AccountCircle)
 }
@@ -46,6 +48,7 @@ fun PlanszowskyMainContainer() {
 
     val showBottomBar = currentDestination?.route in listOf(
         Screen.Collection.route,
+        Screen.DiceRoller.route,
         Screen.Wishlist.route,
         Screen.Profile.route
     )
@@ -57,7 +60,7 @@ fun PlanszowskyMainContainer() {
                     containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
                     tonalElevation = 8.dp
                 ) {
-                    val items = listOf(Screen.Collection, Screen.Wishlist, Screen.Profile)
+                    val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
                     items.forEach { screen ->
                         NavigationBarItem(
                             icon = { Icon(screen.icon, contentDescription = null) },
@@ -90,6 +93,9 @@ fun PlanszowskyMainContainer() {
                     onRandomizerClick = { navController.navigate("randomizer") },
                     onScanClick = { navController.navigate("scan") }
                 )
+            }
+            composable(Screen.DiceRoller.route) {
+                DiceScreen()
             }
             composable(Screen.Wishlist.route) { 
                 WishlistScreen(
