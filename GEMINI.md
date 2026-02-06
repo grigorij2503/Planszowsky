@@ -29,22 +29,22 @@ The project follows **Modern Android Development (MAD)** standards:
 ### Key Files & Directories
 
 *   **Entry Points:**
-    *   `app/src/main/java/com/planszowsky/android/PlanszowskyApp.kt`: Application class (Hilt setup).
-    *   `app/src/main/java/com/planszowsky/android/MainActivity.kt`: Main activity hosting the Compose UI.
+    *   `app/src/main/java/pl/pointblank/planszowsky/PlanszowskyApp.kt`: Application class (Hilt setup).
+    *   `app/src/main/java/pl/pointblank/planszowsky/MainActivity.kt`: Main activity hosting the Compose UI.
 *   **AI Expert Module:**
-    *   `app/src/main/java/com/planszowsky/android/ui/viewmodel/ExpertViewModel.kt`: Manages AI chat sessions.
-    *   `app/src/main/java/com/planszowsky/android/ui/screens/ExpertChatBottomSheet.kt`: UI for the expert chat.
+    *   `app/src/main/java/pl/pointblank/planszowsky/ui/viewmodel/ExpertViewModel.kt`: Manages AI chat sessions.
+    *   `app/src/main/java/pl/pointblank/planszowsky/ui/screens/ExpertChatBottomSheet.kt`: UI for the expert chat.
 *   **Dependency Injection:**
-    *   `app/src/main/java/com/planszowsky/android/di/AppModule.kt`: Provides `AppDatabase`, `OkHttpClient` (with Mock interceptor), and `BggApi`.
+    *   `app/src/main/java/pl/pointblank/planszowsky/di/AppModule.kt`: Provides `AppDatabase`, `OkHttpClient` (with Mock interceptor), and `BggApi`.
 *   **Data Layer:**
-    *   `app/src/main/java/com/planszowsky/android/data/local/`: Room Database entities and DAOs.
-    *   `app/src/main/java/com/planszowsky/android/data/remote/`: Retrofit services. **Note:** `MockBggInterceptor.kt` is currently used to mock BGG responses.
+    *   `app/src/main/java/pl/pointblank/planszowsky/data/local/`: Room Database entities and DAOs.
+    *   `app/src/main/java/pl/pointblank/planszowsky/data/remote/`: Retrofit services. **Note:** `MockBggInterceptor.kt` is currently used to mock BGG responses.
 *   **UI Layer:**
-    *   `app/src/main/java/com/planszowsky/android/ui/screens/`: Composable screens (Collection, Details, Scanner, etc.).
-    *   `app/src/main/java/com/planszowsky/android/ui/viewmodel/`: ViewModels managing UI state.
+    *   `app/src/main/java/pl/pointblank/planszowsky/ui/screens/`: Composable screens (Collection, Details, Scanner, etc.).
+    *   `app/src/main/java/pl/pointblank/planszowsky/ui/viewmodel/`: ViewModels managing UI state.
 *   **Utilities:**
-    *   `app/src/main/java/com/planszowsky/android/util/GameScannerAnalyzer.kt`: Core logic for CameraX image analysis.
-    *   `app/src/main/java/com/planszowsky/android/util/StringExt.kt`: String utilities (Levenshtein, OCR cleaning).
+    *   `app/src/main/java/pl/pointblank/planszowsky/util/GameScannerAnalyzer.kt`: Core logic for CameraX image analysis.
+    *   `app/src/main/java/pl/pointblank/planszowsky/util/StringExt.kt`: String utilities (Levenshtein, OCR cleaning).
 
 ## Building and Running
 

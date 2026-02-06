@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-    namespace = "com.planszowsky.android"
+    namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.planszowsky.android"
+        applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
