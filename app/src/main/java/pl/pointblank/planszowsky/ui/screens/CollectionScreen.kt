@@ -212,6 +212,24 @@ fun CollectionScreen(
                 }
                 
                 item(span = StaggeredGridItemSpan.FullLine) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AsyncImage(
+                            model = R.drawable.bgg,
+                            contentDescription = "Powered by BGG",
+                            modifier = Modifier.height(32.dp),
+                            contentScale = ContentScale.Fit,
+                            alpha = if (isRetro) 0.7f else 0.4f,
+                            filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
+                        )
+                    }
+                }
+
+                item(span = StaggeredGridItemSpan.FullLine) {
                     val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
                     Spacer(modifier = Modifier.height(screenHeight - searchBarHeight))
                 }
@@ -346,7 +364,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(game.imageUrl ?: game.thumbnailUrl)
-                            .transformations(PixelationTransformation(pixelSize = 12))
+                            .transformations(PixelationTransformation(pixelSize = 6))
                             .crossfade(true)
                             .build(),
                         contentDescription = game.title,

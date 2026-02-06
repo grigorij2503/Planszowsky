@@ -137,6 +137,23 @@ fun SearchScreen(
                             onAddClick = { viewModel.addToCollection(game) }
                         )
                     }
+
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = R.drawable.bgg,
+                                contentDescription = "Powered by BGG",
+                                modifier = Modifier.height(40.dp),
+                                contentScale = ContentScale.Fit,
+                                filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
+                            )
+                        }
+                    }
                 }
             }
         }

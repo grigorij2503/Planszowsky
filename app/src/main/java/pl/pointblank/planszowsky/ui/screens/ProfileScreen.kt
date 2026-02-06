@@ -16,8 +16,10 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil.compose.AsyncImage
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
@@ -38,11 +41,29 @@ fun ProfileScreen(
 ) {
     val username by viewModel.bggUsername.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
+    val importResult by viewModel.importResult.collectAsState(initial = null)
     val installationId by viewModel.installationId.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
     
     val context = LocalContext.current
+
+    LaunchedEffect(importResult) {
+        importResult?.let { result ->
+            val message = when (result) {
+                is ProfileViewModel.ImportResult.Success -> {
+                    if (isRetro) "ZAIMPORTOWANO ${result.count} GIER!" 
+                    else "Zaimportowano ${result.count} gier!"
+                }
+                is ProfileViewModel.ImportResult.Error -> {
+                    if (isRetro) "BŁĄD IMPORTU!" 
+                    else "Błąd podczas importu"
+                }
+            }
+            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
 
     Column(
@@ -344,6 +365,17 @@ fun ProfileScreen(
             text = stringResource(R.string.legal_disclaimer),
             style = footerStyle,
             color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
+        )
+        
+        Spacer(modifier = Modifier.height(32.dp))
+
+        AsyncImage(
+            model = R.drawable.bgg,
+            contentDescription = "Powered by BGG",
+            modifier = Modifier.height(32.dp),
+            contentScale = ContentScale.Fit,
+            alpha = if (isRetro) 0.8f else 0.5f,
+            filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
         )
         
         Spacer(modifier = Modifier.height(24.dp))

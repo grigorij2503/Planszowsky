@@ -63,9 +63,15 @@ class SearchViewModel @Inject constructor(
 
     private suspend fun performSearch(query: String) {
         _isLoading.value = true
-        // Basic sanitation to avoid API errors with weird OCR characters
-        val cleanQuery = query.trim() 
-        _searchResults.value = repository.searchRemoteGames(cleanQuery)
+        val cleanQuery = query.trim()
+        
+        val results = if (cleanQuery.all { it.isDigit() } && cleanQuery.length >= 8) {
+            repository.searchByBarcode(cleanQuery)
+        } else {
+            repository.searchRemoteGames(cleanQuery)
+        }
+        
+        _searchResults.value = results
         _isLoading.value = false
     }
 

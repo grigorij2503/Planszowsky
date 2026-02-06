@@ -6,6 +6,7 @@ import pl.pointblank.planszowsky.data.local.toEntity
 import pl.pointblank.planszowsky.data.remote.BggApi
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.domain.repository.GameRepository
+import pl.pointblank.planszowsky.util.FirebaseManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.Dispatchers
@@ -14,12 +15,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
     private val api: BggApi,
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
+    private val firebaseManager: FirebaseManager
 ) : GameRepository {
 
     private val sessionMutex = Mutex()
@@ -96,12 +99,51 @@ class GameRepositoryImpl @Inject constructor(
         return try {
             val response = api.searchGames(query)
             response.items?.map { item ->
+                val primaryName = item.names?.find { it.type == "primary" }?.value 
+                    ?: item.names?.firstOrNull()?.value 
+                    ?: "Unknown"
+                
                 Game(
                     id = item.id,
-                    title = item.name?.value ?: "Unknown",
+                    title = primaryName,
                     yearPublished = item.yearPublished?.value
                 )
             } ?: emptyList()
+        } catch (e: HttpException) {
+            if (e.code() == 400) {
+                firebaseManager.logError(e, "BGG Search 400: $query")
+            }
+            emptyList()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    override suspend fun searchByBarcode(barcode: String): List<Game> {
+        ensureSession()
+        return try {
+            val response = api.searchByBarcode(barcode)
+            val games = response.items?.map { item ->
+                val primaryName = item.names?.find { it.type == "primary" }?.value 
+                    ?: item.names?.firstOrNull()?.value 
+                    ?: "Unknown"
+                
+                Game(
+                    id = item.id,
+                    title = primaryName,
+                    yearPublished = item.yearPublished?.value
+                )
+            } ?: emptyList()
+
+            // Since search only gives basic info, we might want to fetch full details for the first result
+            // if we want barcodes to be "instant" add. But for now, let's just return the list.
+            games
+        } catch (e: HttpException) {
+            if (e.code() == 400) {
+                firebaseManager.logError(e, "BGG Barcode 400: $barcode")
+            }
+            emptyList()
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
@@ -133,9 +175,44 @@ class GameRepositoryImpl @Inject constructor(
                 isOwned = false,
                 categories = categories
             )
+        } catch (e: HttpException) {
+            if (e.code() == 400) {
+                firebaseManager.logError(e, "BGG Details 400: $id")
+            }
+            null
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
+    }
+
+    override suspend fun importCollection(username: String): Int {
+        ensureSession()
+        var importedCount = 0
+        try {
+            val response = api.getCollection(username)
+            response.items?.forEach { item ->
+                val game = Game(
+                    id = item.id,
+                    title = item.name ?: "Unknown",
+                    thumbnailUrl = item.thumbnail,
+                    imageUrl = item.image,
+                    yearPublished = item.yearPublished,
+                    isOwned = item.status?.own == "1",
+                    isWishlisted = item.status?.wishlist == "1"
+                )
+                dao.insertGame(game.toEntity())
+                importedCount++
+            }
+        } catch (e: HttpException) {
+            if (e.code() == 400) {
+                firebaseManager.logError(e, "BGG Import 400: $username")
+            }
+            throw e
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw e
+        }
+        return importedCount
     }
 }

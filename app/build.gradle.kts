@@ -33,7 +33,9 @@ android {
             properties.load(FileInputStream(localPropertiesFile))
         }
         val geminiKey = properties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
+        val bggKey = properties.getProperty("BGG_API_KEY") ?: System.getenv("BGG_API_KEY") ?: ""
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
+        buildConfigField("String", "BGG_API_KEY", "\"$bggKey\"")
     }
 
     buildTypes {
