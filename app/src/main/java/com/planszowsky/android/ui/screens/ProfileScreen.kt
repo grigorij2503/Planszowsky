@@ -1,132 +1,337 @@
 package com.planszowsky.android.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.planszowsky.android.R
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.ui.theme.*
 import com.planszowsky.android.ui.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    appTheme: AppTheme = AppTheme.MODERN,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val username by viewModel.bggUsername.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
+    val isRetro = appTheme == AppTheme.PIXEL_ART
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
+            .verticalScroll(scrollState)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(48.dp))
         
-        Surface(
-            modifier = Modifier.size(120.dp),
-            shape = RoundedCornerShape(40.dp),
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Default.Person, 
-                    contentDescription = null, 
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+        if (isRetro) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .background(RetroElementBackground)
+                    .drawBehind { drawRect(RetroBlack, style = Stroke(4.dp.toPx())) },
+                contentAlignment = Alignment.Center
+            ) {
+                PixelProfileIcon(isSelected = true)
+            }
+        } else {
+            Surface(
+                modifier = Modifier.size(120.dp),
+                shape = RoundedCornerShape(40.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Default.Person, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
         
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = stringResource(R.string.profile_title),
-            style = MaterialTheme.typography.headlineMedium,
+            text = stringResource(R.string.profile_title).let { if(isRetro) it.uppercase() else it },
+            style = if (isRetro) MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold) 
+                    else MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
         
         Spacer(modifier = Modifier.height(48.dp))
         
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Text(
-                    text = stringResource(R.string.bgg_import_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = stringResource(R.string.bgg_import_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { viewModel.onUsernameChange(it) },
-                    label = { Text(stringResource(R.string.bgg_username_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    enabled = !isImporting
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Button(
-                    onClick = { viewModel.importFromBgg() },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = !isImporting && username.isNotBlank()
-                ) {
-                    if (isImporting) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
-                    } else {
-                        Text(stringResource(R.string.import_button))
+        // Theme Selection Card
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier.fillMaxWidth(),
+                borderColor = RetroGold
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = "WYGLĄD APLIKACJI",
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ThemeButton(
+                            text = "MODERN",
+                            isSelected = appTheme == AppTheme.MODERN,
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setTheme(AppTheme.MODERN) }
+                        )
+                        ThemeButton(
+                            text = "PIXEL ART",
+                            isSelected = appTheme == AppTheme.PIXEL_ART,
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setTheme(AppTheme.PIXEL_ART) }
+                        )
+                    }
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = "Wygląd aplikacji",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ThemeButton(
+                            text = "Modern",
+                            isSelected = appTheme == AppTheme.MODERN,
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setTheme(AppTheme.MODERN) }
+                        )
+                        ThemeButton(
+                            text = "Pixel Art",
+                            isSelected = appTheme == AppTheme.PIXEL_ART,
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setTheme(AppTheme.PIXEL_ART) }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // BGG Import Card
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier.fillMaxWidth(),
+                borderColor = RetroGrey
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.bgg_import_title).uppercase(),
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.bgg_import_desc).uppercase(),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.7f))
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { viewModel.onUsernameChange(it) },
+                        label = { Text(stringResource(R.string.bgg_username_label), color = RetroGold) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RectangleShape,
+                        singleLine = true,
+                        enabled = !isImporting,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = RetroGold,
+                            unfocusedBorderColor = RetroText,
+                            cursorColor = RetroGold
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    RetroSquareButton(
+                        text = if(isImporting) "CZEKAJ..." else "IMPORTUJ",
+                        color = RetroGreen,
+                        onClick = { viewModel.importFromBgg() }
+                    )
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.bgg_import_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = stringResource(R.string.bgg_import_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.6f)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { viewModel.onUsernameChange(it) },
+                        label = { Text(stringResource(R.string.bgg_username_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        enabled = !isImporting
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Button(
+                        onClick = { viewModel.importFromBgg() },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = !isImporting && username.isNotBlank()
+                    ) {
+                        if (isImporting) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
+                        } else {
+                            Text(stringResource(R.string.import_button))
+                        }
                     }
                 }
             }
         }
         
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(48.dp))
+        
+        val footerStyle = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.4f))
+                          else MaterialTheme.typography.labelSmall
         
         Text(
             text = stringResource(R.string.app_version),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.3f)
+            style = footerStyle,
+            color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
         )
         Text(
             text = stringResource(R.string.bgg_data_source),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.3f)
+            style = footerStyle,
+            color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
         )
         Text(
             text = stringResource(R.string.legal_disclaimer),
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.3f)
+            style = footerStyle,
+            color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
         )
         
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun ThemeButton(
+    text: String,
+    isSelected: Boolean,
+    isRetro: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    if (isRetro) {
+        Box(
+            modifier = modifier
+                .height(48.dp)
+                .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
+                .background(if (isSelected) RetroGold else RetroBackground)
+                .clickable(onClick = onClick)
+                .drawBehind {
+                    val stroke = 2.dp.toPx()
+                    drawRect(RetroBlack, style = Stroke(stroke * 2f))
+                    if (isSelected) {
+                        drawRect(Color.White.copy(alpha = 0.3f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
+                    }
+                }
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text, 
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = FontFamily.Monospace, 
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) RetroBlack else RetroText
+                )
+            )
+        }
+    } else {
+        Button(
+            onClick = onClick,
+            modifier = modifier.height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            Text(text = text, fontWeight = FontWeight.Bold)
+        }
     }
 }
