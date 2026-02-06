@@ -21,6 +21,13 @@
 -keepattributes *Annotation*, EnclosingMethod, Signature
 -keepnames class com.fasterxml.jackson.** { *; }
 
+# Woodstox / Stax (Missing optional dependencies)
+-dontwarn aQute.bnd.annotation.**
+-dontwarn org.codehaus.stax2.**
+-dontwarn com.ctc.wstx.**
+-keep class com.ctc.wstx.** { *; }
+-keep class org.codehaus.stax2.** { *; }
+
 # Hilt
 -keep class * extends androidx.lifecycle.ViewModel { *; }
 -keep class * extends dagger.hilt.android.lifecycle.HiltViewModel { *; }
