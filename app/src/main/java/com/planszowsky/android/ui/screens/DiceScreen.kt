@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,22 +17,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.ui.theme.*
 import com.planszowsky.android.ui.viewmodel.DiceMode
 import com.planszowsky.android.ui.viewmodel.DiceUiState
 import com.planszowsky.android.ui.viewmodel.DiceViewModel
@@ -41,10 +49,12 @@ import kotlin.math.sin
 
 @Composable
 fun DiceScreen(
+    appTheme: AppTheme = AppTheme.MODERN,
     viewModel: DiceViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val haptic = LocalHapticFeedback.current
+    val isRetro = appTheme == AppTheme.PIXEL_ART
 
     LaunchedEffect(uiState.isRolling) {
         if (uiState.isRolling) {
@@ -55,16 +65,15 @@ fun DiceScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Suma: ${if (uiState.isRolling) "..." else uiState.totalSum}",
-            style = MaterialTheme.typography.displayMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            ),
+            text = "SUMA: ${if (uiState.isRolling) "..." else uiState.totalSum}",
+            style = if (isRetro) 
+                MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = RetroGold, fontFamily = FontFamily.Monospace)
+                else MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
             modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
         )
 
@@ -76,12 +85,14 @@ fun DiceScreen(
         ) {
             DiceArena(
                 dice = uiState.dice,
-                isRolling = uiState.isRolling
+                isRolling = uiState.isRolling,
+                appTheme = appTheme
             )
         }
 
         DiceControls(
             uiState = uiState,
+            appTheme = appTheme,
             onModeSelect = viewModel::onModeSelected,
             onCustomConfigChange = viewModel::onCustomDiceConfigChanged,
             onRoll = viewModel::rollDice
@@ -90,7 +101,7 @@ fun DiceScreen(
 }
 
 @Composable
-fun DiceArena(dice: List<DieState>, isRolling: Boolean) {
+fun DiceArena(dice: List<DieState>, isRolling: Boolean, appTheme: AppTheme) {
     val columns = when {
         dice.size == 1 -> 1
         dice.size <= 4 -> 2
@@ -105,13 +116,13 @@ fun DiceArena(dice: List<DieState>, isRolling: Boolean) {
         contentPadding = PaddingValues(16.dp)
     ) {
         items(dice, key = { it.id }) { die ->
-            AnimatedDie(die = die, isRolling = isRolling)
+            AnimatedDie(die = die, isRolling = isRolling, appTheme = appTheme)
         }
     }
 }
 
 @Composable
-fun AnimatedDie(die: DieState, isRolling: Boolean) {
+fun AnimatedDie(die: DieState, isRolling: Boolean, appTheme: AppTheme) {
     val shakeAnim = remember { Animatable(0f) }
     
     LaunchedEffect(isRolling) {
@@ -143,10 +154,116 @@ fun AnimatedDie(die: DieState, isRolling: Boolean) {
             .scale(scale)
             .rotate(die.rotation + shakeAnim.value)
     ) {
-        if (die.sides == 6) {
-            DieD6Visual(value = die.value)
+        if (appTheme == AppTheme.PIXEL_ART) {
+             if (die.sides == 6) {
+                PixelDieD6Visual(value = die.value)
+            } else {
+                PixelDieGenericVisual(value = die.value, sides = die.sides)
+            }
         } else {
-            DieGenericVisual(value = die.value, sides = die.sides)
+            if (die.sides == 6) {
+                DieD6Visual(value = die.value)
+            } else {
+                DieGenericVisual(value = die.value, sides = die.sides)
+            }
+        }
+    }
+}
+
+@Composable
+fun PixelDieD6Visual(value: Int) {
+    val dieColor = RetroGold
+    val pipColor = RetroBlack
+    val borderColor = RetroBlack
+
+    Canvas(modifier = Modifier.fillMaxSize(0.8f)) {
+        // Pixel-style border (thick and sharp)
+        drawRect(color = borderColor, size = size)
+        
+        // Inner face
+        val pixelSize = size.width / 10f
+        drawRect(
+            color = dieColor,
+            topLeft = Offset(pixelSize, pixelSize),
+            size = Size(size.width - 2 * pixelSize, size.height - 2 * pixelSize)
+        )
+
+        // Highlight (top-left)
+        drawRect(
+            color = Color.White.copy(alpha = 0.3f),
+            topLeft = Offset(pixelSize, pixelSize),
+            size = Size(size.width - 2 * pixelSize, pixelSize)
+        )
+
+        // Square pips
+        val pSize = pixelSize * 1.5f
+        val w = size.width
+        val h = size.height
+
+        fun drawPixelPip(x: Float, y: Float) {
+            drawRect(
+                color = pipColor,
+                topLeft = Offset(x - pSize / 2, y - pSize / 2),
+                size = Size(pSize, pSize)
+            )
+        }
+
+        if (value % 2 != 0) drawPixelPip(w / 2, h / 2)
+        if (value > 1) {
+            drawPixelPip(w * 0.3f, h * 0.3f)
+            drawPixelPip(w * 0.7f, h * 0.7f)
+        }
+        if (value > 3) {
+            drawPixelPip(w * 0.7f, h * 0.3f)
+            drawPixelPip(w * 0.3f, h * 0.7f)
+        }
+        if (value == 6) {
+            drawPixelPip(w * 0.3f, h * 0.5f)
+            drawPixelPip(w * 0.7f, h * 0.5f)
+        }
+    }
+}
+
+@Composable
+fun PixelDieGenericVisual(value: Int, sides: Int) {
+    val dieColor = RetroGold
+    val textColor = RetroBlack
+    val borderColor = RetroBlack
+
+    Canvas(modifier = Modifier.fillMaxSize(0.85f)) {
+        val centerX = size.width / 2
+        val centerY = size.height / 2
+        val radius = size.width / 2
+
+        // Draw a simple pixelated octagon for generic dice
+        val path = Path()
+        val steps = 8
+        for (i in 0 until steps) {
+            val theta = (i * 2 * Math.PI / steps) - Math.PI / 8
+            val x = centerX + radius * cos(theta).toFloat()
+            val y = centerY + radius * sin(theta).toFloat()
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        path.close()
+
+        drawPath(path = path, color = borderColor)
+        
+        // Inner fill (slightly smaller to create border effect)
+        val innerScale = 0.85f
+        scale(innerScale, innerScale, Offset(centerX, centerY)) {
+            drawPath(path = path, color = dieColor)
+        }
+
+        drawContext.canvas.nativeCanvas.apply {
+            val paint = Paint().apply {
+                color = textColor.toArgb()
+                textSize = radius * 0.8f
+                textAlign = Paint.Align.CENTER
+                typeface = Typeface.MONOSPACE
+            }
+            val textHeight = paint.descent() - paint.ascent()
+            val textOffset = (textHeight / 2) - paint.descent()
+            drawText(value.toString(), centerX, centerY + textOffset, paint)
         }
     }
 }
@@ -263,14 +380,23 @@ fun DieGenericVisual(value: Int, sides: Int) {
 @Composable
 fun DiceControls(
     uiState: DiceUiState,
+    appTheme: AppTheme,
     onModeSelect: (DiceMode) -> Unit,
     onCustomConfigChange: (Int, Int) -> Unit,
     onRoll: () -> Unit
 ) {
+    val isRetro = appTheme == AppTheme.PIXEL_ART
+    
     Card(
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth()
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (isRetro) Modifier.drawBehind { 
+                drawRect(RetroBlack, style = Stroke(4.dp.toPx()))
+            } else Modifier)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -280,16 +406,19 @@ fun DiceControls(
                 ModeChip(
                     text = "1k6",
                     selected = uiState.mode == DiceMode.ONE_D6,
+                    isRetro = isRetro,
                     onClick = { onModeSelect(DiceMode.ONE_D6) }
                 )
                 ModeChip(
                     text = "2k6",
                     selected = uiState.mode == DiceMode.TWO_D6,
+                    isRetro = isRetro,
                     onClick = { onModeSelect(DiceMode.TWO_D6) }
                 )
                 ModeChip(
-                    text = "Inne",
+                    text = "INNE",
                     selected = uiState.mode == DiceMode.CUSTOM,
+                    isRetro = isRetro,
                     onClick = { onModeSelect(DiceMode.CUSTOM) }
                 )
             }
@@ -299,22 +428,32 @@ fun DiceControls(
                 CustomDiceSettings(
                     count = uiState.customDiceCount,
                     sides = uiState.customDiceSides,
+                    isRetro = isRetro,
                     onConfigChange = onCustomConfigChange
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(
-                onClick = onRoll,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                enabled = !uiState.isRolling
-            ) {
-                Icon(Icons.Default.Casino, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = if (uiState.isRolling) "Turlam..." else "RZUĆ!", fontSize = 18.sp)
+            if (isRetro) {
+                Spacer(modifier = Modifier.height(24.dp))
+                RetroSquareButton(
+                    text = if (uiState.isRolling) "TURLAM..." else "RZUĆ!",
+                    color = RetroGreen,
+                    onClick = onRoll
+                )
+            } else {
+                Button(
+                    onClick = onRoll,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    enabled = !uiState.isRolling
+                ) {
+                    Icon(Icons.Default.Casino, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = if (uiState.isRolling) "Turlam..." else "RZUĆ!", fontSize = 18.sp)
+                }
             }
         }
     }
@@ -322,52 +461,111 @@ fun DiceControls(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModeChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(text, textAlign = TextAlign.Center, modifier = Modifier.defaultMinSize(minWidth = 40.dp)) },
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primary,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+fun ModeChip(text: String, selected: Boolean, isRetro: Boolean, onClick: () -> Unit) {
+    if (isRetro) {
+        Box(
+            modifier = Modifier
+                .height(36.dp)
+                .then(if (selected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
+                .background(if (selected) RetroGold else RetroBackground)
+                .clickable(onClick = onClick)
+                .drawBehind {
+                    drawRect(RetroBlack, style = Stroke(2.dp.toPx()))
+                }
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) RetroBlack else RetroText
+                )
+            )
+        }
+    } else {
+        FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = { Text(text, textAlign = TextAlign.Center, modifier = Modifier.defaultMinSize(minWidth = 40.dp)) },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+            )
         )
-    )
+    }
 }
 
 @Composable
-fun CustomDiceSettings(count: Int, sides: Int, onConfigChange: (Int, Int) -> Unit) {
+fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange: (Int, Int) -> Unit) {
     Column {
-        Text("Liczba kości: $count", style = MaterialTheme.typography.labelLarge)
+        Text(
+            text = "LICZBA KOŚCI: $count", 
+            style = if(isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
+        )
         Slider(
             value = count.toFloat(),
             onValueChange = { onConfigChange(it.toInt(), sides) },
             valueRange = 1f..10f,
-            steps = 8
+            steps = 8,
+            colors = if(isRetro) SliderDefaults.colors(
+                thumbColor = RetroGold,
+                activeTrackColor = RetroGold,
+                inactiveTrackColor = RetroBlack
+            ) else SliderDefaults.colors()
         )
         
         Spacer(modifier = Modifier.height(8.dp))
         
-        Text("Rodzaj kości: k$sides", style = MaterialTheme.typography.labelLarge)
+        Text(
+            text = "RODZAJ KOŚCI: K$sides", 
+            style = if(isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
+        )
         val commonSides = listOf(4, 6, 8, 10, 12, 20, 100)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             commonSides.take(5).forEach { s ->
-                SuggestionChip(
-                    onClick = { onConfigChange(count, s) },
-                    label = { Text("k$s") },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = if (sides == s) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
+                if (isRetro) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 50.dp, height = 36.dp)
+                            .background(if (sides == s) RetroGold else RetroBackground)
+                            .clickable { onConfigChange(count, s) }
+                            .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "K$s", 
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace, 
+                                color = if(sides == s) RetroBlack else RetroText
+                            )
+                        )
+                    }
+                } else {
+                    SuggestionChip(
+                        onClick = { onConfigChange(count, s) },
+                        label = { Text("k$s") },
+                        colors = SuggestionChipDefaults.suggestionChipColors(
+                            containerColor = if (sides == s) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
+                        )
                     )
-                )
+                }
             }
         }
         if (sides !in commonSides.take(5)) {
              Slider(
                 value = sides.toFloat(),
                 onValueChange = { onConfigChange(count, it.toInt()) },
-                valueRange = 2f..100f
+                valueRange = 2f..100f,
+                colors = if(isRetro) SliderDefaults.colors(
+                    thumbColor = RetroGold,
+                    activeTrackColor = RetroGold,
+                    inactiveTrackColor = RetroBlack
+                ) else SliderDefaults.colors()
             )
         }
     }

@@ -1,37 +1,35 @@
 package com.planszowsky.android.ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.planszowsky.android.ui.screens.CollectionScreen
-import com.planszowsky.android.ui.screens.DetailsScreen
-import com.planszowsky.android.ui.screens.DiceScreen
-import com.planszowsky.android.ui.screens.ProfileScreen
-import com.planszowsky.android.ui.screens.RandomizerScreen
-import com.planszowsky.android.ui.screens.ScanScreen
-import com.planszowsky.android.ui.screens.SearchScreen
-import com.planszowsky.android.ui.screens.WishlistScreen
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.ui.screens.*
+import com.planszowsky.android.ui.theme.*
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Collection : Screen("collection", "Kolekcja", Icons.Default.Home)
@@ -41,7 +39,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
 }
 
 @Composable
-fun PlanszowskyMainContainer() {
+fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -56,26 +54,30 @@ fun PlanszowskyMainContainer() {
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                    tonalElevation = 8.dp
-                ) {
-                    val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
-                    items.forEach { screen ->
-                        NavigationBarItem(
-                            icon = { Icon(screen.icon, contentDescription = null) },
-                            label = { Text(screen.label) },
-                            selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                if (appTheme == AppTheme.PIXEL_ART) {
+                    RetroNavigationBar(navController, currentDestination)
+                } else {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                        tonalElevation = 8.dp
+                    ) {
+                        val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
+                        items.forEach { screen ->
+                            NavigationBarItem(
+                                icon = { Icon(screen.icon, contentDescription = null) },
+                                label = { Text(screen.label) },
+                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                onClick = {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -95,14 +97,15 @@ fun PlanszowskyMainContainer() {
                 )
             }
             composable(Screen.DiceRoller.route) {
-                DiceScreen()
+                DiceScreen(appTheme)
             }
             composable(Screen.Wishlist.route) { 
                 WishlistScreen(
+                    appTheme = appTheme,
                     onGameClick = { gameId -> navController.navigate("details/$gameId") }
                 )
             }
-            composable(Screen.Profile.route) { ProfileScreen() }
+            composable(Screen.Profile.route) { ProfileScreen(appTheme) }
             
             composable(
                 route = "search?query={query}",
@@ -114,6 +117,7 @@ fun PlanszowskyMainContainer() {
             ) { backStackEntry ->
                 val initialQuery = backStackEntry.arguments?.getString("query")
                 SearchScreen(
+                    appTheme = appTheme,
                     initialQuery = initialQuery,
                     onBackClick = { navController.popBackStack() }
                 )
@@ -121,6 +125,7 @@ fun PlanszowskyMainContainer() {
 
             composable("scan") {
                 ScanScreen(
+                    appTheme = appTheme,
                     onTextScanned = { text ->
                         navController.navigate("search?query=$text") {
                             popUpTo("scan") { inclusive = true }
@@ -145,9 +150,95 @@ fun PlanszowskyMainContainer() {
 }
 
 @Composable
+fun RetroNavigationBar(navController: NavHostController, currentDestination: NavDestination?) {
+    val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(RetroBackground)
+    ) {
+        // Dithering top edge
+        Canvas(modifier = Modifier.fillMaxWidth().height(4.dp)) {
+            val dotSize = 2.dp.toPx()
+            for (x in 0 until (size.width / dotSize).toInt()) {
+                if (x % 2 == 0) {
+                    drawRect(
+                        color = RetroBlack,
+                        topLeft = Offset(x * dotSize, 0f),
+                        size = Size(dotSize, dotSize)
+                    )
+                }
+            }
+        }
+        
+        // Thick top border
+        Box(modifier = Modifier.fillMaxWidth().height(4.dp).background(RetroBlack))
+        
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 32.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { screen ->
+                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                RetroNavItem(
+                    screen = screen,
+                    isSelected = isSelected,
+                    onClick = {
+                        navController.navigate(screen.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RetroNavItem(screen: Screen, isSelected: Boolean, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clickable(onClick = onClick)
+            .padding(4.dp)
+    ) {
+        Box(
+            modifier = Modifier.size(32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when (screen) {
+                Screen.Collection -> PixelCollectionIcon(isSelected)
+                Screen.DiceRoller -> PixelDiceIcon(isSelected)
+                Screen.Wishlist -> PixelHeartIcon(isSelected)
+                Screen.Profile -> PixelProfileIcon(isSelected)
+            }
+        }
+        
+        Text(
+            text = screen.label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) RetroGold else RetroText,
+                fontFamily = FontFamily.Monospace
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun PlaceholderScreen(name: String) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+        Box(contentAlignment = Alignment.Center) {
             Text(text = name, style = MaterialTheme.typography.headlineMedium)
         }
     }

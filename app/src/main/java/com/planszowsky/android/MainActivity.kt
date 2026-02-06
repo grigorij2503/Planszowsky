@@ -11,15 +11,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.domain.repository.UserPreferencesRepository
 import com.planszowsky.android.ui.PlanszowskyMainContainer
 import com.planszowsky.android.ui.theme.PlanszowskyTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge(
@@ -28,12 +37,14 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            PlanszowskyTheme {
+            val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
+            
+            PlanszowskyTheme(appTheme = appTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PlanszowskyMainContainer()
+                    PlanszowskyMainContainer(appTheme = appTheme)
                 }
             }
         }

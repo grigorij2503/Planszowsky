@@ -7,10 +7,14 @@ import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.content
 import com.planszowsky.android.BuildConfig
 import com.planszowsky.android.R
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,8 +26,12 @@ data class ChatMessage(
 
 @HiltViewModel
 class ExpertViewModel @Inject constructor(
-    application: Application
+    application: Application,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
+
+    val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()

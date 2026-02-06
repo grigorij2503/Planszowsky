@@ -2,11 +2,15 @@ package com.planszowsky.android.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.security.SecureRandom
@@ -34,7 +38,12 @@ data class DiceUiState(
 )
 
 @HiltViewModel
-class DiceViewModel @Inject constructor() : ViewModel() {
+class DiceViewModel @Inject constructor(
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
+
+    val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
 
     private val _uiState = MutableStateFlow(DiceUiState())
     val uiState: StateFlow<DiceUiState> = _uiState.asStateFlow()

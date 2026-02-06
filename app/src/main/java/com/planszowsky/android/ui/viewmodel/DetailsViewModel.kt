@@ -3,20 +3,28 @@ package com.planszowsky.android.ui.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.planszowsky.android.domain.model.AppTheme
 import com.planszowsky.android.domain.model.Game
 import com.planszowsky.android.domain.repository.GameRepository
+import com.planszowsky.android.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val repository: GameRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
 
     private val gameId: String = checkNotNull(savedStateHandle["gameId"])
 

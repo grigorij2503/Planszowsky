@@ -1,7 +1,6 @@
 package com.planszowsky.android.ui.screens
 
 import android.Manifest
-import android.content.Context
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -9,6 +8,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,40 +17,64 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.planszowsky.android.R
+import com.planszowsky.android.domain.model.AppTheme
+import com.planszowsky.android.ui.theme.*
 import com.planszowsky.android.util.GameScannerAnalyzer
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ScanScreen(
+    appTheme: AppTheme = AppTheme.MODERN,
     onTextScanned: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    val isRetro = appTheme == AppTheme.PIXEL_ART
 
     if (cameraPermissionState.status.isGranted) {
-        CameraPreview(onTextScanned, onBackClick)
+        CameraPreview(isRetro, onTextScanned, onBackClick)
     } else {
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
+                .padding(24.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(R.string.camera_permission_req))
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
-                Text(stringResource(R.string.grant_permission))
+            Text(
+                text = stringResource(R.string.camera_permission_req).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            if (isRetro) {
+                RetroSquareButton(
+                    text = stringResource(R.string.grant_permission).uppercase(),
+                    color = RetroGreen,
+                    onClick = { cameraPermissionState.launchPermissionRequest() }
+                )
+            } else {
+                Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
+                    Text(stringResource(R.string.grant_permission))
+                }
             }
         }
     }
@@ -58,6 +82,7 @@ fun ScanScreen(
 
 @Composable
 fun CameraPreview(
+    isRetro: Boolean,
     onResultScanned: (String) -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -66,7 +91,6 @@ fun CameraPreview(
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var detectedValue by remember { mutableStateOf("") }
 
-    // Efekt czyszczenia wykrytej wartości po 5 sekundach
     LaunchedEffect(detectedValue) {
         if (detectedValue.isNotBlank()) {
             kotlinx.coroutines.delay(5000)
@@ -122,28 +146,62 @@ fun CameraPreview(
                 .fillMaxSize()
                 .padding(24.dp)
         ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier.background(Color.Black.copy(0.5f), RoundedCornerShape(50))
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button), tint = Color.White)
+            if (isRetro) {
+                RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
+                    PixelBackIcon(color = RetroText)
+                }
+            } else {
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier.background(Color.Black.copy(0.5f), RoundedCornerShape(50))
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button), tint = Color.White)
+                }
             }
             
             Spacer(modifier = Modifier.weight(1f))
             
             if (detectedValue.isNotBlank()) {
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
-                        Text(label, style = MaterialTheme.typography.labelSmall)
-                        Text(detectedValue, style = MaterialTheme.typography.titleMedium)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { onResultScanned(detectedValue) }) {
-                            Text(stringResource(R.string.search_this_game))
+                if (isRetro) {
+                    RetroChunkyBox(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        borderColor = RetroGold
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
+                            
+                            Text(
+                                text = label.uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText)
+                            )
+                            Text(
+                                text = detectedValue.uppercase(),
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold)
+                            )
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            RetroSquareButton(
+                                text = stringResource(R.string.search_this_game).uppercase(),
+                                color = RetroGreen,
+                                onClick = { onResultScanned(detectedValue) }
+                            )
+                        }
+                    }
+                } else {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
+                            Text(label, style = MaterialTheme.typography.labelSmall)
+                            Text(detectedValue, style = MaterialTheme.typography.titleMedium)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(onClick = { onResultScanned(detectedValue) }) {
+                                Text(stringResource(R.string.search_this_game))
+                            }
                         }
                     }
                 }
