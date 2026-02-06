@@ -10,6 +10,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -92,8 +94,10 @@ fun DetailsScreen(
             if (isRetro) {
                 RetroDetailsTopBar(
                     isWishlisted = game?.isWishlisted == true,
+                    isFavorite = game?.isFavorite == true,
                     onBackClick = onBackClick,
                     onWishlistClick = { viewModel.toggleWishlist() },
+                    onFavoriteClick = { viewModel.toggleFavorite() },
                     onDeleteClick = {
                         viewModel.deleteGame()
                         onBackClick()
@@ -117,13 +121,24 @@ fun DetailsScreen(
                     },
                     actions = {
                         IconButton(
+                            onClick = { viewModel.toggleFavorite() },
+                            modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
+                        ) {
+                            Icon(
+                                imageVector = if (game?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Favorite",
+                                tint = if (game?.isFavorite == true) Color.Red else Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
                             onClick = { viewModel.toggleWishlist() },
                             modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
                         ) {
                             Icon(
-                                imageVector = if (game?.isWishlisted == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                imageVector = if (game?.isWishlisted == true) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                                 contentDescription = "Wishlist",
-                                tint = if (game?.isWishlisted == true) Color.Red else Color.White
+                                tint = if (game?.isWishlisted == true) RetroGold else Color.White
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
@@ -258,8 +273,10 @@ fun DetailsScreen(
 @Composable
 fun RetroDetailsTopBar(
     isWishlisted: Boolean,
+    isFavorite: Boolean,
     onBackClick: () -> Unit,
     onWishlistClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     Row(
@@ -274,8 +291,11 @@ fun RetroDetailsTopBar(
         }
         
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RetroSquareIconButton(onClick = onWishlistClick, color = if (isWishlisted) RetroRed else RetroElementBackground) {
-                PixelHeartIcon(isSelected = isWishlisted)
+            RetroSquareIconButton(onClick = onFavoriteClick, color = if (isFavorite) RetroRed else RetroElementBackground) {
+                PixelHeartIcon(isSelected = isFavorite)
+            }
+            RetroSquareIconButton(onClick = onWishlistClick, color = if (isWishlisted) RetroGold else RetroElementBackground) {
+                PixelBookmarkIcon(isSelected = isWishlisted, color = if(isWishlisted) RetroBlack else RetroText)
             }
             RetroSquareIconButton(onClick = onDeleteClick, color = RetroElementBackground) {
                 PixelDeleteIcon(color = RetroText)

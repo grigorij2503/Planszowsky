@@ -2,13 +2,11 @@ package pl.pointblank.planszowsky.ui.theme
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 // Definicja mapowania znaków na kolory
@@ -161,10 +159,6 @@ fun PixelCameraIcon(color: Color = RetroBlack) {
         "..######..",
         ".........."
     )
-    // Tu musimy podmienić kolor dynamicznie, bo PixelArtIcon używa sztywnej mapy.
-    // Dla prostych ikon jednokolorowych Twoja metoda drawRect jest OK,
-    // ale jeśli chcesz "mięsistą" kamerę, lepiej użyć mapy i podmieniać kolory w locie.
-    // Wersja uproszczona dla kompatybilności z Twoim kodem (nadpisanie koloru '#'):
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         val p = size.width / 10f
@@ -357,3 +351,36 @@ fun PixelAddIcon(color: Color = RetroBlack) {
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
+@Composable
+fun PixelBookmarkIcon(isSelected: Boolean, color: Color = RetroBlack) {
+    val map = if (isSelected) {
+        listOf(
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXXXXXXXX",
+            "XXXX..XXXX",
+            "XXX....XXX",
+            "X........X"
+        )
+    } else {
+        listOf(
+            "XXXXXXXXXX",
+            "X........X",
+            "X........X",
+            "X........X",
+            "X........X",
+            "X........X",
+            "X........X",
+            "X........X",
+            "X..X..X..X",
+            "X.X....X.X",
+            "XX......XX"
+        )
+    }
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize(), forceSquare = false)
+}

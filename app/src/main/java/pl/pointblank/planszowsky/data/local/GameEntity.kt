@@ -18,6 +18,7 @@ data class GameEntity(
     val playingTime: String?,
     val isOwned: Boolean,
     val isWishlisted: Boolean,
+    val isFavorite: Boolean = false,
     val isBorrowed: Boolean = false,
     val borrowedTo: String? = null,
     val categories: List<String> = emptyList()
@@ -48,6 +49,7 @@ fun GameEntity.toDomainModel(): Game {
         playingTime = playingTime,
         isOwned = isOwned,
         isWishlisted = isWishlisted,
+        isFavorite = isFavorite,
         isBorrowed = isBorrowed,
         borrowedTo = borrowedTo,
         categories = categories
@@ -67,6 +69,7 @@ fun Game.toEntity(): GameEntity {
         playingTime = playingTime,
         isOwned = isOwned,
         isWishlisted = isWishlisted,
+        isFavorite = isFavorite,
         isBorrowed = isBorrowed,
         borrowedTo = borrowedTo,
         categories = categories

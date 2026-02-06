@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GameDao {
-    @Query("SELECT * FROM games WHERE isOwned = 1")
+    @Query("SELECT * FROM games WHERE isWishlisted = 0 ORDER BY isFavorite DESC, title ASC")
     fun getAllGames(): Flow<List<GameEntity>>
 
-    @Query("SELECT * FROM games WHERE isWishlisted = 1")
+    @Query("SELECT * FROM games WHERE isWishlisted = 1 ORDER BY title ASC")
     fun getWishlistedGames(): Flow<List<GameEntity>>
 
     @Query("SELECT * FROM games WHERE id = :id")

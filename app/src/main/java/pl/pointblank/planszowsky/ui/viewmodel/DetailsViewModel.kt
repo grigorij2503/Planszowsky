@@ -58,6 +58,15 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
+    fun toggleFavorite() {
+        viewModelScope.launch {
+            _game.value?.let { current ->
+                repository.toggleFavorite(current)
+                _game.value = repository.getGame(gameId)
+            }
+        }
+    }
+
     fun updateBorrowedStatus(isBorrowed: Boolean, borrowedTo: String?) {
         viewModelScope.launch {
             _game.value?.let { current ->

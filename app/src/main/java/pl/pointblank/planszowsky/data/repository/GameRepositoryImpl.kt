@@ -74,7 +74,17 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun toggleWishlist(game: Game) {
-        dao.insertGame(game.copy(isWishlisted = !game.isWishlisted).toEntity())
+        val nextWishlistState = !game.isWishlisted
+        // If moving TO wishlist, it's NOT in collection (isOwned = false)
+        // If moving FROM wishlist, it's back in collection (isOwned = true)
+        dao.insertGame(game.copy(
+            isWishlisted = nextWishlistState,
+            isOwned = !nextWishlistState
+        ).toEntity())
+    }
+
+    override suspend fun toggleFavorite(game: Game) {
+        dao.insertGame(game.copy(isFavorite = !game.isFavorite).toEntity())
     }
 
     override suspend fun deleteGame(game: Game) {

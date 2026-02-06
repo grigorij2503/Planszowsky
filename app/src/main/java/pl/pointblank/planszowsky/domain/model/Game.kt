@@ -12,6 +12,7 @@ data class Game(
     val playingTime: String? = null,
     val isOwned: Boolean = false,
     val isWishlisted: Boolean = false,
+    val isFavorite: Boolean = false,
     val isBorrowed: Boolean = false,
     val borrowedTo: String? = null,
     val categories: List<String> = emptyList()
