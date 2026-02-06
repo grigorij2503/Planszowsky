@@ -50,4 +50,31 @@
     <string name="expert_label_user">"Player"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="no_results">No search results found.</string>
+    <string name="theme_selection_title">App Appearance</string>
+    <string name="theme_modern">Modern</string>
+    <string name="theme_pixel_art">Pixel Art</string>
+    <string name="diagnostics_title">Firebase Diagnostics</string>
+    <string name="installation_id_label">Installation ID: %s</string>
+    <string name="id_copied">ID copied!</string>
+    <string name="loading">Loading...</string>
+    <string name="wait">Wait...</string>
+    <string name="import_button_label">Import</string>
+    <string name="import_success">Imported %d games!</string>
+    <string name="import_error">Import error</string>
+    <string name="expert_chat_fab">Ask Game Master</string>
+
+    <!-- Navigation Menu -->
+    <string name="menu_collection">Collection</string>
+    <string name="menu_dice">Dice</string>
+    <string name="menu_wishlist">Wishlist</string>
+    <string name="menu_profile">Profile</string>
+
+    <!-- Dice Screen -->
+    <string name="dice_total">TOTAL: %s</string>
+    <string name="dice_mode_custom">OTHER</string>
+    <string name="dice_rolling">Rolling…</string>
+    <string name="dice_roll_button">ROLL!</string>
+    <string name="dice_count_label">DICE COUNT: %d</string>
+    <string name="dice_sides_label">DICE TYPE: D%d</string>
 </resources>

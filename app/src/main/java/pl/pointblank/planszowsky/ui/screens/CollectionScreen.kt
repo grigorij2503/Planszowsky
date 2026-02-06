@@ -9,8 +9,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -60,6 +63,7 @@ fun CollectionScreen(
     val games by viewModel.games.collectAsState()
     val categories by viewModel.categories.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
@@ -249,8 +253,7 @@ fun CollectionScreen(
                             val stroke = 3.dp.toPx()
                             drawRect(RetroBlack, style = Stroke(stroke * 2f))
                             drawRect(RetroGold, style = Stroke(stroke), topLeft = Offset(stroke/2, stroke/2), size = Size(size.width - stroke, size.height - stroke))
-                        }
-                        .clickable { onAddGameClick() },
+                        },
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Row(
@@ -262,11 +265,28 @@ fun CollectionScreen(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = stringResource(R.string.search_hint).uppercase(),
-                            color = RetroText,
-                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                        BasicTextField(
+                            value = searchQuery,
+                            onValueChange = viewModel::onSearchQueryChange,
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                            decorationBox = { innerTextField ->
+                                if (searchQuery.isEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.search_hint).uppercase(),
+                                        color = RetroText.copy(alpha = 0.5f),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace)
+                                    )
+                                }
+                                innerTextField()
+                            }
                         )
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                Icon(Icons.Default.Close, contentDescription = null, tint = RetroText)
+                            }
+                        }
                     }
                 }
             } else {
@@ -277,8 +297,7 @@ fun CollectionScreen(
                         .height(searchBarHeight - 16.dp)
                         .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) }
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                        .clickable { onAddGameClick() },
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
                     tonalElevation = 8.dp,
                     shadowElevation = 4.dp
                 ) {
@@ -288,7 +307,24 @@ fun CollectionScreen(
                     ) {
                         Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text(stringResource(R.string.search_hint), color = Color.Gray)
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = viewModel::onSearchQueryChange,
+                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            )
+                        )
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                Icon(Icons.Default.Close, contentDescription = null, tint = Color.Gray)
+                            }
+                        }
                     }
                 }
             }

@@ -110,12 +110,10 @@ class GameRepositoryImpl @Inject constructor(
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
-            if (e.code() == 400) {
-                firebaseManager.logError(e, "BGG Search 400: $query")
-            }
+            firebaseManager.logError(e, "BGG Search Error (${e.code()}): $query")
             emptyList()
         } catch (e: Exception) {
-            e.printStackTrace()
+            firebaseManager.logError(e, "BGG Search Exception: $query")
             emptyList()
         }
     }
@@ -124,7 +122,7 @@ class GameRepositoryImpl @Inject constructor(
         ensureSession()
         return try {
             val response = api.searchByBarcode(barcode)
-            val games = response.items?.map { item ->
+            response.items?.map { item ->
                 val primaryName = item.names?.find { it.type == "primary" }?.value 
                     ?: item.names?.firstOrNull()?.value 
                     ?: "Unknown"
@@ -135,17 +133,11 @@ class GameRepositoryImpl @Inject constructor(
                     yearPublished = item.yearPublished?.value
                 )
             } ?: emptyList()
-
-            // Since search only gives basic info, we might want to fetch full details for the first result
-            // if we want barcodes to be "instant" add. But for now, let's just return the list.
-            games
         } catch (e: HttpException) {
-            if (e.code() == 400) {
-                firebaseManager.logError(e, "BGG Barcode 400: $barcode")
-            }
+            firebaseManager.logError(e, "BGG Barcode Error (${e.code()}): $barcode")
             emptyList()
         } catch (e: Exception) {
-            e.printStackTrace()
+            firebaseManager.logError(e, "BGG Barcode Exception: $barcode")
             emptyList()
         }
     }
@@ -176,12 +168,10 @@ class GameRepositoryImpl @Inject constructor(
                 categories = categories
             )
         } catch (e: HttpException) {
-            if (e.code() == 400) {
-                firebaseManager.logError(e, "BGG Details 400: $id")
-            }
+            firebaseManager.logError(e, "BGG Details Error (${e.code()}): $id")
             null
         } catch (e: Exception) {
-            e.printStackTrace()
+            firebaseManager.logError(e, "BGG Details Exception: $id")
             null
         }
     }
@@ -205,12 +195,10 @@ class GameRepositoryImpl @Inject constructor(
                 importedCount++
             }
         } catch (e: HttpException) {
-            if (e.code() == 400) {
-                firebaseManager.logError(e, "BGG Import 400: $username")
-            }
+            firebaseManager.logError(e, "BGG Import Error (${e.code()}): $username")
             throw e
         } catch (e: Exception) {
-            e.printStackTrace()
+            firebaseManager.logError(e, "BGG Import Exception: $username")
             throw e
         }
         return importedCount

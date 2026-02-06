@@ -52,12 +52,12 @@ fun ProfileScreen(
         importResult?.let { result ->
             val message = when (result) {
                 is ProfileViewModel.ImportResult.Success -> {
-                    if (isRetro) "ZAIMPORTOWANO ${result.count} GIER!" 
-                    else "Zaimportowano ${result.count} gier!"
+                    val base = context.getString(R.string.import_success, result.count)
+                    if (isRetro) base.uppercase() else base
                 }
                 is ProfileViewModel.ImportResult.Error -> {
-                    if (isRetro) "BŁĄD IMPORTU!" 
-                    else "Błąd podczas importu"
+                    val base = context.getString(R.string.import_error)
+                    if (isRetro) base.uppercase() else base
                 }
             }
             android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
@@ -65,6 +65,13 @@ fun ProfileScreen(
     }
 
     val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+
+    val onCopyId: () -> Unit = {
+        installationId?.let { id ->
+            clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(id))
+            android.widget.Toast.makeText(context, context.getString(R.string.id_copied), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -122,7 +129,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "WYGLĄD APLIKACJI",
+                        text = stringResource(R.string.theme_selection_title).uppercase(),
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText),
                         fontWeight = FontWeight.SemiBold
                     )
@@ -134,14 +141,14 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ThemeButton(
-                            text = "MODERN",
+                            text = stringResource(R.string.theme_modern).uppercase(),
                             isSelected = appTheme == AppTheme.MODERN,
                             isRetro = true,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setTheme(AppTheme.MODERN) }
                         )
                         ThemeButton(
-                            text = "PIXEL ART",
+                            text = stringResource(R.string.theme_pixel_art).uppercase(),
                             isSelected = appTheme == AppTheme.PIXEL_ART,
                             isRetro = true,
                             modifier = Modifier.weight(1f),
@@ -158,7 +165,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "Wygląd aplikacji",
+                        text = stringResource(R.string.theme_selection_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -170,14 +177,14 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         ThemeButton(
-                            text = "Modern",
+                            text = stringResource(R.string.theme_modern),
                             isSelected = appTheme == AppTheme.MODERN,
                             isRetro = false,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setTheme(AppTheme.MODERN) }
                         )
                         ThemeButton(
-                            text = "Pixel Art",
+                            text = stringResource(R.string.theme_pixel_art),
                             isSelected = appTheme == AppTheme.PIXEL_ART,
                             isRetro = false,
                             modifier = Modifier.weight(1f),
@@ -231,7 +238,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                     
                     RetroSquareButton(
-                        text = if(isImporting) "CZEKAJ..." else "IMPORTUJ",
+                        text = if(isImporting) stringResource(R.string.wait).uppercase() else stringResource(R.string.import_button_label).uppercase(),
                         color = RetroGreen,
                         onClick = { viewModel.importFromBgg() }
                     )
@@ -291,13 +298,6 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Firebase Diagnostics Card
-        val onCopyId: () -> Unit = {
-            installationId?.let { id ->
-                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(id))
-                android.widget.Toast.makeText(context, "ID skopiowane!", android.widget.Toast.LENGTH_SHORT).show()
-            }
-        }
-
         if (isRetro) {
             RetroChunkyBox(
                 modifier = Modifier
@@ -307,16 +307,12 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "DIAGNOSTYKA FIREBASE",
+                        text = stringResource(R.string.diagnostics_title).uppercase(),
                         style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroBlue, fontWeight = FontWeight.Bold)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "INSTALLATION ID:",
-                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.5f))
-                    )
-                    Text(
-                        text = installationId ?: "POBIERANIE...",
+                        text = stringResource(R.string.installation_id_label, installationId ?: stringResource(R.string.loading)).uppercase(),
                         style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroText),
                         modifier = Modifier.padding(top = 4.dp)
                     )
@@ -332,13 +328,13 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Diagnostyka Firebase",
+                        text = stringResource(R.string.diagnostics_title),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Installation ID: ${installationId ?: "Pobieranie..."}",
+                        text = stringResource(R.string.installation_id_label, installationId ?: stringResource(R.string.loading)),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.6f)
                     )

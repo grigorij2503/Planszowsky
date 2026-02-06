@@ -118,7 +118,7 @@ fun SearchScreen(
                 )
             } else if (results.isEmpty() && query.isNotBlank()) {
                 Text(
-                    text = "No results found.",
+                    text = stringResource(R.string.no_results),
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                     style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText)
                             else MaterialTheme.typography.bodyLarge,

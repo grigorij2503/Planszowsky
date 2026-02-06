@@ -84,7 +84,7 @@ fun DetailsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Chat,
-                            contentDescription = "Zapytaj Mistrza Gry"
+                            contentDescription = stringResource(R.string.expert_chat_fab)
                         )
                     }
                 }

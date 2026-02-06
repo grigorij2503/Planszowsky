@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,15 +28,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.screens.*
 import pl.pointblank.planszowsky.ui.theme.*
 
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
-    object Collection : Screen("collection", "Kolekcja", Icons.Default.Home)
-    object DiceRoller : Screen("dice_roller", "Kostki", Icons.Default.Casino)
-    object Wishlist : Screen("wishlist", "Wishlist", Icons.Default.Favorite)
-    object Profile : Screen("profile", "Profil", Icons.Default.AccountCircle)
+sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
+    object Collection : Screen("collection", R.string.menu_collection, Icons.Default.Home)
+    object DiceRoller : Screen("dice_roller", R.string.menu_dice, Icons.Default.Casino)
+    object Wishlist : Screen("wishlist", R.string.menu_wishlist, Icons.Default.Favorite)
+    object Profile : Screen("profile", R.string.menu_profile, Icons.Default.AccountCircle)
 }
 
 @Composable
@@ -65,7 +67,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                         items.forEach { screen ->
                             NavigationBarItem(
                                 icon = { Icon(screen.icon, contentDescription = null) },
-                                label = { Text(screen.label) },
+                                label = { Text(stringResource(screen.labelRes)) },
                                 selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                                 onClick = {
                                     navController.navigate(screen.route) {
@@ -223,7 +225,7 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, onClick: () -> Unit) {
         }
         
         Text(
-            text = screen.label.uppercase(),
+            text = stringResource(screen.labelRes).uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
