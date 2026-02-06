@@ -50,6 +50,7 @@ fun DetailsScreen(
 ) {
     val game by viewModel.game.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
+    val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     var showChat by remember { mutableStateOf(false) }
@@ -65,7 +66,7 @@ fun DetailsScreen(
         modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            if (game != null) {
+            if (game != null && isExpertChatEnabled) {
                 if (isRetro) {
                     RetroFloatingButton(
                         onClick = { showChat = true },

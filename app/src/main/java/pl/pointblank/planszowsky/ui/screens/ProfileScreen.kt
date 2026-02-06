@@ -18,6 +18,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -37,8 +38,12 @@ fun ProfileScreen(
 ) {
     val username by viewModel.bggUsername.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
+    val installationId by viewModel.installationId.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
+    
+    val context = LocalContext.current
+    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
 
     Column(
         modifier = Modifier
@@ -258,6 +263,64 @@ fun ProfileScreen(
                             Text(stringResource(R.string.import_button))
                         }
                     }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Firebase Diagnostics Card
+        val onCopyId: () -> Unit = {
+            installationId?.let { id ->
+                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(id))
+                android.widget.Toast.makeText(context, "ID skopiowane!", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = installationId != null, onClick = onCopyId),
+                borderColor = RetroBlue
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "DIAGNOSTYKA FIREBASE",
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroBlue, fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "INSTALLATION ID:",
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.5f))
+                    )
+                    Text(
+                        text = installationId ?: "POBIERANIE...",
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = installationId != null, onClick = onCopyId),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Diagnostyka Firebase",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Installation ID: ${installationId ?: "Pobieranie..."}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.6f)
+                    )
                 }
             }
         }

@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -52,11 +54,23 @@ fun SearchScreen(
     val query by viewModel.searchQuery.collectAsState()
     val results by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val additionSuccess by viewModel.additionSuccess.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
+    
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(initialQuery) {
         if (initialQuery != null) {
             viewModel.onQueryChange(initialQuery)
+        }
+        // Small delay ensures the view is ready to receive focus
+        kotlinx.coroutines.delay(100)
+        focusRequester.requestFocus()
+    }
+
+    LaunchedEffect(additionSuccess) {
+        if (additionSuccess) {
+            onBackClick()
         }
     }
 
@@ -68,7 +82,8 @@ fun SearchScreen(
                 RetroSearchTopBar(
                     query = query,
                     onQueryChange = viewModel::onQueryChange,
-                    onBackClick = onBackClick
+                    onBackClick = onBackClick,
+                    focusRequester = focusRequester
                 )
             } else {
                 TopAppBar(
@@ -77,7 +92,10 @@ fun SearchScreen(
                             value = query,
                             onValueChange = viewModel::onQueryChange,
                             placeholder = { Text(stringResource(R.string.search_hint)) },
-                            modifier = Modifier.fillMaxWidth().padding(end = 16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 16.dp)
+                                .focusRequester(focusRequester),
                             singleLine = true,
                             shape = RoundedCornerShape(12.dp),
                             trailingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
@@ -129,7 +147,8 @@ fun SearchScreen(
 fun RetroSearchTopBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    focusRequester: FocusRequester
 ) {
     Row(
         modifier = Modifier
@@ -159,7 +178,9 @@ fun RetroSearchTopBar(
             BasicTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText),
                 decorationBox = { innerTextField ->
@@ -182,7 +203,9 @@ fun RetroSearchTopBar(
 fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
     if (isRetro) {
         RetroChunkyBox(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onAddClick),
             borderColor = if(game.isWishlisted) RetroGold else RetroGrey
         ) {
             Row(
@@ -225,7 +248,9 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onAddClick)
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),

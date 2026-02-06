@@ -7,6 +7,7 @@ import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
+import pl.pointblank.planszowsky.util.FirebaseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,11 +21,14 @@ import javax.inject.Inject
 class DetailsViewModel @Inject constructor(
     private val repository: GameRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
+    private val firebaseManager: FirebaseManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
+
+    val isExpertChatEnabled: StateFlow<Boolean> = firebaseManager.isExpertChatEnabled
 
     private val gameId: String = checkNotNull(savedStateHandle["gameId"])
 

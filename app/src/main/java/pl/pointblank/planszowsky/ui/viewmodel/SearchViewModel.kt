@@ -40,6 +40,9 @@ class SearchViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _additionSuccess = MutableStateFlow(false)
+    val additionSuccess: StateFlow<Boolean> = _additionSuccess.asStateFlow()
+
     init {
         _searchQuery
             .debounce(500)
@@ -68,10 +71,13 @@ class SearchViewModel @Inject constructor(
 
     fun addToCollection(game: Game) {
         viewModelScope.launch {
+            _isLoading.value = true
             val fullGame = repository.getRemoteGameDetails(game.id)
             if (fullGame != null) {
                 repository.saveGame(fullGame)
+                _additionSuccess.value = true
             }
+            _isLoading.value = false
         }
     }
 }
