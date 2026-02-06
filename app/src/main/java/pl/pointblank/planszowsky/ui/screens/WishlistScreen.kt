@@ -40,7 +40,7 @@ fun WishlistScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "WISHLIST".let { if (isRetro) it else stringResource(R.string.wishlist_title) },
+            text = stringResource(R.string.wishlist_title).let { if (isRetro) it.uppercase() else it },
             style = if (isRetro) 
                 MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroGold)
                 else MaterialTheme.typography.headlineLarge,
@@ -50,7 +50,7 @@ fun WishlistScreen(
         if (games.isEmpty()) {
             Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "Twoja lista życzeń jest pusta.".let { if(isRetro) it.uppercase() else it },
+                    text = stringResource(R.string.wishlist_empty).let { if(isRetro) it.uppercase() else it },
                     style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
                     color = if (isRetro) RetroText else Color.Gray
                 )

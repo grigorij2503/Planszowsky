@@ -3,6 +3,7 @@ package pl.pointblank.planszowsky.util
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.remoteConfig
@@ -18,6 +19,7 @@ class FirebaseManager @Inject constructor() {
 
     private val remoteConfig: FirebaseRemoteConfig = Firebase.remoteConfig
     private val analytics: FirebaseAnalytics = Firebase.analytics
+    private val crashlytics: FirebaseCrashlytics = FirebaseCrashlytics.getInstance()
 
     private val _isExpertChatEnabled = MutableStateFlow(false)
     val isExpertChatEnabled: StateFlow<Boolean> = _isExpertChatEnabled.asStateFlow()
@@ -30,8 +32,12 @@ class FirebaseManager @Inject constructor() {
         fetchInstallId()
     }
 
-            private fun setupRemoteConfig() {
-                val configSettings = remoteConfigSettings {
+    fun logError(exception: Throwable, message: String? = null) {
+        message?.let { crashlytics.log(it) }
+        crashlytics.recordException(exception)
+    }
+
+    private fun setupRemoteConfig() {                val configSettings = remoteConfigSettings {
                     minimumFetchIntervalInSeconds = 3600 // 1 hour in production
                 }
                 remoteConfig.setConfigSettingsAsync(configSettings)        // Default values

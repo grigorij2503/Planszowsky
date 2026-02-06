@@ -84,7 +84,7 @@ fun DetailsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Chat,
-                            contentDescription = "Zapytaj Mistrza Gry"
+                            contentDescription = stringResource(R.string.expert_chat_fab)
                         )
                     }
                 }
@@ -261,6 +261,22 @@ fun DetailsScreen(
                             lineHeight = 24.sp,
                             color = if (isRetro) RetroText else Color.White.copy(alpha = 0.8f)
                         )
+
+                        Spacer(modifier = Modifier.height(48.dp))
+
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = R.drawable.bgg,
+                                contentDescription = "Powered by BGG",
+                                modifier = Modifier.height(24.dp),
+                                contentScale = ContentScale.Fit,
+                                alpha = if (isRetro) 0.6f else 0.3f,
+                                filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
+                            )
+                        }
                         
                         Spacer(modifier = Modifier.height(100.dp)) // Extra space
                     }

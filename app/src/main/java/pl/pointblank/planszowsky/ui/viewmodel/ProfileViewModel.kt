@@ -7,9 +7,12 @@ import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import pl.pointblank.planszowsky.util.FirebaseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,6 +36,14 @@ class ProfileViewModel @Inject constructor(
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> = _isImporting.asStateFlow()
 
+    private val _importResult = MutableSharedFlow<ImportResult>()
+    val importResult: SharedFlow<ImportResult> = _importResult.asSharedFlow()
+
+    sealed class ImportResult {
+        data class Success(val count: Int) : ImportResult()
+        data class Error(val message: String) : ImportResult()
+    }
+
     fun onUsernameChange(username: String) {
         _bggUsername.value = username
     }
@@ -49,13 +60,14 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isImporting.value = true
-            // In a real scenario, we'd fetch the collection from BGG.
-            // For now, we'll simulate a small delay.
-            kotlinx.coroutines.delay(2000)
-            
-            // To be implemented: actual fetch logic using repository.importCollection(username)
-            
-            _isImporting.value = false
+            try {
+                val count = repository.importCollection(username)
+                _importResult.emit(ImportResult.Success(count))
+            } catch (e: Exception) {
+                _importResult.emit(ImportResult.Error(e.message ?: "Unknown error"))
+            } finally {
+                _isImporting.value = false
+            }
         }
     }
 }

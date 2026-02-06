@@ -8,7 +8,6 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import pl.pointblank.planszowsky.data.local.AppDatabase
 import pl.pointblank.planszowsky.data.local.GameDao
 import pl.pointblank.planszowsky.data.remote.BggApi
-import pl.pointblank.planszowsky.data.remote.MockBggInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,7 +48,17 @@ object AppModule {
         }
         
         return OkHttpClient.Builder()
-            .addInterceptor(MockBggInterceptor()) // MOCK ENABLED
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val requestBuilder = original.newBuilder()
+                    .header("User-Agent", "Planszowsky/0.1 (Android)")
+                
+                if (pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY.isNotBlank()) {
+                    requestBuilder.header("Authorization", "Bearer ${pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY}")
+                }
+                
+                chain.proceed(requestBuilder.build())
+            }
             .addInterceptor(logging)
             .build()
     }

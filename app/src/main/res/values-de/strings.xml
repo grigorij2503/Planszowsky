@@ -50,4 +50,31 @@
     <string name="expert_label_user">"Spieler"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="no_results">Keine Suchergebnisse gefunden.</string>
+    <string name="theme_selection_title">App-Erscheinungsbild</string>
+    <string name="theme_modern">Modern</string>
+    <string name="theme_pixel_art">Pixel Art</string>
+    <string name="diagnostics_title">Firebase-Diagnose</string>
+    <string name="installation_id_label">Installations-ID: %s</string>
+    <string name="id_copied">ID kopiert!</string>
+    <string name="loading">Laden...</string>
+    <string name="wait">Warten...</string>
+    <string name="import_button_label">Importieren</string>
+    <string name="import_success">%d Spiele importiert!</string>
+    <string name="import_error">Importfehler</string>
+    <string name="expert_chat_fab">Frag den Spielleiter</string>
+
+    <!-- Navigation Menu -->
+    <string name="menu_collection">Sammlung</string>
+    <string name="menu_dice">Würfel</string>
+    <string name="menu_wishlist">Wunschliste</string>
+    <string name="menu_profile">Profil</string>
+
+    <!-- Dice Screen -->
+    <string name="dice_total">GESAMT: %s</string>
+    <string name="dice_mode_custom">ANDERE</string>
+    <string name="dice_rolling">Würfeln…</string>
+    <string name="dice_roll_button">WÜRFELN!</string>
+    <string name="dice_count_label">ANZAHL WÜRFEL: %d</string>
+    <string name="dice_sides_label">WÜRFELTYP: W%d</string>
 </resources>

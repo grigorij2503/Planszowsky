@@ -20,7 +20,8 @@ data class BggSearchItem(
     var id: String = "",
     
     @field:JacksonXmlProperty(localName = "name")
-    var name: BggName? = null,
+    @field:JacksonXmlElementWrapper(useWrapping = false)
+    var names: List<BggName>? = null,
     
     @field:JacksonXmlProperty(localName = "yearpublished")
     var yearPublished: BggValue? = null
@@ -28,6 +29,9 @@ data class BggSearchItem(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BggName(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var type: String = "",
+    
     @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
 )
@@ -102,4 +106,43 @@ data class BggThingName(
     
     @field:JacksonXmlProperty(isAttribute = true)
     var value: String = ""
+)
+
+// Collection
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "items")
+data class BggCollectionResponse(
+    @field:JacksonXmlProperty(localName = "item")
+    @field:JacksonXmlElementWrapper(useWrapping = false)
+    var items: List<BggCollectionItem>? = null
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BggCollectionItem(
+    @field:JacksonXmlProperty(isAttribute = true, localName = "objectid")
+    var id: String = "",
+
+    @field:JacksonXmlProperty(localName = "name")
+    var name: String? = null,
+
+    @field:JacksonXmlProperty(localName = "thumbnail")
+    var thumbnail: String? = null,
+
+    @field:JacksonXmlProperty(localName = "image")
+    var image: String? = null,
+
+    @field:JacksonXmlProperty(localName = "yearpublished")
+    var yearPublished: String? = null,
+
+    @field:JacksonXmlProperty(localName = "status")
+    var status: BggStatus? = null
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BggStatus(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var own: String = "0",
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var wishlist: String = "0"
 )

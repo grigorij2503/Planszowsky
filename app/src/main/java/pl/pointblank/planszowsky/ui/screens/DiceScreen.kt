@@ -32,12 +32,14 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.DiceMode
@@ -69,8 +71,9 @@ fun DiceScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val totalText = if (uiState.isRolling) "..." else uiState.totalSum.toString()
         Text(
-            text = "SUMA: ${if (uiState.isRolling) "..." else uiState.totalSum}",
+            text = stringResource(R.string.dice_total, totalText),
             style = if (isRetro) 
                 MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = RetroGold, fontFamily = FontFamily.Monospace)
                 else MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
@@ -416,7 +419,7 @@ fun DiceControls(
                     onClick = { onModeSelect(DiceMode.TWO_D6) }
                 )
                 ModeChip(
-                    text = "INNE",
+                    text = stringResource(R.string.dice_mode_custom),
                     selected = uiState.mode == DiceMode.CUSTOM,
                     isRetro = isRetro,
                     onClick = { onModeSelect(DiceMode.CUSTOM) }
@@ -438,7 +441,7 @@ fun DiceControls(
             if (isRetro) {
                 Spacer(modifier = Modifier.height(24.dp))
                 RetroSquareButton(
-                    text = if (uiState.isRolling) "TURLAM..." else "RZUĆ!",
+                    text = if (uiState.isRolling) stringResource(R.string.dice_rolling).uppercase() else stringResource(R.string.dice_roll_button).uppercase(),
                     color = RetroGreen,
                     onClick = onRoll
                 )
@@ -452,7 +455,7 @@ fun DiceControls(
                 ) {
                     Icon(Icons.Default.Casino, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = if (uiState.isRolling) "Turlam..." else "RZUĆ!", fontSize = 18.sp)
+                    Text(text = if (uiState.isRolling) stringResource(R.string.dice_rolling) else stringResource(R.string.dice_roll_button), fontSize = 18.sp)
                 }
             }
         }
@@ -476,7 +479,7 @@ fun ModeChip(text: String, selected: Boolean, isRetro: Boolean, onClick: () -> U
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = text,
+                text = text.uppercase(),
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
@@ -501,7 +504,7 @@ fun ModeChip(text: String, selected: Boolean, isRetro: Boolean, onClick: () -> U
 fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange: (Int, Int) -> Unit) {
     Column {
         Text(
-            text = "LICZBA KOŚCI: $count", 
+            text = stringResource(R.string.dice_count_label, count).let { if(isRetro) it.uppercase() else it }, 
             style = if(isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
         )
         Slider(
@@ -519,7 +522,7 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "RODZAJ KOŚCI: K$sides", 
+            text = stringResource(R.string.dice_sides_label, sides).let { if(isRetro) it.uppercase() else it }, 
             style = if(isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
         )
         val commonSides = listOf(4, 6, 8, 10, 12, 20, 100)

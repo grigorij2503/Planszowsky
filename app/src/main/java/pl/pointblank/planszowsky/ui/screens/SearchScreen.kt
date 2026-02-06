@@ -118,7 +118,7 @@ fun SearchScreen(
                 )
             } else if (results.isEmpty() && query.isNotBlank()) {
                 Text(
-                    text = "No results found.",
+                    text = stringResource(R.string.no_results),
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                     style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText)
                             else MaterialTheme.typography.bodyLarge,
@@ -136,6 +136,23 @@ fun SearchScreen(
                             isRetro = isRetro,
                             onAddClick = { viewModel.addToCollection(game) }
                         )
+                    }
+
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = R.drawable.bgg,
+                                contentDescription = "Powered by BGG",
+                                modifier = Modifier.height(40.dp),
+                                contentScale = ContentScale.Fit,
+                                filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
+                            )
+                        }
                     }
                 }
             }
