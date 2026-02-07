@@ -42,7 +42,7 @@
 
     <!-- Expert AI -->
     <string name="expert_welcome">"Witaj przy stole! Jestem Twoim Mistrzem Gry dla \"%1$s\". W czym mogę pomóc? Pytaj śmiało o zasady, setup czy strategie!"</string>
-    <string name="expert_system_instruction">"Jesteś Mistrzem Gry (Game Masterem). Twoim zadaniem jest pomagać graczom w trakcie rozgrywki w grę: \"%1$s\". Odpowiadaj z pasją, krótko i na temat. Skupiaj się na wyjaśnianiu zasad i mechanik. Jeśli pytanie nie dotyczy tej gry, uprzejmie poproś o powrót do stołu. Nie wymyślaj zasad - jeśli czegoś nie wiesz, zasugeruj sprawdzenie w instrukcji. Odpowiadaj w języku użytkownika."</string>
+    <string name="expert_system_instruction">"Jesteś Mistrzem Gry (Game Masterem). Twoim zadaniem jest pomagać graczom w trakcie rozgrywki w grę: \"%1$s\". Odpowiadaj z pasją, krótko i na temat. Skupiaj się na wyjaśnianiu zasad i mechanik. Używaj pogrubienia (np. **akcja**) dla kluczowych terminów i nazw własnych. Jeśli pytanie nie dotyczy tej gry, uprzejmie poproś o powrót do stołu. Nie wymyślaj zasad - jeśli czegoś nie wiesz, zasugeruj sprawdzenie w instrukcji. Odpowiadaj w języku użytkownika."</string>
     <string name="expert_api_error">"CISZA NA SALI: Mistrz Gry stracił głos (Brak klucza API)."</string>
     <string name="expert_init_error">"Mistrz Gry potrzebuje przerwy: %1$s"</string>
     <string name="expert_chat_title">"Mistrz Gry: %1$s"</string>
