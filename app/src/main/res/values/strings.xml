@@ -77,4 +77,13 @@
     <string name="dice_roll_button">RZUĆ!</string>
     <string name="dice_count_label">LICZBA KOŚCI: %d</string>
     <string name="dice_sides_label">RODZAJ KOŚCI: K%d</string>
+
+    <!-- Randomizer Filters -->
+    <string name="filter_players_label">Gracze:</string>
+    <string name="filter_duration_label">Czas:</string>
+    <string name="duration_any">Dowolny</string>
+    <string name="duration_short">Krótka (&lt;45m)</string>
+    <string name="duration_medium">Średnia (45-90m)</string>
+    <string name="duration_long">Długa (&gt;90m)</string>
+    <string name="no_games_matching">Brak gier spełniających filtry!</string>
 </resources>

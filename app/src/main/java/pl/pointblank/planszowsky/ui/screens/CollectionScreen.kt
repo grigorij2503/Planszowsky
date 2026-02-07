@@ -87,7 +87,7 @@ fun CollectionScreen(
     Scaffold(
         modifier = Modifier
             .nestedScroll(nestedScrollConnection)
-            .then(if (isRetro) Modifier.retroBackground() else Modifier),
+            .then(if (isRetro) Modifier.retroBackground().retroCrtEffect() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         floatingActionButton = {
             Column(
@@ -394,7 +394,9 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
         ) {
             Column {
                 Box(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp)
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp).drawBehind {
+                        drawDitheredOverlay(alpha = 0.2f)
+                    }
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
