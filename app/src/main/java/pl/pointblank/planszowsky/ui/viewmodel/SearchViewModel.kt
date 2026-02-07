@@ -48,7 +48,7 @@ class SearchViewModel @Inject constructor(
 
     init {
         _searchQuery
-            .debounce(500)
+            .debounce(1000)
             .distinctUntilChanged()
             .onEach { query ->
                 _error.value = null
