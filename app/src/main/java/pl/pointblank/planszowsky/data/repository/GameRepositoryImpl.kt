@@ -118,10 +118,10 @@ class GameRepositoryImpl @Inject constructor(
             } ?: emptyList()
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Search Error (${e.code()}): $query")
-            emptyList()
+            throw e
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Search Exception: $query")
-            emptyList()
+            throw e
         }
     }
 
@@ -149,10 +149,10 @@ class GameRepositoryImpl @Inject constructor(
             } ?: emptyList()
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Barcode Error (${e.code()}): $barcode")
-            emptyList()
+            throw e
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Barcode Exception: $barcode")
-            emptyList()
+            throw e
         }
     }
 

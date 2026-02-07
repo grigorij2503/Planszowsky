@@ -54,6 +54,7 @@ fun SearchScreen(
     val query by viewModel.searchQuery.collectAsState()
     val results by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
     val additionSuccess by viewModel.additionSuccess.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
@@ -115,6 +116,15 @@ fun SearchScreen(
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                     color = if (isRetro) RetroGold else MaterialTheme.colorScheme.primary
+                )
+            } else if (error != null) {
+                Text(
+                    text = stringResource(R.string.bgg_api_error),
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroRed)
+                            else MaterialTheme.typography.bodyLarge,
+                    color = if (isRetro) RetroRed else MaterialTheme.colorScheme.error,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             } else if (results.isEmpty() && query.isNotBlank()) {
                 Text(

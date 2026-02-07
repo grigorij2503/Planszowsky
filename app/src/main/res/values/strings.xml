@@ -51,6 +51,7 @@
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
     <string name="no_results">Brak wyników wyszukiwania.</string>
+    <string name="bgg_api_error">Wystąpił problem z połączeniem do BoardGameGeek. Spróbuj ponownie później.</string>
     <string name="theme_selection_title">Wygląd aplikacji</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
