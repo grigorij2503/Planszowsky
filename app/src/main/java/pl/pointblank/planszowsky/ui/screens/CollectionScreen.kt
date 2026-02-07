@@ -73,8 +73,8 @@ fun CollectionScreen(
     val focusManager = LocalFocusManager.current
 
     // Konfiguracja chowanego paska wyszukiwania
-    val searchBarHeight = 70.dp
-    val searchBarHeightPx = with(LocalDensity.current) { searchBarHeight.toPx() }
+    val minSearchBarHeight = 72.dp
+    val searchBarHeightPx = with(LocalDensity.current) { minSearchBarHeight.toPx() }
     val searchBarOffsetHeightPx = remember { mutableStateOf(0f) }
 
     val nestedScrollConnection = remember {
@@ -156,7 +156,7 @@ fun CollectionScreen(
                 verticalItemSpacing = 12.dp
             ) {
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(modifier = Modifier.height(searchBarHeight))
+                    Spacer(modifier = Modifier.height(minSearchBarHeight))
                 }
 
                 item(span = StaggeredGridItemSpan.FullLine) {
@@ -292,7 +292,7 @@ fun CollectionScreen(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .fillMaxWidth()
-                        .height(searchBarHeight - 16.dp)
+                        .heightIn(min = minSearchBarHeight - 16.dp)
                         .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) }
                         .drawBehind { drawDitheredShadow(size) }
                         .background(RetroElementBackground)
@@ -304,7 +304,7 @@ fun CollectionScreen(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         PixelSearchIcon(
@@ -341,7 +341,7 @@ fun CollectionScreen(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .fillMaxWidth()
-                        .height(searchBarHeight - 16.dp)
+                        .heightIn(min = minSearchBarHeight - 16.dp)
                         .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) }
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
@@ -349,7 +349,7 @@ fun CollectionScreen(
                     shadowElevation = 4.dp
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(Icons.Default.Search, contentDescription = null, tint = Color.Gray)

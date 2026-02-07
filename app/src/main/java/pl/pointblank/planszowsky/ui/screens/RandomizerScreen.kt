@@ -7,7 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -51,6 +53,7 @@ fun RandomizerScreen(
     val playerFilter by viewModel.playerFilter.collectAsState()
     val durationFilter by viewModel.durationFilter.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
+    val scrollState = rememberScrollState()
 
     Scaffold(
         modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
@@ -85,7 +88,8 @@ fun RandomizerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -99,7 +103,7 @@ fun RandomizerScreen(
                 onDurationChange = viewModel::setDurationFilter
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Slot Machine Area
             if (isRetro) {
@@ -115,13 +119,13 @@ fun RandomizerScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             if (isRetro) {
                 RetroSquareButton(
                     text = if (isSpinning) stringResource(R.string.spinning).uppercase() else stringResource(R.string.spin_button).uppercase(),
                     color = if (isSpinning || filteredGames.isEmpty()) RetroGrey else RetroGreen,
-                    modifier = Modifier.fillMaxWidth(0.7f).padding(bottom = 32.dp),
+                    modifier = Modifier.fillMaxWidth(0.7f).padding(bottom = 16.dp),
                     onClick = { if (filteredGames.isNotEmpty()) viewModel.spin() }
                 )
             } else {
@@ -131,7 +135,7 @@ fun RandomizerScreen(
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
                         .height(64.dp)
-                        .padding(bottom = 32.dp),
+                        .padding(bottom = 16.dp),
                     shape = RoundedCornerShape(24.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
@@ -148,7 +152,7 @@ fun RandomizerScreen(
             if (games.isEmpty()) {
                 Text(
                     text = stringResource(R.string.empty_collection_warning).let { if(isRetro) it.uppercase() else it },
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    modifier = Modifier.padding(bottom = 32.dp),
                     style = if (isRetro) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroRed)
                             else MaterialTheme.typography.bodySmall,
                     color = if (isRetro) RetroRed else MaterialTheme.colorScheme.error
@@ -156,11 +160,14 @@ fun RandomizerScreen(
             } else if (filteredGames.isEmpty() && !isSpinning) {
                 Text(
                     text = stringResource(R.string.no_games_matching).let { if(isRetro) it.uppercase() else it },
-                    modifier = Modifier.padding(bottom = 16.dp),
+                    modifier = Modifier.padding(bottom = 32.dp),
                     style = if (isRetro) MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroOrange)
                             else MaterialTheme.typography.bodySmall,
                     color = if (isRetro) RetroOrange else MaterialTheme.colorScheme.tertiary
                 )
+            } else {
+                // Safe area spacer
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
