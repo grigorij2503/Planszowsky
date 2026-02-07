@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import pl.pointblank.planszowsky.util.similarity
+
 @OptIn(FlowPreview::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -76,12 +78,29 @@ class SearchViewModel @Inject constructor(
             } else {
                 repository.searchRemoteGames(cleanQuery)
             }
-            _searchResults.value = results
+            
+            _searchResults.value = rankResults(cleanQuery, results)
         } catch (e: Exception) {
             _error.value = "api_error"
             _searchResults.value = emptyList()
         } finally {
             _isLoading.value = false
+        }
+    }
+
+    private fun rankResults(query: String, results: List<Game>): List<Game> {
+        if (query.isBlank()) return results
+        
+        return results.sortedByDescending { game ->
+            val title = game.title.lowercase()
+            val q = query.lowercase()
+            
+            when {
+                title == q -> 1000.0 // Exact match
+                title.startsWith(q) -> 800.0 // Starts with
+                title.contains(q) -> 500.0 // Contains
+                else -> title.similarity(q) * 100.0 // Fuzzy similarity
+            }
         }
     }
 
