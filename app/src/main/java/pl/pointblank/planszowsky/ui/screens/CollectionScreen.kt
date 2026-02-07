@@ -5,6 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.*
@@ -67,6 +68,7 @@ fun CollectionScreen(
     val appTheme by viewModel.appTheme.collectAsState()
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
+    var isCategoriesExpanded by remember { mutableStateOf(false) }
 
     // Konfiguracja chowanego paska wyszukiwania
     val searchBarHeight = 70.dp
@@ -176,39 +178,78 @@ fun CollectionScreen(
                         }
 
                         if (categories.isNotEmpty()) {
-                            LazyRow(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp),
-                                contentPadding = PaddingValues(horizontal = 4.dp)
-                            ) {
-                                item {
-                                    if (isRetro) {
-                                        RetroFilterChip(
-                                            text = stringResource(R.string.all_categories).uppercase(),
-                                            isSelected = selectedCategory == null,
-                                            onClick = { viewModel.selectCategory(null) }
+                            Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+                                // Top row: All + Top 2 + Expand Button
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    val topCategories = categories.take(2)
+                                    
+                                    // All Categories Chip
+                                    CategoryChip(
+                                        text = stringResource(R.string.all_categories),
+                                        isSelected = selectedCategory == null,
+                                        isRetro = isRetro,
+                                        onClick = { viewModel.selectCategory(null) }
+                                    )
+
+                                    topCategories.forEach { category ->
+                                        CategoryChip(
+                                            text = category,
+                                            isSelected = selectedCategory == category,
+                                            isRetro = isRetro,
+                                            onClick = { viewModel.selectCategory(category) }
                                         )
-                                    } else {
-                                        FilterChip(
-                                            selected = selectedCategory == null,
-                                            onClick = { viewModel.selectCategory(null) },
-                                            label = { Text(stringResource(R.string.all_categories)) }
+                                    }
+
+                                    if (categories.size > 2) {
+                                        CategoryChip(
+                                            text = if (isCategoriesExpanded) "▲" else "...",
+                                            isSelected = isCategoriesExpanded,
+                                            isRetro = isRetro,
+                                            onClick = { isCategoriesExpanded = !isCategoriesExpanded }
                                         )
                                     }
                                 }
-                                items(categories) { category ->
-                                    if (isRetro) {
-                                        RetroFilterChip(
-                                            text = category.uppercase(),
-                                            isSelected = selectedCategory == category,
-                                            onClick = { viewModel.selectCategory(category) }
-                                        )
-                                    } else {
-                                        FilterChip(
-                                            selected = selectedCategory == category,
-                                            onClick = { viewModel.selectCategory(category) },
-                                            label = { Text(category) }
-                                        )
+
+                                // Expanded Panel
+                                AnimatedVisibility(
+                                    visible = isCategoriesExpanded,
+                                    enter = expandVertically() + fadeIn(),
+                                    exit = shrinkVertically() + fadeOut()
+                                ) {
+                                    val remainingCategories = categories.drop(2)
+                                    
+                                    Box(modifier = Modifier.padding(top = 8.dp)) {
+                                        if (isRetro) {
+                                            RetroChunkyBox(
+                                                backgroundColor = RetroElementBackground,
+                                                borderColor = RetroGrey,
+                                                showShadow = false
+                                            ) {
+                                                ExpandedCategoriesFlow(
+                                                    categories = remainingCategories,
+                                                    selectedCategory = selectedCategory,
+                                                    isRetro = true,
+                                                    onCategoryClick = viewModel::selectCategory
+                                                )
+                                            }
+                                        } else {
+                                            Surface(
+                                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                shape = RoundedCornerShape(12.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                ExpandedCategoriesFlow(
+                                                    categories = remainingCategories,
+                                                    selectedCategory = selectedCategory,
+                                                    isRetro = false,
+                                                    onCategoryClick = viewModel::selectCategory
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -385,6 +426,56 @@ fun RetroFilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
+fun CategoryChip(
+    text: String,
+    isSelected: Boolean,
+    isRetro: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (isRetro) {
+        RetroFilterChip(
+            text = text.uppercase(),
+            isSelected = isSelected,
+            onClick = onClick
+        )
+    } else {
+        FilterChip(
+            selected = isSelected,
+            onClick = onClick,
+            label = { Text(text, maxLines = 1) },
+            modifier = modifier
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ExpandedCategoriesFlow(
+    categories: List<String>,
+    selectedCategory: String?,
+    isRetro: Boolean,
+    onCategoryClick: (String) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp),
+        verticalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp)
+    ) {
+        categories.forEach { category ->
+            CategoryChip(
+                text = category,
+                isSelected = selectedCategory == category,
+                isRetro = isRetro,
+                onClick = { onCategoryClick(category) }
+            )
+        }
+    }
+}
+
+@Composable
 fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
     if (isRetro) {
         RetroChunkyBox(
@@ -401,7 +492,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(game.imageUrl ?: game.thumbnailUrl)
-                            .transformations(PixelationTransformation(pixelSize = 6))
+                            .transformations(PixelationTransformation(pixelSize = 4))
                             .crossfade(true)
                             .build(),
                         contentDescription = game.title,

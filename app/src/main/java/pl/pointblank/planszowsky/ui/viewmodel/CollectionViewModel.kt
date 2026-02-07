@@ -44,7 +44,12 @@ class CollectionViewModel @Inject constructor(
 
     val categories: StateFlow<List<String>> = repository.getSavedGames()
         .map { games ->
-            games.flatMap { it.categories }.distinct().sorted()
+            games.flatMap { it.categories }
+                .groupingBy { it }
+                .eachCount()
+                .entries
+                .sortedByDescending { it.value }
+                .map { it.key }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun selectCategory(category: String?) {
