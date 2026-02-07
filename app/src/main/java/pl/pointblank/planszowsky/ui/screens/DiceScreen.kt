@@ -512,6 +512,7 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
             onValueChange = { onConfigChange(it.toInt(), sides) },
             valueRange = 1f..10f,
             steps = 8,
+            modifier = Modifier.padding(horizontal = 12.dp),
             colors = if(isRetro) SliderDefaults.colors(
                 thumbColor = RetroGold,
                 activeTrackColor = RetroGold,
@@ -530,11 +531,11 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            commonSides.take(5).forEach { s ->
+            commonSides.forEach { s ->
                 if (isRetro) {
                     Box(
                         modifier = Modifier
-                            .size(width = 50.dp, height = 36.dp)
+                            .size(width = 42.dp, height = 36.dp)
                             .background(if (sides == s) RetroGold else RetroBackground)
                             .clickable { onConfigChange(count, s) }
                             .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
@@ -543,6 +544,7 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
                         Text(
                             text = "K$s", 
                             style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.sp,
                                 fontFamily = FontFamily.Monospace, 
                                 color = if(sides == s) RetroBlack else RetroText
                             )
@@ -551,25 +553,14 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
                 } else {
                     SuggestionChip(
                         onClick = { onConfigChange(count, s) },
-                        label = { Text("k$s") },
+                        label = { Text("k$s", fontSize = 10.sp) },
+                        modifier = Modifier.widthIn(min = 40.dp),
                         colors = SuggestionChipDefaults.suggestionChipColors(
                             containerColor = if (sides == s) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
                         )
                     )
                 }
             }
-        }
-        if (sides !in commonSides.take(5)) {
-             Slider(
-                value = sides.toFloat(),
-                onValueChange = { onConfigChange(count, it.toInt()) },
-                valueRange = 2f..100f,
-                colors = if(isRetro) SliderDefaults.colors(
-                    thumbColor = RetroGold,
-                    activeTrackColor = RetroGold,
-                    inactiveTrackColor = RetroBlack
-                ) else SliderDefaults.colors()
-            )
         }
     }
 }
