@@ -34,6 +34,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -69,6 +70,7 @@ fun CollectionScreen(
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
     var isCategoriesExpanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     // Konfiguracja chowanego paska wyszukiwania
     val searchBarHeight = 70.dp
@@ -78,6 +80,11 @@ fun CollectionScreen(
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Hide keyboard on scroll
+                if (available.y < -2f || available.y > 2f) {
+                    focusManager.clearFocus()
+                }
+                
                 val delta = available.y
                 val newOffset = searchBarOffsetHeightPx.value + delta
                 searchBarOffsetHeightPx.value = newOffset.coerceIn(-searchBarHeightPx, 0f)
