@@ -77,4 +77,14 @@
     <string name="dice_roll_button">ROLL!</string>
     <string name="dice_count_label">DICE COUNT: %d</string>
     <string name="dice_sides_label">DICE TYPE: D%d</string>
+    <string name="bgg_api_error">There was a problem connecting to BoardGameGeek. Please try again later.</string>
+
+    <!-- Randomizer Filters -->
+    <string name="filter_players_label">Players:</string>
+    <string name="filter_duration_label">Duration:</string>
+    <string name="duration_any">Any</string>
+    <string name="duration_short">Short (&lt;45m)</string>
+    <string name="duration_medium">Medium (45-90m)</string>
+    <string name="duration_long">Long (&gt;90m)</string>
+    <string name="no_games_matching">No games matching the selected filters!</string>
 </resources>

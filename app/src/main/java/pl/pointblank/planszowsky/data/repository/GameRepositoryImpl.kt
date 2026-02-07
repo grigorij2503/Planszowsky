@@ -97,8 +97,13 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun searchRemoteGames(query: String): List<Game> {
         ensureSession()
         return try {
-            val response = api.searchGames(query)
-            response.items?.map { item ->
+            val searchResponse = api.searchGames(query)
+            val ids = searchResponse.items?.map { it.id }?.take(20) ?: emptyList()
+            
+            if (ids.isEmpty()) return emptyList()
+            
+            val detailsResponse = api.getGameDetails(ids.joinToString(","))
+            detailsResponse.items?.map { item ->
                 val primaryName = item.names?.find { it.type == "primary" }?.value 
                     ?: item.names?.firstOrNull()?.value 
                     ?: "Unknown"
@@ -106,23 +111,30 @@ class GameRepositoryImpl @Inject constructor(
                 Game(
                     id = item.id,
                     title = primaryName,
+                    thumbnailUrl = item.thumbnail,
+                    imageUrl = item.image,
                     yearPublished = item.yearPublished?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Search Error (${e.code()}): $query")
-            emptyList()
+            throw e
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Search Exception: $query")
-            emptyList()
+            throw e
         }
     }
 
     override suspend fun searchByBarcode(barcode: String): List<Game> {
         ensureSession()
         return try {
-            val response = api.searchByBarcode(barcode)
-            response.items?.map { item ->
+            val searchResponse = api.searchByBarcode(barcode)
+            val ids = searchResponse.items?.map { it.id }?.take(20) ?: emptyList()
+            
+            if (ids.isEmpty()) return emptyList()
+            
+            val detailsResponse = api.getGameDetails(ids.joinToString(","))
+            detailsResponse.items?.map { item ->
                 val primaryName = item.names?.find { it.type == "primary" }?.value 
                     ?: item.names?.firstOrNull()?.value 
                     ?: "Unknown"
@@ -130,15 +142,17 @@ class GameRepositoryImpl @Inject constructor(
                 Game(
                     id = item.id,
                     title = primaryName,
+                    thumbnailUrl = item.thumbnail,
+                    imageUrl = item.image,
                     yearPublished = item.yearPublished?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Barcode Error (${e.code()}): $barcode")
-            emptyList()
+            throw e
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Barcode Exception: $barcode")
-            emptyList()
+            throw e
         }
     }
 

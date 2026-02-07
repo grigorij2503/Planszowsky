@@ -7,10 +7,10 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material3.*
@@ -57,6 +57,7 @@ fun DiceScreen(
     val uiState by viewModel.uiState.collectAsState()
     val haptic = LocalHapticFeedback.current
     val isRetro = appTheme == AppTheme.PIXEL_ART
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(uiState.isRolling) {
         if (uiState.isRolling) {
@@ -68,6 +69,7 @@ fun DiceScreen(
         modifier = Modifier
             .fillMaxSize()
             .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
+            .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -82,8 +84,8 @@ fun DiceScreen(
 
         Box(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
             contentAlignment = Alignment.Center
         ) {
             DiceArena(
@@ -100,26 +102,24 @@ fun DiceScreen(
             onCustomConfigChange = viewModel::onCustomDiceConfigChanged,
             onRoll = viewModel::rollDice
         )
+        
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiceArena(dice: List<DieState>, isRolling: Boolean, appTheme: AppTheme) {
-    val columns = when {
-        dice.size == 1 -> 1
-        dice.size <= 4 -> 2
-        dice.size <= 9 -> 3
-        else -> 4
-    }
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(16.dp)
+        maxItemsInEachRow = if (dice.size <= 4) 2 else 3
     ) {
-        items(dice, key = { it.id }) { die ->
-            AnimatedDie(die = die, isRolling = isRolling, appTheme = appTheme)
+        dice.forEach { die ->
+            Box(modifier = Modifier.size(if (dice.size > 4) 80.dp else 110.dp).padding(4.dp)) {
+                AnimatedDie(die = die, isRolling = isRolling, appTheme = appTheme)
+            }
         }
     }
 }
@@ -512,6 +512,7 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
             onValueChange = { onConfigChange(it.toInt(), sides) },
             valueRange = 1f..10f,
             steps = 8,
+            modifier = Modifier.padding(horizontal = 12.dp),
             colors = if(isRetro) SliderDefaults.colors(
                 thumbColor = RetroGold,
                 activeTrackColor = RetroGold,
@@ -526,50 +527,43 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
             style = if(isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
         )
         val commonSides = listOf(4, 6, 8, 10, 12, 20, 100)
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            commonSides.take(5).forEach { s ->
-                if (isRetro) {
-                    Box(
-                        modifier = Modifier
-                            .size(width = 50.dp, height = 36.dp)
-                            .background(if (sides == s) RetroGold else RetroBackground)
-                            .clickable { onConfigChange(count, s) }
-                            .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "K$s", 
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontFamily = FontFamily.Monospace, 
-                                color = if(sides == s) RetroBlack else RetroText
+            commonSides.forEach { s ->
+                Box(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    if (isRetro) {
+                        Box(
+                            modifier = Modifier
+                                .size(width = 46.dp, height = 36.dp)
+                                .background(if (sides == s) RetroGold else RetroBackground)
+                                .clickable { onConfigChange(count, s) }
+                                .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "K$s", 
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 10.sp,
+                                    fontFamily = FontFamily.Monospace, 
+                                    color = if(sides == s) RetroBlack else RetroText
+                                )
+                            )
+                        }
+                    } else {
+                        SuggestionChip(
+                            onClick = { onConfigChange(count, s) },
+                            label = { Text("k$s", fontSize = 10.sp) },
+                            modifier = Modifier.widthIn(min = 44.dp),
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = if (sides == s) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
                             )
                         )
                     }
-                } else {
-                    SuggestionChip(
-                        onClick = { onConfigChange(count, s) },
-                        label = { Text("k$s") },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = if (sides == s) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
-                        )
-                    )
                 }
             }
-        }
-        if (sides !in commonSides.take(5)) {
-             Slider(
-                value = sides.toFloat(),
-                onValueChange = { onConfigChange(count, it.toInt()) },
-                valueRange = 2f..100f,
-                colors = if(isRetro) SliderDefaults.colors(
-                    thumbColor = RetroGold,
-                    activeTrackColor = RetroGold,
-                    inactiveTrackColor = RetroBlack
-                ) else SliderDefaults.colors()
-            )
         }
     }
 }

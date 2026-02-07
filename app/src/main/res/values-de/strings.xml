@@ -77,4 +77,14 @@
     <string name="dice_roll_button">WÜRFELN!</string>
     <string name="dice_count_label">ANZAHL WÜRFEL: %d</string>
     <string name="dice_sides_label">WÜRFELTYP: W%d</string>
+    <string name="bgg_api_error">Es gab ein Problem bei der Verbindung zu BoardGameGeek. Bitte versuche es später noch einmal.</string>
+
+    <!-- Randomizer Filters -->
+    <string name="filter_players_label">Spieler:</string>
+    <string name="filter_duration_label">Dauer:</string>
+    <string name="duration_any">Beliebig</string>
+    <string name="duration_short">Kurz (&lt;45m)</string>
+    <string name="duration_medium">Mittel (45-90m)</string>
+    <string name="duration_long">Lang (&gt;90m)</string>
+    <string name="no_games_matching">Keine Spiele entsprechen den Filtern!</string>
 </resources>

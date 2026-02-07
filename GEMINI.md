@@ -74,6 +74,7 @@ The project follows **Modern Android Development (MAD)** standards:
 *   **BGG API:** Currently in **MOCK MODE**. The `MockBggInterceptor` in `AppModule.kt` intercepts requests to `boardgamegeek.com/xmlapi2/` and returns static data (Ticket to Ride, Catan, etc.).
 *   **Scanner:** Uses 'Central Bias' scoring and frame buffer to stabilize OCR results.
 *   **Fuzzy Logic:** `StringExt.kt` contains Levenshtein distance implementation for future fuzzy search improvements.
+*   **Localization:** The project supports multiple languages (PL, EN, DE). All new string resources MUST be added to all `strings.xml` files to ensure a consistent user experience.
 
 ## Production Migration Path (AI Expert)
 

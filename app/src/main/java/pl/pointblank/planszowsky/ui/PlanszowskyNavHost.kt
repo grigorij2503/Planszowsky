@@ -59,26 +59,37 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                 if (appTheme == AppTheme.PIXEL_ART) {
                     RetroNavigationBar(navController, currentDestination)
                 } else {
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                        tonalElevation = 8.dp
+                    Surface(
+                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                        tonalElevation = 8.dp,
+                        shadowElevation = 16.dp,
+                        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
                     ) {
-                        val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
-                        items.forEach { screen ->
-                            NavigationBarItem(
-                                icon = { Icon(screen.icon, contentDescription = null) },
-                                label = { Text(stringResource(screen.labelRes)) },
-                                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                                onClick = {
-                                    navController.navigate(screen.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.Top // Keep icons aligned at the top
+                        ) {
+                            val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
+                            items.forEach { screen ->
+                                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                                ModernNavItem(
+                                    screen = screen,
+                                    isSelected = isSelected,
+                                    modifier = Modifier.weight(1f),
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
                                         }
-                                        launchSingleTop = true
-                                        restoreState = true
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
@@ -152,6 +163,43 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
 }
 
 @Composable
+fun ModernNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = screen.icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box(
+            modifier = Modifier.heightIn(min = 40.dp), // Increased space for larger font
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(screen.labelRes),
+                style = MaterialTheme.typography.labelMedium.copy( // Changed from labelSmall
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = color
+                ),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                softWrap = true
+            )
+        }
+    }
+}
+
+@Composable
 fun RetroNavigationBar(navController: NavHostController, currentDestination: NavDestination?) {
     val items = listOf(Screen.Collection, Screen.DiceRoller, Screen.Wishlist, Screen.Profile)
     
@@ -159,36 +207,24 @@ fun RetroNavigationBar(navController: NavHostController, currentDestination: Nav
         modifier = Modifier
             .fillMaxWidth()
             .background(RetroBackground)
+            .windowInsetsPadding(WindowInsets.navigationBars) // Ensure it respects system nav bar
     ) {
-        // Dithering top edge
-        Canvas(modifier = Modifier.fillMaxWidth().height(4.dp)) {
-            val dotSize = 2.dp.toPx()
-            for (x in 0 until (size.width / dotSize).toInt()) {
-                if (x % 2 == 0) {
-                    drawRect(
-                        color = RetroBlack,
-                        topLeft = Offset(x * dotSize, 0f),
-                        size = Size(dotSize, dotSize)
-                    )
-                }
-            }
-        }
-        
         // Thick top border
         Box(modifier = Modifier.fillMaxWidth().height(4.dp).background(RetroBlack))
         
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 32.dp),
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             items.forEach { screen ->
                 val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                 RetroNavItem(
                     screen = screen,
                     isSelected = isSelected,
+                    modifier = Modifier.weight(1f),
                     onClick = {
                         navController.navigate(screen.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
@@ -201,19 +237,21 @@ fun RetroNavigationBar(navController: NavHostController, currentDestination: Nav
                 )
             }
         }
+        // Extra bottom padding for "safe area"
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Composable
-fun RetroNavItem(screen: Screen, isSelected: Boolean, onClick: () -> Unit) {
+fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
+        modifier = modifier
             .clickable(onClick = onClick)
-            .padding(4.dp)
+            .padding(horizontal = 4.dp, vertical = 8.dp)
     ) {
         Box(
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(32.dp), // Restored to 32.dp
             contentAlignment = Alignment.Center
         ) {
             when (screen) {
@@ -224,15 +262,19 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, onClick: () -> Unit) {
             }
         }
         
+        Spacer(modifier = Modifier.height(4.dp))
+
         Text(
             text = stringResource(screen.labelRes).uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
+                fontSize = 11.sp, // Increased from 9.sp
+                lineHeight = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) RetroGold else RetroText,
                 fontFamily = FontFamily.Monospace
             ),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            maxLines = 1
         )
     }
 }

@@ -11,9 +11,28 @@ class MockBggInterceptor : Interceptor {
         val uri = chain.request().url.toUri().toString()
         val responseString = when {
             uri.contains("search") -> searchResponse
-            uri.contains("thing") && uri.contains("id=39856") -> dixitDetails
-            uri.contains("thing") && uri.contains("id=13") -> catanDetails
-            uri.contains("thing") && uri.contains("id=9209") -> ticketDetails
+            uri.contains("thing") -> {
+                val idParam = chain.request().url.queryParameter("id") ?: ""
+                val ids = idParam.split(",")
+                if (ids.size > 1) {
+                    val combinedItems = ids.mapNotNull { id ->
+                        when (id) {
+                            "39856" -> dixitDetails
+                            "13" -> catanDetails
+                            "9209" -> ticketDetails
+                            else -> null
+                        }
+                    }.map { it.replace("<items termsofuse=\"https://boardgamegeek.com/xmlapi/termsofuse\">", "").replace("</items>", "") }
+                    "<items termsofuse=\"https://boardgamegeek.com/xmlapi/termsofuse\">${combinedItems.joinToString("")}</items>"
+                } else {
+                    when (idParam) {
+                        "39856" -> dixitDetails
+                        "13" -> catanDetails
+                        "9209" -> ticketDetails
+                        else -> ""
+                    }
+                }
+            }
             else -> ""
         }
 

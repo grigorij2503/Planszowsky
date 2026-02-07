@@ -1,8 +1,6 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,8 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -29,13 +25,18 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.ChatMessage
 import pl.pointblank.planszowsky.ui.viewmodel.ExpertViewModel
+
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.withStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -268,11 +269,11 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
                 borderColor = if (message.isUser) RetroGold else RetroBlack,
                 showShadow = false
             ) {
-                Text(
+                MarkdownText(
                     text = message.text,
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = textColor),
-                    color = textColor
+                    isRetro = true
                 )
             }
         } else {
@@ -282,7 +283,7 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
                 shadowElevation = 2.dp,
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
-                Text(
+                MarkdownText(
                     text = message.text,
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodyMedium
@@ -300,5 +301,65 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
             color = if (isRetro) RetroText else Color.Gray,
             modifier = Modifier.padding(top = 4.dp, start = if (message.isUser) 0.dp else 8.dp, end = if (message.isUser) 8.dp else 0.dp)
         )
+    }
+}
+
+@Composable
+fun MarkdownText(
+    text: String,
+    modifier: Modifier = Modifier,
+    style: androidx.compose.ui.text.TextStyle = LocalTextStyle.current,
+    isRetro: Boolean = false
+) {
+    val annotatedString = remember(text) {
+        parseMarkdown(text)
+    }
+    Text(
+        text = annotatedString,
+        modifier = modifier,
+        style = style
+    )
+}
+
+fun parseMarkdown(text: String): AnnotatedString {
+    return buildAnnotatedString {
+        val boldRegex = Regex("""\*\*(.*?)\*\*""")
+        val italicRegex = Regex("""\*(.*?)\*""")
+        
+        var currentText = text
+        val boldMatches = boldRegex.findAll(currentText).toList()
+        
+        var lastIndex = 0
+        for (match in boldMatches) {
+            append(currentText.substring(lastIndex, match.range.first))
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                // Nested italic check
+                val content = match.groupValues[1]
+                val nestedItalic = italicRegex.find(content)
+                if (nestedItalic != null) {
+                    append(content.substring(0, nestedItalic.range.first))
+                    withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                        append(nestedItalic.groupValues[1])
+                    }
+                    append(content.substring(nestedItalic.range.last + 1))
+                } else {
+                    append(content)
+                }
+            }
+            lastIndex = match.range.last + 1
+        }
+        val remainingText = currentText.substring(lastIndex)
+        
+        // Final pass for italics in remaining text
+        val finalItalicMatches = italicRegex.findAll(remainingText).toList()
+        var finalLastIndex = 0
+        for (match in finalItalicMatches) {
+            append(remainingText.substring(finalLastIndex, match.range.first))
+            withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
+                append(match.groupValues[1])
+            }
+            finalLastIndex = match.range.last + 1
+        }
+        append(remainingText.substring(finalLastIndex))
     }
 }

@@ -19,23 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+fun Modifier.retroCrtEffect() = this // Temporarily disabled for performance
+
+fun DrawScope.drawDitheredOverlay(alpha: Float = 0.15f) {
+    // Disabled heavy loop
+}
+
 fun Modifier.retroBackground(color: Color = RetroBackground) = this.drawBehind {
     // Fill main background
     drawRect(color)
-    
-    // Add subtle dithering texture
-    val dotSize = 2.dp.toPx()
-    for (y in 0 until (size.height / dotSize).toInt()) {
-        for (x in 0 until (size.width / dotSize).toInt()) {
-            if ((x + y) % 8 == 0) { // Subtle 1/8th pattern
-                drawRect(
-                    color = Color.Black.copy(alpha = 0.1f),
-                    topLeft = Offset(x * dotSize, y * dotSize),
-                    size = Size(dotSize, dotSize)
-                )
-            }
-        }
-    }
 }
 
 @Composable
@@ -141,35 +133,15 @@ fun RetroSquareButton(
 }
 
 fun DrawScope.drawDitheringPattern(color: Color) {
-    val dotSize = 2.dp.toPx()
-    for (y in 0 until (size.height / dotSize).toInt()) {
-        for (x in 0 until (size.width / dotSize).toInt()) {
-            if ((x + y) % 2 == 0) {
-                drawRect(
-                    color = color,
-                    topLeft = Offset(x * dotSize, y * dotSize),
-                    size = Size(dotSize, dotSize)
-                )
-            }
-        }
-    }
+    // Optimization: Skip heavy drawing
 }
 
 fun DrawScope.drawDitheredShadow(size: Size) {
-    val shadowOffset = 6.dp.toPx()
-    val dotSize = 2.dp.toPx()
-    for (y in 0 until ((size.height + shadowOffset) / dotSize).toInt()) {
-        for (x in 0 until ((size.width + shadowOffset) / dotSize).toInt()) {
-            val inMainX = x * dotSize < size.width
-            val inMainY = y * dotSize < size.height
-            
-            if ((!inMainX || !inMainY) && (x + y) % 2 == 0) {
-                drawRect(
-                    color = Color.Black.copy(alpha = 0.6f),
-                    topLeft = Offset(x * dotSize, y * dotSize),
-                    size = Size(dotSize, dotSize)
-                )
-            }
-        }
-    }
+    // Optimization: Use a simple solid shadow for now to keep it smooth
+    val shadowOffset = 4.dp.toPx()
+    drawRect(
+        color = Color.Black.copy(alpha = 0.3f),
+        topLeft = Offset(shadowOffset, shadowOffset),
+        size = size
+    )
 }

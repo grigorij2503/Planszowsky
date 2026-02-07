@@ -42,7 +42,7 @@
 
     <!-- Expert AI -->
     <string name="expert_welcome">"Witaj przy stole! Jestem Twoim Mistrzem Gry dla \"%1$s\". W czym mogę pomóc? Pytaj śmiało o zasady, setup czy strategie!"</string>
-    <string name="expert_system_instruction">"Jesteś Mistrzem Gry (Game Masterem). Twoim zadaniem jest pomagać graczom w trakcie rozgrywki w grę: \"%1$s\". Odpowiadaj z pasją, krótko i na temat. Skupiaj się na wyjaśnianiu zasad i mechanik. Jeśli pytanie nie dotyczy tej gry, uprzejmie poproś o powrót do stołu. Nie wymyślaj zasad - jeśli czegoś nie wiesz, zasugeruj sprawdzenie w instrukcji. Odpowiadaj w języku użytkownika."</string>
+    <string name="expert_system_instruction">"Jesteś Mistrzem Gry (Game Masterem). Twoim zadaniem jest pomagać graczom w trakcie rozgrywki w grę: \"%1$s\". Odpowiadaj z pasją, krótko i na temat. Skupiaj się na wyjaśnianiu zasad i mechanik. Używaj pogrubienia (np. **akcja**) dla kluczowych terminów i nazw własnych. Jeśli pytanie nie dotyczy tej gry, uprzejmie poproś o powrót do stołu. Nie wymyślaj zasad - jeśli czegoś nie wiesz, zasugeruj sprawdzenie w instrukcji. Odpowiadaj w języku użytkownika."</string>
     <string name="expert_api_error">"CISZA NA SALI: Mistrz Gry stracił głos (Brak klucza API)."</string>
     <string name="expert_init_error">"Mistrz Gry potrzebuje przerwy: %1$s"</string>
     <string name="expert_chat_title">"Mistrz Gry: %1$s"</string>
@@ -51,6 +51,7 @@
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
     <string name="no_results">Brak wyników wyszukiwania.</string>
+    <string name="bgg_api_error">Wystąpił problem z połączeniem do BoardGameGeek. Spróbuj ponownie później.</string>
     <string name="theme_selection_title">Wygląd aplikacji</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
@@ -77,4 +78,13 @@
     <string name="dice_roll_button">RZUĆ!</string>
     <string name="dice_count_label">LICZBA KOŚCI: %d</string>
     <string name="dice_sides_label">RODZAJ KOŚCI: K%d</string>
+
+    <!-- Randomizer Filters -->
+    <string name="filter_players_label">Gracze:</string>
+    <string name="filter_duration_label">Czas:</string>
+    <string name="duration_any">Dowolny</string>
+    <string name="duration_short">Krótka (&lt;45m)</string>
+    <string name="duration_medium">Średnia (45-90m)</string>
+    <string name="duration_long">Długa (&gt;90m)</string>
+    <string name="no_games_matching">Brak gier spełniających filtry!</string>
 </resources>
