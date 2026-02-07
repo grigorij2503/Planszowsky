@@ -138,7 +138,7 @@ fun CollectionScreen(
                 columns = StaggeredGridCells.Fixed(2),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    top = searchBarHeight + 16.dp, 
+                    top = 16.dp, 
                     start = 12.dp, 
                     end = 12.dp, 
                     bottom = 100.dp
@@ -146,6 +146,10 @@ fun CollectionScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalItemSpacing = 12.dp
             ) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    Spacer(modifier = Modifier.height(searchBarHeight))
+                }
+
                 item(span = StaggeredGridItemSpan.FullLine) {
                     Column {
                         Row(
@@ -231,11 +235,6 @@ fun CollectionScreen(
                             filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
                         )
                     }
-                }
-
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
-                    Spacer(modifier = Modifier.height(screenHeight - searchBarHeight))
                 }
             }
 
