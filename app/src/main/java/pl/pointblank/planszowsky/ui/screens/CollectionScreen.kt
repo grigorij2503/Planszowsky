@@ -186,23 +186,23 @@ fun CollectionScreen(
 
                         if (categories.isNotEmpty()) {
                             Column(modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-                                // Top row: All + Top 2 + Expand Button
-                                Row(
+                                // Top row: All + Top 2 + Expand Button - Scrollable for small screens
+                                LazyRow(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    val topCategories = categories.take(2)
-                                    
-                                    // All Categories Chip
-                                    CategoryChip(
-                                        text = stringResource(R.string.all_categories),
-                                        isSelected = selectedCategory == null,
-                                        isRetro = isRetro,
-                                        onClick = { viewModel.selectCategory(null) }
-                                    )
+                                    item {
+                                        // All Categories Chip
+                                        CategoryChip(
+                                            text = stringResource(R.string.all_categories),
+                                            isSelected = selectedCategory == null,
+                                            isRetro = isRetro,
+                                            onClick = { viewModel.selectCategory(null) }
+                                        )
+                                    }
 
-                                    topCategories.forEach { category ->
+                                    items(categories.take(2)) { category ->
                                         CategoryChip(
                                             text = category,
                                             isSelected = selectedCategory == category,
@@ -212,12 +212,14 @@ fun CollectionScreen(
                                     }
 
                                     if (categories.size > 2) {
-                                        CategoryChip(
-                                            text = if (isCategoriesExpanded) "▲" else "...",
-                                            isSelected = isCategoriesExpanded,
-                                            isRetro = isRetro,
-                                            onClick = { isCategoriesExpanded = !isCategoriesExpanded }
-                                        )
+                                        item {
+                                            CategoryChip(
+                                                text = if (isCategoriesExpanded) "▲" else "...",
+                                                isSelected = isCategoriesExpanded,
+                                                isRetro = isRetro,
+                                                onClick = { isCategoriesExpanded = !isCategoriesExpanded }
+                                            )
+                                        }
                                     }
                                 }
 

@@ -193,11 +193,13 @@ fun RandomizerFilters(
             modifier = Modifier.padding(bottom = 8.dp)
         )
         
-        Row(
+        LazyRow(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 4.dp)
         ) {
-            (1..6).forEach { count ->
+            items((1..6).toList()) { count ->
                 val isSelected = playerFilter == count
                 if (isRetro) {
                     Box(
