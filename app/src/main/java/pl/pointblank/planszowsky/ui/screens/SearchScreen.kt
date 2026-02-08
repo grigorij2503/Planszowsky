@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -144,7 +145,8 @@ fun SearchScreen(
                         SearchResultCard(
                             game = game,
                             isRetro = isRetro,
-                            onAddClick = { viewModel.addToCollection(game) }
+                            onAddToCollection = { viewModel.addToCollection(game) },
+                            onAddToWishlist = { viewModel.addToWishlist(game) }
                         )
                     }
 
@@ -227,12 +229,16 @@ fun RetroSearchTopBar(
 }
 
 @Composable
-fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
+fun SearchResultCard(
+    game: Game, 
+    isRetro: Boolean, 
+    onAddToCollection: () -> Unit,
+    onAddToWishlist: () -> Unit
+) {
     if (isRetro) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onAddClick)
                 .rpgGameFrame(
                     frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
                     thickness = 4.dp
@@ -272,8 +278,17 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
                     )
                 }
                 
-                RetroSquareIconButton(onClick = onAddClick, color = RetroGreen) {
-                    PixelAddIcon(color = Color.White)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    RetroSquareIconButton(onClick = onAddToWishlist, color = RetroRed) {
+                        Box(modifier = Modifier.size(24.dp)) {
+                            PixelHeart24(color = Color.White)
+                        }
+                    }
+                    RetroSquareIconButton(onClick = onAddToCollection, color = RetroGreen) {
+                        Box(modifier = Modifier.size(24.dp)) {
+                            PixelPlus24(color = Color.White)
+                        }
+                    }
                 }
             }
         }
@@ -281,9 +296,7 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onAddClick)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
@@ -313,8 +326,13 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
                     )
                 }
                 
-                IconButton(onClick = onAddClick) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onAddToWishlist) {
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Add to Wishlist")
+                    }
+                    IconButton(onClick = onAddToCollection) {
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))
+                    }
                 }
             }
         }

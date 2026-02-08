@@ -115,4 +115,16 @@ class SearchViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
+
+    fun addToWishlist(game: Game) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val fullGame = repository.getRemoteGameDetails(game.id)
+            if (fullGame != null) {
+                repository.updateGame(fullGame.copy(isOwned = false, isWishlisted = true))
+                _additionSuccess.value = true
+            }
+            _isLoading.value = false
+        }
+    }
 }

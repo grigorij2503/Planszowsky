@@ -198,6 +198,66 @@ fun PixelShinyHeartIcon(isSelected: Boolean) {
 }
 
 @Composable
+fun PixelHeart24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        ".....######..######.....",
+        "....#RRRRRR##RRRRRR#....",
+        "...#LLRRRRRRRRRRRRRR#...", // L = Błysk światła
+        "...#LLRRRRRRRRRRRRRR#...",
+        "...#LRRRRRRRRRRRRRRR#...",
+        "...#RRRRRRRRRRRRRRRR#...",
+        "...#RRRRRRRRRRRRRRRR#...",
+        "....#RRRRRRRRRRRRRR#....",
+        ".....#RRRRRRRRRRRR#.....",
+        "......#RRRRRRRRRR#......",
+        ".......#RRRRRRRR#.......",
+        "........#RRRRRR#........",
+        ".........#RRRR#.........",
+        "..........#RR#..........",
+        "...........##...........", // Idealny środek dla parzystej szerokości
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        "........................"
+    )
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelPlus24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        "........................"
+    )
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
 fun PixelProfileIcon(isSelected: Boolean) {
     // Rycerz w hełmie (S - stal, # - wizjer)
     val map = listOf(
@@ -378,49 +438,3 @@ fun PixelSendIcon(color: Color = RetroBlack) {
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
-// 7. PixelAddIcon (Mniejszy plusik, np. do listy)
-@Composable
-fun PixelAddIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "............",
-        "............",
-        ".....XX.....",
-        ".....XX.....",
-        ".XXXXXXXXXX.",
-        ".XXXXXXXXXX.",
-        ".....XX.....",
-        ".....XX.....",
-        "............",
-        "............"
-    )
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
-}
-
-@Composable
-fun PixelArtCameraIcon(
-    modifier: Modifier = Modifier,
-    bodyColorChar: Char = 'S', // Srebrny korpus
-    lensColorChar: Char = 'B'  // Niebieski obiektyw
-) {
-    val map = listOf(
-        "................",
-        ".....#####......", // Góra (garb)
-        ".....#YYY#......", // Y = Złoty/Żółty (Flash)
-        "....#######.....",
-        "..##RR#######...", // RR = Czerwony spust
-        ".##RR#######S#..",
-        ".#SSSSSSSSSSSS#.",
-        ".#SSSSSSSSSSSS#.",
-        ".#SSSS##SSSSS##.",
-        ".#SSS####SSS###.", // Obiektyw
-        ".#SSS####SSS###.",
-        ".#SSS####SSS###.",
-        ".#SSSS##SSSSS##.",
-        ".#SSSSSSSSSSSS#.",
-        "..############..",
-        "................"
-    )
-    
-    // Custom pixel art for camera using the existing character map
-    PixelArtIcon(map, modifier)
-}
