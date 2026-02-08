@@ -76,4 +76,21 @@ class DetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateBorrowedFromStatus(isBorrowedFrom: Boolean, borrowedFrom: String?) {
+        viewModelScope.launch {
+            _game.value?.let { current ->
+                val updated = current.copy(isBorrowedFrom = isBorrowedFrom, borrowedFrom = borrowedFrom)
+                repository.updateGame(updated)
+                _game.value = repository.getGame(gameId)
+            }
+        }
+    }
+
+    fun updateNotes(notes: String) {
+        viewModelScope.launch {
+            repository.updateNotes(gameId, notes)
+            _game.value = repository.getGame(gameId)
+        }
+    }
 }

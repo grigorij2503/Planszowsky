@@ -235,11 +235,40 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(32.dp))
 
                         BorrowingSection(
-                            isBorrowed = g.isBorrowed,
-                            borrowedTo = g.borrowedTo ?: "",
+                            isActive = g.isBorrowed,
+                            personName = g.borrowedTo ?: "",
+                            labelRes = R.string.borrowed_label,
+                            prefixRes = R.string.borrowed_to_prefix,
+                            noPersonRes = R.string.no_borrower_desc,
+                            dialogTitleRes = R.string.borrow_dialog_title,
                             isRetro = isRetro,
-                            onStatusChange = { isBorrowed, borrowedTo ->
-                                viewModel.updateBorrowedStatus(isBorrowed, borrowedTo)
+                            onStatusChange = { isActive, name ->
+                                viewModel.updateBorrowedStatus(isActive, name)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        BorrowingSection(
+                            isActive = g.isBorrowedFrom,
+                            personName = g.borrowedFrom ?: "",
+                            labelRes = R.string.borrowed_from_label,
+                            prefixRes = R.string.borrowed_from_prefix,
+                            noPersonRes = R.string.no_borrowed_from_desc,
+                            dialogTitleRes = R.string.borrow_from_dialog_title,
+                            isRetro = isRetro,
+                            onStatusChange = { isActive, name ->
+                                viewModel.updateBorrowedFromStatus(isActive, name)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        NotesSection(
+                            notes = g.notes ?: "",
+                            isRetro = isRetro,
+                            onNotesChange = { notes ->
+                                viewModel.updateNotes(notes)
                             }
                         )
 
@@ -322,13 +351,17 @@ fun RetroDetailsTopBar(
 
 @Composable
 fun BorrowingSection(
-    isBorrowed: Boolean,
-    borrowedTo: String,
+    isActive: Boolean,
+    personName: String,
+    labelRes: Int,
+    prefixRes: Int,
+    noPersonRes: Int,
+    dialogTitleRes: Int,
     isRetro: Boolean,
     onStatusChange: (Boolean, String?) -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
-    var tempBorrowedTo by remember(borrowedTo) { mutableStateOf(borrowedTo) }
+    var tempPersonName by remember(personName) { mutableStateOf(personName) }
 
     Surface(
         color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
@@ -347,14 +380,14 @@ fun BorrowingSection(
             ) {
                 Column {
                     Text(
-                        text = stringResource(R.string.borrowed_label).let { if(isRetro) it.uppercase() else it },
+                        text = stringResource(labelRes).let { if(isRetro) it.uppercase() else it },
                         style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
                                 else MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    if (isBorrowed) {
+                    if (isActive) {
                         Text(
-                            text = if (borrowedTo.isNotEmpty()) stringResource(R.string.borrowed_to_prefix, borrowedTo) else stringResource(R.string.no_borrower_desc),
+                            text = if (personName.isNotEmpty()) stringResource(prefixRes, personName) else stringResource(noPersonRes),
                             style = if (isRetro) MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroGold)
                                     else MaterialTheme.typography.bodyMedium,
                             color = if (isRetro) RetroGold else MaterialTheme.colorScheme.primary
@@ -362,7 +395,7 @@ fun BorrowingSection(
                     }
                 }
                 Switch(
-                    checked = isBorrowed,
+                    checked = isActive,
                     onCheckedChange = { 
                         if (it) {
                             showEditDialog = true
@@ -379,7 +412,7 @@ fun BorrowingSection(
                 )
             }
             
-            if (isBorrowed) {
+            if (isActive) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = { showEditDialog = true },
@@ -407,14 +440,14 @@ fun BorrowingSection(
             containerColor = if (isRetro) RetroBackground else AlertDialogDefaults.containerColor,
             title = { 
                 Text(
-                    text = stringResource(R.string.borrow_dialog_title).let { if(isRetro) it.uppercase() else it },
+                    text = stringResource(dialogTitleRes).let { if(isRetro) it.uppercase() else it },
                     style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current
                 ) 
             },
             text = {
                 OutlinedTextField(
-                    value = tempBorrowedTo,
-                    onValueChange = { tempBorrowedTo = it },
+                    value = tempPersonName,
+                    onValueChange = { tempPersonName = it },
                     label = { Text(stringResource(R.string.name_hint), color = if(isRetro) RetroGold else Color.Unspecified) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -429,7 +462,96 @@ fun BorrowingSection(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    onStatusChange(true, tempBorrowedTo)
+                    onStatusChange(true, tempPersonName)
+                    showEditDialog = false
+                }) {
+                    Text(
+                        text = stringResource(R.string.save_button).let { if(isRetro) it.uppercase() else it },
+                        style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold) else LocalTextStyle.current
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text(
+                        text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
+                        style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current
+                    )
+                }
+            }
+        )
+    }
+}
+
+@Composable
+fun NotesSection(
+    notes: String,
+    isRetro: Boolean,
+    onNotesChange: (String) -> Unit
+) {
+    var showEditDialog by remember { mutableStateOf(false) }
+    var tempNotes by remember(notes) { mutableStateOf(notes) }
+
+    Surface(
+        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (isRetro) Modifier.drawBehind { 
+                drawRect(RetroBlack, style = Stroke(3.dp.toPx())) 
+            } else Modifier)
+            .clickable { showEditDialog = true }
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.notes_label).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
+                        else MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = if (notes.isNotEmpty()) notes else stringResource(R.string.notes_hint).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = if(notes.isNotEmpty()) RetroText else RetroText.copy(alpha = 0.5f))
+                        else MaterialTheme.typography.bodyMedium,
+                color = if (isRetro) (if(notes.isNotEmpty()) RetroText else RetroText.copy(alpha = 0.5f)) else (if(notes.isNotEmpty()) Color.White else Color.White.copy(alpha = 0.4f)),
+                maxLines = 5,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
+    }
+
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            shape = if (isRetro) RectangleShape else AlertDialogDefaults.shape,
+            containerColor = if (isRetro) RetroBackground else AlertDialogDefaults.containerColor,
+            title = { 
+                Text(
+                    text = stringResource(R.string.notes_dialog_title).let { if(isRetro) it.uppercase() else it },
+                    style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current
+                ) 
+            },
+            text = {
+                OutlinedTextField(
+                    value = tempNotes,
+                    onValueChange = { tempNotes = it },
+                    label = { Text(stringResource(R.string.notes_hint), color = if(isRetro) RetroGold else Color.Unspecified) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                    shape = if (isRetro) RectangleShape else OutlinedTextFieldDefaults.shape,
+                    textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current,
+                    colors = if(isRetro) OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = RetroGold,
+                        unfocusedBorderColor = RetroText,
+                        cursorColor = RetroGold
+                    ) else OutlinedTextFieldDefaults.colors()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onNotesChange(tempNotes)
                     showEditDialog = false
                 }) {
                     Text(

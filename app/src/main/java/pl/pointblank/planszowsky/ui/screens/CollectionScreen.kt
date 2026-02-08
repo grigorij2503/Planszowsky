@@ -536,6 +536,28 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
                             color = RetroBlack
                         )
                     }
+                } else if (game.isBorrowedFrom) {
+                    Surface(
+                        color = RetroBlue,
+                        shape = RectangleShape,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .drawBehind {
+                                drawRect(RetroBlack, style = Stroke(2.dp.toPx()))
+                            }
+                    ) {
+                        Text(
+                            text = "BORROWED",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 8.sp
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            color = Color.White
+                        )
+                    }
                 }
             }
 

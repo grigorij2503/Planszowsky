@@ -31,7 +31,7 @@ object AppModule {
             AppDatabase::class.java,
             "planszowsky_db"
         )
-        .fallbackToDestructiveMigration(true)
+        .addMigrations(AppDatabase.MIGRATION_5_6)
         .build()
     }
 

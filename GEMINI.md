@@ -86,5 +86,6 @@ When moving to a production/paid model:
 ## Common Tasks
 
 *   **Add a new Screen:** Create a Composable in `ui/screens`, a ViewModel in `ui/viewmodel`, and add a route in `PlanszowskyNavHost.kt`.
-*   **Modify Database:** Update `GameEntity`, modify `GameDao`, and increment database version in `AppDatabase` (handling migrations).
+*   **Modify Database:** Update `GameEntity`, modify `GameDao`, and increment database version in `AppDatabase`. 
+    *   **CRITICAL:** Every database change MUST include a Room `Migration` object to prevent data loss. Never use `fallbackToDestructiveMigration()` in production.
 *   **Switch to Real API:** Remove `MockBggInterceptor()` from `AppModule` and ensure BGG API connectivity.

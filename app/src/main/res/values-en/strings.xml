@@ -8,11 +8,17 @@
     <string name="delete_button">"Delete"</string>
     <string name="description_label">"Description"</string>
     <string name="no_description">"No description available."</string>
-    <string name="borrowed_label">"Borrowed"</string>
+    <string name="borrowed_label">"Lent to someone"</string>
     <string name="borrowed_to_prefix">"To: %s"</string>
     <string name="no_borrower_desc">"No borrower description"</string>
-    <string name="edit_desc_button">"Edit description"</string>
     <string name="borrow_dialog_title">"Who did you lend the game to?"</string>
+
+    <string name="borrowed_from_label">"Borrowed from someone"</string>
+    <string name="borrowed_from_prefix">"From: %s"</string>
+    <string name="no_borrowed_from_desc">"No lender description"</string>
+    <string name="borrow_from_dialog_title">"Who did you borrow the game from?"</string>
+
+    <string name="edit_desc_button">"Edit description"</string>
     <string name="name_hint">"Name / Description"</string>
     <string name="save_button">"Save"</string>
     <string name="cancel_button">"Cancel"</string>
@@ -87,4 +93,7 @@
     <string name="duration_medium">Medium (45-90m)</string>
     <string name="duration_long">Long (&gt;90m)</string>
     <string name="no_games_matching">No games matching the selected filters!</string>
+    <string name="notes_label">"Personal Notes"</string>
+    <string name="notes_hint">"Write something about this game…"</string>
+    <string name="notes_dialog_title">"Game Notes"</string>
 </resources>
