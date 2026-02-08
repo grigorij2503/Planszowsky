@@ -20,8 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    private val firebaseManager: FirebaseManager,
+    userPreferencesRepository: UserPreferencesRepository,
+    firebaseManager: FirebaseManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -62,26 +62,6 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _game.value?.let { current ->
                 repository.toggleFavorite(current)
-                _game.value = repository.getGame(gameId)
-            }
-        }
-    }
-
-    fun updateBorrowedStatus(isBorrowed: Boolean, borrowedTo: String?) {
-        viewModelScope.launch {
-            _game.value?.let { current ->
-                val updated = current.copy(isBorrowed = isBorrowed, borrowedTo = borrowedTo)
-                repository.updateGame(updated)
-                _game.value = repository.getGame(gameId)
-            }
-        }
-    }
-
-    fun updateBorrowedFromStatus(isBorrowedFrom: Boolean, borrowedFrom: String?) {
-        viewModelScope.launch {
-            _game.value?.let { current ->
-                val updated = current.copy(isBorrowedFrom = isBorrowedFrom, borrowedFrom = borrowedFrom)
-                repository.updateGame(updated)
                 _game.value = repository.getGame(gameId)
             }
         }

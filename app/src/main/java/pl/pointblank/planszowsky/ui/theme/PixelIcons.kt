@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 // Definicja mapowania znaków na kolory
 val pixelColorMap = mapOf(
@@ -57,6 +56,7 @@ fun PixelArtIcon(
 
 @Composable
 fun PixelStar24(isSelected: Boolean) {
+    // Perfectly symmetrical 24x24 Star
     val map = if (isSelected) {
         listOf(
             "........................",
@@ -139,7 +139,7 @@ fun PixelChat24(color: Color = RetroBlack) {
         "....####................",
         "........................"
     )
-    
+
     // Custom drawing for chat bubble to ensure white fill
     Canvas(modifier = Modifier.fillMaxSize()) {
         val rows = map.size
@@ -185,7 +185,7 @@ fun PixelDelete24(color: Color = RetroBlack) {
         "      ##########        ",
         "........................"
     ).map { it.replace(' ', '.').replace('#', 'X') }
-    
+
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
@@ -252,7 +252,7 @@ fun PixelShinyHeartIcon(isSelected: Boolean) {
             "............",
             "..##...##...",
             ".#RR#.#RR#..",
-            ".#LRR#RRRR#.", 
+            ".#LRR#RRRR#.",
             ".#RRRRRRRR#.",
             "..#RRRRRR#..",
             "...#RRRR#...",
@@ -265,7 +265,7 @@ fun PixelShinyHeartIcon(isSelected: Boolean) {
             "............",
             "..##...##...",
             ".#..#.#..#..",
-            ".#L..#....#.", 
+            ".#L..#....#.",
             ".#........#.",
             "..#......#..",
             "...#....#...",
@@ -385,7 +385,7 @@ fun PixelPlusIcon(color: Color = RetroBlack) {
 }
 
 @Composable
-fun PixelSearchIcon(color: Color = RetroBlack, modifier: Modifier = Modifier.fillMaxSize()) {
+fun PixelSearchIcon(modifier: Modifier = Modifier, color: Color = RetroBlack) {
     val map = listOf(
         ".XXXXXX.....",
         "X......X....",
@@ -401,35 +401,6 @@ fun PixelSearchIcon(color: Color = RetroBlack, modifier: Modifier = Modifier.fil
     DrawSingleColorPixelIcon(map, color, modifier)
 }
 
-@Composable
-fun PixelChatIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "............",
-        ".XXXXXXXXXX.",
-        ".X........X.",
-        ".X........X.",
-        ".X........X.",
-        ".XXXXXXXXXX.",
-        "..XX........",
-        ".XX.........",
-        "XX.........."
-    )
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val rows = map.size
-        val cols = map.maxOf { it.length }
-        val pixelW = size.width / cols
-        val pixelH = size.height / rows
-        map.forEachIndexed { rowIndex, rowString ->
-            rowString.forEachIndexed { colIndex, char ->
-                if (char == 'X') {
-                    drawRect(color, Offset(colIndex * pixelW, rowIndex * pixelH), Size(pixelW + 0.5f, pixelH + 0.5f))
-                } else if (char == '.' && rowIndex < 5 && colIndex > 0 && colIndex < 11) {
-                    drawRect(Color.White, Offset(colIndex * pixelW, rowIndex * pixelH), Size(pixelW + 0.5f, pixelH + 0.5f))
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun PixelBackIcon(color: Color = RetroBlack) {
@@ -448,22 +419,6 @@ fun PixelBackIcon(color: Color = RetroBlack) {
 }
 
 @Composable
-fun PixelDeleteIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "...XXXXXX...",
-        ".XXXXXXXXXX.",
-        "X..X....X..X",
-        "...XXXXXX...",
-        "...X....X...",
-        "...X....X...",
-        "...X....X...",
-        "...X....X...",
-        "...XXXXXX..."
-    )
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
-}
-
-@Composable
 fun PixelSendIcon(color: Color = RetroBlack) {
     val map = listOf(
         "............",
@@ -474,23 +429,6 @@ fun PixelSendIcon(color: Color = RetroBlack) {
         ".XXXX.......",
         ".XXX........",
         ".X..........",
-        "............"
-    )
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
-}
-
-@Composable
-fun PixelAddIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "............",
-        "............",
-        ".....XX.....",
-        ".....XX.....",
-        ".XXXXXXXXXX.",
-        ".XXXXXXXXXX.",
-        ".....XX.....",
-        ".....XX.....",
-        "............",
         "............"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())

@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,13 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -80,7 +75,7 @@ fun DetailsScreen(
                     )
                 } else {
                     FloatingActionButton(
-                        onClick = { showChat = true },
+                        onClick = { },
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ) {
@@ -684,57 +679,6 @@ fun PixelActionButton(
     }
 }
 
-@Composable
-fun PixelStatusToggle(
-    text: String,
-    isActive: Boolean,
-    activeColor: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .height(40.dp)
-            .pixelButtonFrame(isSelected = isActive, thickness = 2.dp)
-            .background(if (isActive) activeColor else Color.Transparent)
-            .clickable { onClick() }
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = if (isActive) "[X] $text" else "[ ] $text",
-            color = if (isActive) Color.White else RetroText,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.ExtraBold
-            )
-        )
-    }
-}
-
-@Composable
-fun BorrowedNameRow(label: String, name: String, color: Color, onNameChange: (String) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = if(name.isNotBlank()) name else "...",
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace, 
-                color = color,
-                fontWeight = FontWeight.Bold
-            )
-        )
-    }
-}
 
 @Composable
 fun EditNotesDialog(
@@ -757,7 +701,7 @@ fun EditNotesDialog(
         text = {
             OutlinedTextField(
                 value = notes,
-                onValueChange = { notes = it },
+                onValueChange = { },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
                 shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
                 textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
@@ -798,17 +742,6 @@ fun ManagementIconButton(icon: ImageVector, label: String, isActive: Boolean, ac
         }
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@Composable
-fun ModernStatusToggle(label: String, isActive: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    FilterChip(
-        selected = isActive,
-        onClick = onClick,
-        label = { Text(label) },
-        modifier = modifier,
-        leadingIcon = { if(isActive) Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
-    )
 }
 
 @Composable

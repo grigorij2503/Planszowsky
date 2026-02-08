@@ -336,7 +336,7 @@ fun parseMarkdown(text: String): AnnotatedString {
                 val content = match.groupValues[1]
                 val nestedItalic = italicRegex.find(content)
                 if (nestedItalic != null) {
-                    append(content.substring(0, nestedItalic.range.first))
+                    append(content.take(nestedItalic.range.first))
                     withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
                         append(nestedItalic.groupValues[1])
                     }

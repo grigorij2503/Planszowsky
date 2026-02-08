@@ -14,19 +14,14 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-
-fun Modifier.retroCrtEffect() = this // Temporarily disabled for performance
 
 fun Modifier.pixelFrame(
     borderColor: Color = RetroBlack,
@@ -187,29 +182,6 @@ fun Modifier.rpgGameFrame(
     )
 }
 
-@Composable
-fun RetroGameCover(
-    imageUrl: String,
-    modifier: Modifier = Modifier,
-    isWishlisted: Boolean = false
-) {
-    AsyncImage(
-        model = imageUrl,
-        contentDescription = null,
-        contentScale = ContentScale.Crop,
-        filterQuality = FilterQuality.None,
-        modifier = modifier
-            .rpgGameFrame(
-                frameColor = if (isWishlisted) RetroGold else RetroElementBackground,
-                thickness = 4.dp
-            )
-    )
-}
-
-fun DrawScope.drawDitheredOverlay(alpha: Float = 0.15f) {
-    // Disabled heavy loop
-}
-
 fun Modifier.retroBackground(color: Color = RetroBackground) = this.drawBehind {
     // Fill main background
     drawRect(color)
@@ -301,10 +273,6 @@ fun RetroSquareButton(
             )
         )
     }
-}
-
-fun DrawScope.drawDitheringPattern(color: Color) {
-    // Optimization: Skip heavy drawing
 }
 
 fun DrawScope.drawDitheredShadow(size: Size) {

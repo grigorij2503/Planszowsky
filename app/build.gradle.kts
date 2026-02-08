@@ -14,12 +14,14 @@ android {
     namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
+    val baseVersion = "0.3"
+
     defaultConfig {
         applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
         versionCode = 2
-        versionName = "0.2"
+        versionName = baseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -39,6 +41,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            versionNameSuffix = ".dev"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

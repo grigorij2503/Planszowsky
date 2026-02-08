@@ -25,9 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
@@ -45,18 +45,20 @@ fun ProfileScreen(
     val installationId by viewModel.installationId.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
     
     val context = LocalContext.current
 
     LaunchedEffect(importResult) {
         importResult?.let { result ->
+            val res = context.resources
             val message = when (result) {
                 is ProfileViewModel.ImportResult.Success -> {
-                    val base = context.getString(R.string.import_success, result.count)
+                    val base = res.getString(R.string.import_success, result.count)
                     if (isRetro) base.uppercase() else base
                 }
                 is ProfileViewModel.ImportResult.Error -> {
-                    val base = context.getString(R.string.import_error)
+                    val base = res.getString(R.string.import_error)
                     if (isRetro) base.uppercase() else base
                 }
             }
@@ -64,12 +66,15 @@ fun ProfileScreen(
         }
     }
 
-    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+    val clipboard = androidx.compose.ui.platform.LocalClipboard.current
 
     val onCopyId: () -> Unit = {
         installationId?.let { id ->
-            clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(id))
-            android.widget.Toast.makeText(context, context.getString(R.string.id_copied), android.widget.Toast.LENGTH_SHORT).show()
+            coroutineScope.launch {
+                val clipData = android.content.ClipData.newPlainText("Installation ID", id)
+                clipboard.setClipEntry(androidx.compose.ui.platform.ClipEntry(clipData))
+                android.widget.Toast.makeText(context, context.resources.getString(R.string.id_copied), android.widget.Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

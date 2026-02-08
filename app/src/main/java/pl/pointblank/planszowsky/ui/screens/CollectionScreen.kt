@@ -32,11 +32,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,13 +43,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.CollectionViewModel
-import pl.pointblank.planszowsky.util.PixelationTransformation
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +72,7 @@ fun CollectionScreen(
     // Konfiguracja chowanego paska wyszukiwania
     val minSearchBarHeight = 72.dp
     val searchBarHeightPx = with(LocalDensity.current) { minSearchBarHeight.toPx() }
-    val searchBarOffsetHeightPx = remember { mutableStateOf(0f) }
+    val searchBarOffsetHeightPx = remember { mutableFloatStateOf(0f) }
 
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
@@ -87,8 +83,8 @@ fun CollectionScreen(
                 }
                 
                 val delta = available.y
-                val newOffset = searchBarOffsetHeightPx.value + delta
-                searchBarOffsetHeightPx.value = newOffset.coerceIn(-searchBarHeightPx, 0f)
+                val newOffset = searchBarOffsetHeightPx.floatValue + delta
+                searchBarOffsetHeightPx.floatValue = newOffset.coerceIn(-searchBarHeightPx, 0f)
                 return Offset.Zero
             }
         }
@@ -312,7 +308,7 @@ fun CollectionScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .fillMaxWidth()
                         .heightIn(min = minSearchBarHeight - 16.dp)
-                        .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) }
+                        .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.floatValue.roundToInt()) }
                         .drawBehind { drawDitheredShadow(size) }
                         .background(RetroElementBackground)
                         .drawBehind {
@@ -361,7 +357,7 @@ fun CollectionScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .fillMaxWidth()
                         .heightIn(min = minSearchBarHeight - 16.dp)
-                        .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.value.roundToInt()) }
+                        .offset { IntOffset(x = 0, y = searchBarOffsetHeightPx.floatValue.roundToInt()) }
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
                     tonalElevation = 8.dp,

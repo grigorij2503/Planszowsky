@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +36,6 @@ import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.RandomizerViewModel
 import pl.pointblank.planszowsky.ui.viewmodel.DurationFilter
-import pl.pointblank.planszowsky.util.PixelationTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -315,7 +313,7 @@ fun RetroSlotMachine(
     selectedGame: pl.pointblank.planszowsky.domain.model.Game?,
     allGames: List<pl.pointblank.planszowsky.domain.model.Game>
 ) {
-    var displayGame by remember { mutableStateOf<pl.pointblank.planszowsky.domain.model.Game?>(selectedGame) }
+    var displayGame by remember { mutableStateOf(selectedGame) }
     
     // Shuffle animation for retro look
     if (isSpinning) {

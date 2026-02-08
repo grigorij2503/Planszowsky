@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.util
 
-import java.util.Locale
 
 /**
  * Calculates the Levenshtein distance between two strings.
@@ -41,29 +40,4 @@ fun String.similarity(other: String): Double {
     if (maxLength == 0) return 1.0
     val distance = this.levenshteinDistance(other)
     return 1.0 - (distance.toDouble() / maxLength)
-}
-
-/**
- * Cleans OCR text:
- * - Removes non-alphanumeric characters (except spaces)
- * - Collapses multiple spaces
- * - Trims
- */
-fun String.cleanOcrText(): String {
-    return this.replace(Regex("[^a-zA-Z0-9\\s]"), " ")
-        .replace(Regex("\\s+"), " ")
-        .trim()
-}
-
-/**
- * Checks if the text likely contains "garbage" words often found on game boxes
- * (e.g. "players", "ages", "minutes", "contains").
- */
-fun String.isLikelyGameMetadata(): Boolean {
-    val garbageKeywords = listOf(
-        "player", "players", "age", "ages", "min", "mins", "minute", "minutes",
-        "time", "contains", "contents", "warning", "choking", "hazard", "made in"
-    )
-    val lowerText = this.lowercase(Locale.ROOT)
-    return garbageKeywords.any { lowerText.contains(it) }
 }

@@ -18,7 +18,7 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @Singleton
 class UserPreferencesRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : UserPreferencesRepository {
 
     private object PreferencesKeys {
@@ -30,7 +30,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             val themeName = preferences[PreferencesKeys.APP_THEME] ?: AppTheme.MODERN.name
             try {
                 AppTheme.valueOf(themeName)
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 AppTheme.MODERN
             }
         }
