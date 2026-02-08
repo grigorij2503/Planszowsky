@@ -234,35 +234,37 @@ fun DetailsScreen(
                         
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        BorrowingSection(
-                            isActive = g.isBorrowed,
-                            personName = g.borrowedTo ?: "",
-                            labelRes = R.string.borrowed_label,
-                            prefixRes = R.string.borrowed_to_prefix,
-                            noPersonRes = R.string.no_borrower_desc,
-                            dialogTitleRes = R.string.borrow_dialog_title,
-                            isRetro = isRetro,
-                            onStatusChange = { isActive, name ->
-                                viewModel.updateBorrowedStatus(isActive, name)
-                            }
-                        )
+                        if (!g.isWishlisted) {
+                            BorrowingSection(
+                                isActive = g.isBorrowed,
+                                personName = g.borrowedTo ?: "",
+                                labelRes = R.string.borrowed_label,
+                                prefixRes = R.string.borrowed_to_prefix,
+                                noPersonRes = R.string.no_borrower_desc,
+                                dialogTitleRes = R.string.borrow_dialog_title,
+                                isRetro = isRetro,
+                                onStatusChange = { isActive, name ->
+                                    viewModel.updateBorrowedStatus(isActive, name)
+                                }
+                            )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                        BorrowingSection(
-                            isActive = g.isBorrowedFrom,
-                            personName = g.borrowedFrom ?: "",
-                            labelRes = R.string.borrowed_from_label,
-                            prefixRes = R.string.borrowed_from_prefix,
-                            noPersonRes = R.string.no_borrowed_from_desc,
-                            dialogTitleRes = R.string.borrow_from_dialog_title,
-                            isRetro = isRetro,
-                            onStatusChange = { isActive, name ->
-                                viewModel.updateBorrowedFromStatus(isActive, name)
-                            }
-                        )
+                            BorrowingSection(
+                                isActive = g.isBorrowedFrom,
+                                personName = g.borrowedFrom ?: "",
+                                labelRes = R.string.borrowed_from_label,
+                                prefixRes = R.string.borrowed_from_prefix,
+                                noPersonRes = R.string.no_borrowed_from_desc,
+                                dialogTitleRes = R.string.borrow_from_dialog_title,
+                                isRetro = isRetro,
+                                onStatusChange = { isActive, name ->
+                                    viewModel.updateBorrowedFromStatus(isActive, name)
+                                }
+                            )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
+                        }
 
                         NotesSection(
                             notes = g.notes ?: "",
