@@ -336,7 +336,7 @@ fun RetroSlotMachine(
             .size(300.dp)
             .padding(4.dp),
         backgroundColor = RetroBlack,
-        borderColor = if (isSpinning) RetroGold else RetroBlue
+        accentColor = if (isSpinning) RetroGold else RetroBlue
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -350,7 +350,6 @@ fun RetroSlotMachine(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
-                            .transformations(PixelationTransformation(pixelSize = 8))
                             .build(),
                         contentDescription = null,
                         modifier = Modifier

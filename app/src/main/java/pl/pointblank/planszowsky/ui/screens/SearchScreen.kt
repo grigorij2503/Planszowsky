@@ -229,40 +229,46 @@ fun RetroSearchTopBar(
 @Composable
 fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
     if (isRetro) {
-        RetroChunkyBox(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onAddClick),
-            borderColor = if(game.isWishlisted) RetroGold else RetroGrey
+                .clickable(onClick = onAddClick)
+                .rpgGameFrame(
+                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
+                    thickness = 4.dp
+                )
+                .background(RetroBlack)
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(game.thumbnailUrl)
-                                    .transformations(PixelationTransformation(pixelSize = 8))
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(RectangleShape)
-                                    .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
-                                contentScale = ContentScale.Crop,
-                                filterQuality = FilterQuality.None
-                            )                
+                AsyncImage(
+                    model = game.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(60.dp),
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.None
+                )
+
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = game.title.uppercase(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Monospace, 
+                            color = RetroText,
+                            fontSize = 14.sp
+                        ),
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = game.yearPublished ?: "",
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroGold)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Monospace, 
+                            color = RetroGold
+                        )
                     )
                 }
                 

@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,7 +97,7 @@ fun CollectionScreen(
     Scaffold(
         modifier = Modifier
             .nestedScroll(nestedScrollConnection)
-            .then(if (isRetro) Modifier.retroBackground().retroCrtEffect() else Modifier),
+            .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         floatingActionButton = {
             Column(
@@ -235,8 +236,8 @@ fun CollectionScreen(
                                         if (isRetro) {
                                             RetroChunkyBox(
                                                 backgroundColor = RetroElementBackground,
-                                                borderColor = RetroGrey,
-                                                showShadow = false
+                                                borderColor = RetroBlack,
+                                                accentColor = RetroGrey
                                             ) {
                                                 ExpandedCategoriesFlow(
                                                     categories = remainingCategories,
@@ -377,13 +378,6 @@ fun CollectionScreen(
                     }
                 }
             }
-            
-            // Top Dithering (Status Bar area)
-            if (isRetro) {
-                Canvas(modifier = Modifier.fillMaxWidth().height(8.dp).align(Alignment.TopCenter)) {
-                    drawDitheringPattern(RetroBlack)
-                }
-            }
         }
     }
 }
@@ -409,17 +403,11 @@ fun RetroDiceButton(onClick: () -> Unit) {
 fun RetroFilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
-            .height(36.dp)
-            .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
-            .background(if (isSelected) RetroGold else RetroElementBackground)
+            .height(38.dp)
             .clickable(onClick = onClick)
-            .drawBehind {
-                val stroke = 2.dp.toPx()
-                drawRect(RetroBlack, style = Stroke(stroke * 2f))
-                if (isSelected) {
-                    drawRect(Color.White.copy(alpha = 0.3f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
-                }
-            }
+            .pixelButtonFrame(isSelected = isSelected, thickness = 2.dp)
+            .padding(2.dp) // Gap for the frame
+            .background(if (isSelected) RetroGold else RetroElementBackground)
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -427,8 +415,9 @@ fun RetroFilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
             text = text,
             style = MaterialTheme.typography.labelLarge.copy(
                 fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) RetroBlack else RetroText
+                fontWeight = FontWeight.ExtraBold,
+                color = if (isSelected) RetroBlack else RetroText,
+                fontSize = 11.sp
             )
         )
     }
@@ -487,54 +476,75 @@ fun ExpandedCategoriesFlow(
 @Composable
 fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
     if (isRetro) {
-        RetroChunkyBox(
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-            borderColor = if(game.isWishlisted) RetroGold else RetroGrey,
-            backgroundColor = RetroBlack
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(4.dp)
+                .rpgGameFrame(
+                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
+                    thickness = 4.dp
+                )
+                .background(RetroBlack) // Fill background inside the frame
         ) {
-            Column {
-                Box(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp).drawBehind {
-                        drawDitheredOverlay(alpha = 0.2f)
-                    }
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(game.imageUrl ?: game.thumbnailUrl)
-                            .transformations(PixelationTransformation(pixelSize = 4))
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = game.title,
-                        modifier = Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.FillWidth,
-                        filterQuality = FilterQuality.None
-                    )
-                }
+            Box {
+                AsyncImage(
+                    model = game.imageUrl ?: game.thumbnailUrl,
+                    contentDescription = game.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(0.85f),
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.None
+                )
 
-                Column(modifier = Modifier.fillMaxWidth().background(RetroBrown).padding(8.dp)) {
-                    if (game.isBorrowed) {
-                        Surface(
-                            color = RetroGold,
-                            shape = RectangleShape,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.borrowed_badge).uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                color = RetroBlack,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                if (game.isBorrowed) {
+                    Surface(
+                        color = RetroGold,
+                        shape = RectangleShape,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                            .drawBehind {
+                                drawRect(RetroBlack, style = Stroke(2.dp.toPx()))
+                            }
+                    ) {
+                        Text(
+                            text = "LENT",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 8.sp
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            color = RetroBlack
+                        )
                     }
-                    Text(
-                        text = game.title.uppercase(),
-                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold),
-                        color = RetroText,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
+
+            // Title area with padding to avoid being covered by the thick frame
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = game.title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = RetroText,
+                        fontSize = 10.sp,
+                        lineHeight = 12.sp
+                    ),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            
+            // Extra spacer to make sure the bottom frame bar doesn't cut off text descenders
+            Spacer(modifier = Modifier.height(2.dp))
         }
     } else {
         Card(

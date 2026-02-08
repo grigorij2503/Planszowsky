@@ -452,11 +452,17 @@ fun BorrowingSection(
 
 @Composable
 fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
-    Surface(
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surface,
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
-        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBlack) 
-                 else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(0.1f))
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val labelStyle = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
+    
+    Box(
+        modifier = if (isRetro) Modifier
+            .pixelButtonFrame(thickness = 2.dp)
+            .padding(2.dp)
+            .background(RetroElementBackground) 
+        else Modifier
+            .background(surfaceColor, RoundedCornerShape(12.dp))
+            .drawBehind { drawRect(Color.White.copy(0.1f), style = Stroke(1.dp.toPx())) }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -466,7 +472,7 @@ fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = label, 
-                style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge, 
+                style = labelStyle, 
                 fontWeight = FontWeight.Bold
             )
         }
@@ -475,17 +481,23 @@ fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
 
 @Composable
 fun CategoryChip(category: String, isRetro: Boolean) {
-    Surface(
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(8.dp),
-        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBlack)
-                 else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val labelStyle = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelSmall
+    
+    Box(
+        modifier = if (isRetro) Modifier
+            .pixelButtonFrame(thickness = 2.dp)
+            .padding(2.dp)
+            .background(RetroElementBackground)
+        else Modifier
+            .background(primaryColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .drawBehind { drawRect(primaryColor.copy(alpha = 0.2f), style = Stroke(1.dp.toPx())) }
     ) {
         Text(
             text = if (isRetro) category.uppercase() else category,
-            style = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            color = if (isRetro) RetroText else MaterialTheme.colorScheme.primary,
+            style = labelStyle,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isRetro) RetroText else primaryColor,
             fontWeight = FontWeight.Medium
         )
     }

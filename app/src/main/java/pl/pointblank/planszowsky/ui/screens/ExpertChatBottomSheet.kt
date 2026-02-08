@@ -266,8 +266,7 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
             RetroChunkyBox(
                 modifier = Modifier.widthIn(max = 280.dp),
                 backgroundColor = bubbleColor,
-                borderColor = if (message.isUser) RetroGold else RetroBlack,
-                showShadow = false
+                accentColor = if (message.isUser) RetroGold else RetroBlack
             ) {
                 MarkdownText(
                     text = message.text,

@@ -125,7 +125,7 @@ fun ProfileScreen(
         if (isRetro) {
             RetroChunkyBox(
                 modifier = Modifier.fillMaxWidth(),
-                borderColor = RetroGold
+                accentColor = RetroGold
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
@@ -201,7 +201,7 @@ fun ProfileScreen(
         if (isRetro) {
             RetroChunkyBox(
                 modifier = Modifier.fillMaxWidth(),
-                borderColor = RetroGrey
+                accentColor = RetroGrey
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
@@ -303,7 +303,7 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(enabled = installationId != null, onClick = onCopyId),
-                borderColor = RetroBlue
+                accentColor = RetroBlue
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(

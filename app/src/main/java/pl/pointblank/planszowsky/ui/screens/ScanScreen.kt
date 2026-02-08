@@ -165,7 +165,7 @@ fun CameraPreview(
                 if (isRetro) {
                     RetroChunkyBox(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                        borderColor = RetroGold
+                        accentColor = RetroGold
                     ) {
                         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
