@@ -39,7 +39,7 @@ data class DiceUiState(
 
 @HiltViewModel
 class DiceViewModel @Inject constructor(
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme

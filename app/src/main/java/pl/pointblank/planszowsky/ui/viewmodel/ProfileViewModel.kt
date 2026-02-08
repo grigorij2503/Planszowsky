@@ -22,7 +22,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val repository: GameRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val firebaseManager: FirebaseManager
+    firebaseManager: FirebaseManager
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme

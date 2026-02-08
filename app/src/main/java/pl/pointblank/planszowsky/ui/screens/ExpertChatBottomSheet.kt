@@ -266,8 +266,7 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
             RetroChunkyBox(
                 modifier = Modifier.widthIn(max = 280.dp),
                 backgroundColor = bubbleColor,
-                borderColor = if (message.isUser) RetroGold else RetroBlack,
-                showShadow = false
+                accentColor = if (message.isUser) RetroGold else RetroBlack
             ) {
                 MarkdownText(
                     text = message.text,
@@ -337,7 +336,7 @@ fun parseMarkdown(text: String): AnnotatedString {
                 val content = match.groupValues[1]
                 val nestedItalic = italicRegex.find(content)
                 if (nestedItalic != null) {
-                    append(content.substring(0, nestedItalic.range.first))
+                    append(content.take(nestedItalic.range.first))
                     withStyle(style = SpanStyle(fontStyle = FontStyle.Italic)) {
                         append(nestedItalic.groupValues[1])
                     }

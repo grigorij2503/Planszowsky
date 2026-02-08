@@ -8,11 +8,24 @@
     <string name="delete_button">"Usuń"</string>
     <string name="description_label">"Opis"</string>
     <string name="no_description">"Brak opisu."</string>
-    <string name="borrowed_label">"Pożyczona"</string>
+    <string name="borrowed_label">"Pożyczona komuś"</string>
     <string name="borrowed_to_prefix">"Komu: %s"</string>
     <string name="no_borrower_desc">"Brak opisu komu"</string>
-    <string name="edit_desc_button">"Edytuj opis"</string>
     <string name="borrow_dialog_title">"Komu pożyczyłeś grę?"</string>
+
+    <string name="borrowed_from_label">"Pożyczona od kogoś"</string>
+    <string name="borrowed_from_prefix">"Od: %s"</string>
+    <string name="no_borrowed_from_desc">"Brak opisu od kogo"</string>
+    <string name="borrow_from_dialog_title">"Od kogo pożyczyłeś grę?"</string>
+    <string name="borrowing_label">"Status wypożyczenia"</string>
+    <string name="borrowing_hint">"Brak wypożyczenia"</string>
+    <string name="borrow_dialog_unified_title">"Szczegóły wypożyczenia"</string>
+    <string name="borrow_type_label">"Typ wypożyczenia:"</string>
+    <string name="type_lent">"Pożyczona komuś"</string>
+    <string name="type_borrowed">"Pożyczona od kogoś"</string>
+    <string name="type_none">"Brak (Oddana)"</string>
+    
+    <string name="edit_desc_button">"Edytuj opis"</string>
     <string name="name_hint">"Imię / Opis"</string>
     <string name="save_button">"Zapisz"</string>
     <string name="cancel_button">"Anuluj"</string>
@@ -87,4 +100,7 @@
     <string name="duration_medium">Średnia (45-90m)</string>
     <string name="duration_long">Długa (&gt;90m)</string>
     <string name="no_games_matching">Brak gier spełniających filtry!</string>
+    <string name="notes_label">"Własne notatki"</string>
+    <string name="notes_hint">"Napisz coś o tej grze…"</string>
+    <string name="notes_dialog_title">"Notatki do gry"</string>
 </resources>

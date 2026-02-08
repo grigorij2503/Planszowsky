@@ -1,8 +1,6 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +9,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,10 +23,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -35,13 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.SearchViewModel
-import pl.pointblank.planszowsky.util.PixelationTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +139,8 @@ fun SearchScreen(
                         SearchResultCard(
                             game = game,
                             isRetro = isRetro,
-                            onAddClick = { viewModel.addToCollection(game) }
+                            onAddToCollection = { viewModel.addToCollection(game) },
+                            onAddToWishlist = { viewModel.addToWishlist(game) }
                         )
                     }
 
@@ -227,47 +223,66 @@ fun RetroSearchTopBar(
 }
 
 @Composable
-fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
+fun SearchResultCard(
+    game: Game, 
+    isRetro: Boolean, 
+    onAddToCollection: () -> Unit,
+    onAddToWishlist: () -> Unit
+) {
     if (isRetro) {
-        RetroChunkyBox(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onAddClick),
-            borderColor = if(game.isWishlisted) RetroGold else RetroGrey
+                .rpgGameFrame(
+                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
+                    thickness = 4.dp
+                )
+                .background(RetroBlack)
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(game.thumbnailUrl)
-                                    .transformations(PixelationTransformation(pixelSize = 8))
-                                    .build(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(RectangleShape)
-                                    .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
-                                contentScale = ContentScale.Crop,
-                                filterQuality = FilterQuality.None
-                            )                
+                AsyncImage(
+                    model = game.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(60.dp),
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.None
+                )
+
                 Spacer(modifier = Modifier.width(16.dp))
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = game.title.uppercase(),
-                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = FontFamily.Monospace, 
+                            color = RetroText,
+                            fontSize = 14.sp
+                        ),
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = game.yearPublished ?: "",
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroGold)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Monospace, 
+                            color = RetroGold
+                        )
                     )
                 }
                 
-                RetroSquareIconButton(onClick = onAddClick, color = RetroGreen) {
-                    PixelAddIcon(color = Color.White)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    RetroSquareIconButton(onClick = onAddToWishlist, color = RetroRed) {
+                        Box(modifier = Modifier.size(24.dp)) {
+                            PixelHeart24(color = Color.White)
+                        }
+                    }
+                    RetroSquareIconButton(onClick = onAddToCollection, color = RetroGreen) {
+                        Box(modifier = Modifier.size(24.dp)) {
+                            PixelPlus24(color = Color.White)
+                        }
+                    }
                 }
             }
         }
@@ -275,9 +290,7 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
         Surface(
             color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onAddClick)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
@@ -307,8 +320,13 @@ fun SearchResultCard(game: Game, isRetro: Boolean, onAddClick: () -> Unit) {
                     )
                 }
                 
-                IconButton(onClick = onAddClick) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(onClick = onAddToWishlist) {
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Add to Wishlist")
+                    }
+                    IconButton(onClick = onAddToCollection) {
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))
+                    }
                 }
             }
         }

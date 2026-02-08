@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,9 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -34,7 +30,7 @@ import pl.pointblank.planszowsky.ui.screens.*
 import pl.pointblank.planszowsky.ui.theme.*
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
-    object Collection : Screen("collection", R.string.menu_collection, Icons.Default.Home)
+    object Collection : Screen("collection", R.string.menu_collection, Icons.Default.GridView)
     object DiceRoller : Screen("dice_roller", R.string.menu_dice, Icons.Default.Casino)
     object Wishlist : Screen("wishlist", R.string.menu_wishlist, Icons.Default.Favorite)
     object Profile : Screen("profile", R.string.menu_profile, Icons.Default.AccountCircle)
@@ -255,10 +251,10 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modif
             contentAlignment = Alignment.Center
         ) {
             when (screen) {
-                Screen.Collection -> PixelCollectionIcon(isSelected)
-                Screen.DiceRoller -> PixelDiceIcon(isSelected)
-                Screen.Wishlist -> PixelHeartIcon(isSelected)
-                Screen.Profile -> PixelProfileIcon(isSelected)
+                Screen.Collection -> PixelCollectionIcon(true)
+                Screen.DiceRoller -> PixelDiceIcon(true)
+                Screen.Wishlist -> PixelShinyHeartIcon(true)
+                Screen.Profile -> PixelProfileIcon(true)
             }
         }
         
@@ -276,14 +272,5 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modif
             textAlign = TextAlign.Center,
             maxLines = 1
         )
-    }
-}
-
-@Composable
-fun PlaceholderScreen(name: String) {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(text = name, style = MaterialTheme.typography.headlineMedium)
-        }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -402,28 +403,36 @@ fun DiceControls(
             } else Modifier)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
+            LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically,
+                contentPadding = PaddingValues(horizontal = 4.dp)
             ) {
-                ModeChip(
-                    text = "1k6",
-                    selected = uiState.mode == DiceMode.ONE_D6,
-                    isRetro = isRetro,
-                    onClick = { onModeSelect(DiceMode.ONE_D6) }
-                )
-                ModeChip(
-                    text = "2k6",
-                    selected = uiState.mode == DiceMode.TWO_D6,
-                    isRetro = isRetro,
-                    onClick = { onModeSelect(DiceMode.TWO_D6) }
-                )
-                ModeChip(
-                    text = stringResource(R.string.dice_mode_custom),
-                    selected = uiState.mode == DiceMode.CUSTOM,
-                    isRetro = isRetro,
-                    onClick = { onModeSelect(DiceMode.CUSTOM) }
-                )
+                item {
+                    ModeChip(
+                        text = "1k6",
+                        selected = uiState.mode == DiceMode.ONE_D6,
+                        isRetro = isRetro,
+                        onClick = { onModeSelect(DiceMode.ONE_D6) }
+                    )
+                }
+                item {
+                    ModeChip(
+                        text = "2k6",
+                        selected = uiState.mode == DiceMode.TWO_D6,
+                        isRetro = isRetro,
+                        onClick = { onModeSelect(DiceMode.TWO_D6) }
+                    )
+                }
+                item {
+                    ModeChip(
+                        text = stringResource(R.string.dice_mode_custom),
+                        selected = uiState.mode == DiceMode.CUSTOM,
+                        isRetro = isRetro,
+                        onClick = { onModeSelect(DiceMode.CUSTOM) }
+                    )
+                }
             }
 
             if (uiState.mode == DiceMode.CUSTOM) {

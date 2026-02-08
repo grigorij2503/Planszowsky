@@ -7,7 +7,6 @@ val DarkSurface = Color(0xFF1E1E2E)
 val PrimaryNeon = Color(0xFFBB86FC)
 val SecondaryNeon = Color(0xFF03DAC6)
 val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFFB0B0B0)
 val GradientOverlay = Color(0x99000000)
 
 // Pixel Art Palette (8-bit style)
@@ -17,7 +16,6 @@ val PixelPrimary = Color(0xFF00FF41) // Matrix/Retro Green
 val PixelSecondary = Color(0xFFFF00FF) // Cyber Magenta
 val PixelTertiary = Color(0xFF00FFFF) // Retro Cyan
 val PixelText = Color(0xFFFFFFFF)
-val PixelBorder = Color(0xFF555555)
 
 // NES / 8-bit Palette - "Dungeons & Treasures" (Dark Mode)
 val RetroBlack = Color(0xFF000000)

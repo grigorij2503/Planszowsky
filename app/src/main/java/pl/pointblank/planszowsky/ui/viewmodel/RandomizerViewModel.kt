@@ -23,8 +23,8 @@ enum class DurationFilter { ANY, SHORT, MEDIUM, LONG }
 
 @HiltViewModel
 class RandomizerViewModel @Inject constructor(
-    private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    repository: GameRepository,
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
@@ -53,8 +53,8 @@ class RandomizerViewModel @Inject constructor(
             val time = game.playingTime?.toIntOrNull() ?: 0
             val matchesDuration = when (duration) {
                 DurationFilter.ANY -> true
-                DurationFilter.SHORT -> time > 0 && time <= 45
-                DurationFilter.MEDIUM -> time > 45 && time <= 90
+                DurationFilter.SHORT -> time in 1..45
+                DurationFilter.MEDIUM -> time in 46..90
                 DurationFilter.LONG -> time > 90
             }
             

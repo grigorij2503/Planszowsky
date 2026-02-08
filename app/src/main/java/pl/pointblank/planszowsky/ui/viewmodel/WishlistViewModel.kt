@@ -14,8 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WishlistViewModel @Inject constructor(
-    private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    repository: GameRepository,
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme

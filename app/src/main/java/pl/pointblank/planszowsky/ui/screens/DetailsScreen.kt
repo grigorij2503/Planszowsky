@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,24 +9,17 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -73,12 +65,17 @@ fun DetailsScreen(
                     RetroFloatingButton(
                         onClick = { showChat = true },
                         color = RetroBlue,
-                        icon = { PixelChatIcon(color = Color.White) },
-                        buttonSize = 64.dp
+                        icon = { 
+                            Box(modifier = Modifier.size(32.dp)) {
+                                PixelChat24(color = RetroBlack) 
+                            }
+                        },
+                        buttonSize = 64.dp,
+                        shape = RoundedCornerShape(12.dp)
                     )
                 } else {
                     FloatingActionButton(
-                        onClick = { showChat = true },
+                        onClick = { },
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ) {
@@ -93,23 +90,14 @@ fun DetailsScreen(
         topBar = {
             if (isRetro) {
                 RetroDetailsTopBar(
-                    isWishlisted = game?.isWishlisted == true,
-                    isFavorite = game?.isFavorite == true,
-                    onBackClick = onBackClick,
-                    onWishlistClick = { viewModel.toggleWishlist() },
-                    onFavoriteClick = { viewModel.toggleFavorite() },
-                    onDeleteClick = {
-                        viewModel.deleteGame()
-                        onBackClick()
-                    }
+                    onBackClick = onBackClick
                 )
             } else {
                 TopAppBar(
                     title = { },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
+                        navigationIconContentColor = Color.White
                     ),
                     navigationIcon = {
                         IconButton(
@@ -117,39 +105,6 @@ fun DetailsScreen(
                             modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
                         ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back_button))
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = { viewModel.toggleFavorite() },
-                            modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
-                        ) {
-                            Icon(
-                                imageVector = if (game?.isFavorite == true) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Favorite",
-                                tint = if (game?.isFavorite == true) Color.Red else Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = { viewModel.toggleWishlist() },
-                            modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
-                        ) {
-                            Icon(
-                                imageVector = if (game?.isWishlisted == true) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                contentDescription = "Wishlist",
-                                tint = if (game?.isWishlisted == true) RetroGold else Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = { 
-                                viewModel.deleteGame()
-                                onBackClick()
-                            },
-                            modifier = Modifier.background(Color.Black.copy(0.3f), RoundedCornerShape(50))
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_button))
                         }
                     }
                 )
@@ -175,7 +130,7 @@ fun DetailsScreen(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(g.imageUrl)
-                            .size(256, 256)
+                            .size(512, 512)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
@@ -234,13 +189,19 @@ fun DetailsScreen(
                         
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        BorrowingSection(
-                            isBorrowed = g.isBorrowed,
-                            borrowedTo = g.borrowedTo ?: "",
+                        GameManagementPanel(
+                            game = g,
                             isRetro = isRetro,
-                            onStatusChange = { isBorrowed, borrowedTo ->
-                                viewModel.updateBorrowedStatus(isBorrowed, borrowedTo)
-                            }
+                            onToggleFavorite = { viewModel.toggleFavorite() },
+                            onToggleWishlist = { viewModel.toggleWishlist() },
+                            onDelete = { 
+                                viewModel.deleteGame()
+                                onBackClick()
+                            },
+                            onUpdateBorrowingInfo = { isL, to, isF, from ->
+                                viewModel.updateBorrowingInfo(isL, to, isF, from)
+                            },
+                            onUpdateNotes = { viewModel.updateNotes(it) }
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -288,175 +249,514 @@ fun DetailsScreen(
 
 @Composable
 fun RetroDetailsTopBar(
-    isWishlisted: Boolean,
-    isFavorite: Boolean,
-    onBackClick: () -> Unit,
-    onWishlistClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onBackClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
             PixelBackIcon(color = RetroText)
         }
-        
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RetroSquareIconButton(onClick = onFavoriteClick, color = if (isFavorite) RetroRed else RetroElementBackground) {
-                PixelHeartIcon(isSelected = isFavorite)
+    }
+}
+
+@Composable
+fun GameManagementPanel(
+    game: Game,
+    isRetro: Boolean,
+    onToggleFavorite: () -> Unit,
+    onToggleWishlist: () -> Unit,
+    onDelete: () -> Unit,
+    onUpdateBorrowingInfo: (Boolean, String?, Boolean, String?) -> Unit,
+    onUpdateNotes: (String) -> Unit
+) {
+    if (isRetro) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .pixelButtonFrame(thickness = 2.dp)
+                .background(RetroElementBackground)
+        ) {
+            // Header Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(RetroBlack)
+                    .padding(vertical = 6.dp, horizontal = 12.dp)
+            ) {
+                Text(
+                    text = "ITEM MANAGEMENT",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = RetroGold,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 10.sp
+                    )
+                )
             }
-            RetroSquareIconButton(onClick = onWishlistClick, color = if (isWishlisted) RetroGold else RetroElementBackground) {
-                PixelBookmarkIcon(isSelected = isWishlisted, color = if(isWishlisted) RetroBlack else RetroText)
+
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Actions Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    PixelActionButton(
+                        icon = { PixelStar24(isSelected = game.isFavorite) },
+                        label = "FAV",
+                        isActive = game.isFavorite,
+                        activeColor = RetroGold,
+                        onClick = onToggleFavorite
+                    )
+                    PixelActionButton(
+                        icon = { PixelShinyHeart24(isSelected = game.isWishlisted) },
+                        label = "WISH",
+                        isActive = game.isWishlisted,
+                        activeColor = RetroRed,
+                        onClick = onToggleWishlist
+                    )
+                                    PixelActionButton(
+                                        icon = { PixelDelete24(color = RetroText) },
+                                        label = "DEL",
+                                        isActive = false,
+                                        activeColor = RetroBlack,
+                                        onClick = onDelete
+                                    )                }
+
+                if (!game.isWishlisted) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(RetroBlack.copy(alpha = 0.3f)))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = stringResource(R.string.borrowing_label).uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                            color = RetroText,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    var showBorrowDialog by remember { mutableStateOf(false) }
+                    
+                    val borrowText = when {
+                        game.isBorrowed -> {
+                            val name = if (!game.borrowedTo.isNullOrBlank()) game.borrowedTo else "..."
+                            stringResource(R.string.type_lent) + ": " + name
+                        }
+                        game.isBorrowedFrom -> {
+                            val name = if (!game.borrowedFrom.isNullOrBlank()) game.borrowedFrom else "..."
+                            stringResource(R.string.type_borrowed) + ": " + name
+                        }
+                        else -> stringResource(R.string.borrowing_hint)
+                    }
+                    
+                    val borrowColor = when {
+                        game.isBorrowed -> RetroOrange
+                        game.isBorrowedFrom -> RetroBlue
+                        else -> Color.Transparent
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .pixelButtonFrame(isSelected = game.isBorrowed || game.isBorrowedFrom, thickness = 2.dp)
+                            .background(if(game.isBorrowed || game.isBorrowedFrom) borrowColor else Color.Transparent)
+                            .clickable { showBorrowDialog = true }
+                            .padding(horizontal = 12.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = if(game.isBorrowed || game.isBorrowedFrom) "[X] ${borrowText.uppercase()}" else "[ ] ${borrowText.uppercase()}",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                color = if(game.isBorrowed || game.isBorrowedFrom) Color.White else RetroText,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        )
+                    }
+
+                    if (showBorrowDialog) {
+                        UnifiedBorrowingDialog(
+                            isLent = game.isBorrowed,
+                            isBorrowedFrom = game.isBorrowedFrom,
+                            currentName = if(game.isBorrowed) game.borrowedTo ?: "" else game.borrowedFrom ?: "",
+                            isRetro = true,
+                            onDismiss = { showBorrowDialog = false },
+                            onConfirm = { type, name ->
+                                when(type) {
+                                    BorrowType.LENT -> {
+                                        onUpdateBorrowingInfo(true, name, false, null)
+                                    }
+                                    BorrowType.FROM -> {
+                                        onUpdateBorrowingInfo(false, null, true, name)
+                                    }
+                                    BorrowType.NONE -> {
+                                        onUpdateBorrowingInfo(false, null, false, null)
+                                    }
+                                }
+                                showBorrowDialog = false
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(RetroBlack.copy(alpha = 0.3f)))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "NOTES:",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = RetroText,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                var showNotesDialog by remember { mutableStateOf(false) }
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pixelButtonFrame(thickness = 1.dp)
+                        .background(Color(0xFFFFF8E1))
+                        .clickable { showNotesDialog = true }
+                        .padding(12.dp)
+                        .heightIn(min = 60.dp)
+                ) {
+                    Text(
+                        text = if(game.notes?.isNotBlank() == true) game.notes else "Tap to scribble...",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Monospace,
+                            color = RetroBlack
+                        )
+                    )
+                }
+
+                if (showNotesDialog) {
+                    EditNotesDialog(
+                        initialNotes = game.notes ?: "",
+                        isRetro = true,
+                        onDismiss = { showNotesDialog = false },
+                        onSave = onUpdateNotes
+                    )
+                }
             }
-            RetroSquareIconButton(onClick = onDeleteClick, color = RetroElementBackground) {
-                PixelDeleteIcon(color = RetroText)
+        }
+    } else {
+        // Modern Management Panel
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ManagementIconButton(
+                        icon = if (game.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
+                        label = stringResource(R.string.expert_label_system).let { "FAV" }, // Using simple labels for management
+                        isActive = game.isFavorite,
+                        activeColor = RetroGold,
+                        onClick = onToggleFavorite
+                    )
+                    ManagementIconButton(
+                        icon = if (game.isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        label = "WISH",
+                        isActive = game.isWishlisted,
+                        activeColor = Color.Red,
+                        onClick = onToggleWishlist
+                    )
+                    ManagementIconButton(
+                        icon = Icons.Default.Delete,
+                        label = "DEL",
+                        isActive = false,
+                        activeColor = MaterialTheme.colorScheme.error,
+                        onClick = onDelete
+                    )
+                }
+                
+                if (!game.isWishlisted) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                    
+                    var showBorrowDialog by remember { mutableStateOf(false) }
+                    
+                    val borrowText = when {
+                        game.isBorrowed -> stringResource(R.string.type_lent) + ": " + (game.borrowedTo ?: "")
+                        game.isBorrowedFrom -> stringResource(R.string.type_borrowed) + ": " + (game.borrowedFrom ?: "")
+                        else -> stringResource(R.string.borrowing_hint)
+                    }
+
+                    OutlinedCard(
+                        onClick = { showBorrowDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.SwapHoriz, null, Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(stringResource(R.string.borrowing_label), style = MaterialTheme.typography.labelMedium)
+                                Text(borrowText, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+
+                    if (showBorrowDialog) {
+                        UnifiedBorrowingDialog(
+                            isLent = game.isBorrowed,
+                            isBorrowedFrom = game.isBorrowedFrom,
+                            currentName = if(game.isBorrowed) game.borrowedTo ?: "" else game.borrowedFrom ?: "",
+                            isRetro = false,
+                            onDismiss = { showBorrowDialog = false },
+                            onConfirm = { type, name ->
+                                when(type) {
+                                    BorrowType.LENT -> {
+                                        onUpdateBorrowingInfo(true, name, false, null)
+                                    }
+                                    BorrowType.FROM -> {
+                                        onUpdateBorrowingInfo(false, null, true, name)
+                                    }
+                                    BorrowType.NONE -> {
+                                        onUpdateBorrowingInfo(false, null, false, null)
+                                    }
+                                }
+                                showBorrowDialog = false
+                            }
+                        )
+                    }
+                }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                
+                var showNotesDialog by remember { mutableStateOf(false) }
+                OutlinedCard(
+                    onClick = { showNotesDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("Notes", style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            text = if(game.notes?.isNotBlank() == true) game.notes  else "Tap to add notes...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if(game.notes?.isNotBlank() == true) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                if (showNotesDialog) {
+                    EditNotesDialog(
+                        initialNotes = game.notes ?: "",
+                        isRetro = false,
+                        onDismiss = { showNotesDialog = false },
+                        onSave = onUpdateNotes
+                    )
+                }
             }
         }
     }
 }
 
-@Composable
-fun BorrowingSection(
-    isBorrowed: Boolean,
-    borrowedTo: String,
-    isRetro: Boolean,
-    onStatusChange: (Boolean, String?) -> Unit
-) {
-    var showEditDialog by remember { mutableStateOf(false) }
-    var tempBorrowedTo by remember(borrowedTo) { mutableStateOf(borrowedTo) }
+enum class BorrowType { LENT, FROM, NONE }
 
-    Surface(
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (isRetro) Modifier.drawBehind { 
-                drawRect(RetroBlack, style = Stroke(3.dp.toPx())) 
-            } else Modifier)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.borrowed_label).let { if(isRetro) it.uppercase() else it },
-                        style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
-                                else MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (isBorrowed) {
-                        Text(
-                            text = if (borrowedTo.isNotEmpty()) stringResource(R.string.borrowed_to_prefix, borrowedTo) else stringResource(R.string.no_borrower_desc),
-                            style = if (isRetro) MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroGold)
-                                    else MaterialTheme.typography.bodyMedium,
-                            color = if (isRetro) RetroGold else MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                Switch(
-                    checked = isBorrowed,
-                    onCheckedChange = { 
-                        if (it) {
-                            showEditDialog = true
-                        } else {
-                            onStatusChange(false, null)
-                        }
-                    },
-                    colors = if (isRetro) SwitchDefaults.colors(
-                        checkedThumbColor = RetroGold,
-                        checkedTrackColor = RetroBlack,
-                        uncheckedThumbColor = RetroGrey,
-                        uncheckedTrackColor = RetroBlack
-                    ) else SwitchDefaults.colors()
-                )
-            }
-            
-            if (isBorrowed) {
+@Composable
+fun UnifiedBorrowingDialog(
+    isLent: Boolean,
+    isBorrowedFrom: Boolean,
+    currentName: String,
+    isRetro: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (BorrowType, String) -> Unit
+) {
+    var selectedType by remember { mutableStateOf(if(isLent) BorrowType.LENT else if(isBorrowedFrom) BorrowType.FROM else BorrowType.NONE) }
+    var name by remember { mutableStateOf(currentName) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(28.dp),
+        containerColor = if (isRetro) RetroBackground else MaterialTheme.colorScheme.surface,
+        title = { Text(stringResource(R.string.borrow_dialog_unified_title).let { if(isRetro) it.uppercase() else it }, style = if(isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleLarge) },
+        text = {
+            Column {
+                Text(stringResource(R.string.borrow_type_label), style = MaterialTheme.typography.labelMedium, color = if(isRetro) RetroText else Color.Unspecified)
                 Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { showEditDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = if (isRetro) RectangleShape else ButtonDefaults.shape,
-                    colors = if (isRetro) ButtonDefaults.buttonColors(containerColor = RetroBlue, contentColor = Color.White)
-                             else ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                contentColor = MaterialTheme.colorScheme.primary
-                             )
-                ) {
-                    Text(
-                        text = stringResource(R.string.edit_desc_button).let { if(isRetro) it.uppercase() else it },
-                        style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace) else LocalTextStyle.current
+                
+                // Borrow Type Selection
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    BorrowTypeOption(BorrowType.NONE, stringResource(R.string.type_none), selectedType == BorrowType.NONE, isRetro) { selectedType = BorrowType.NONE }
+                    BorrowTypeOption(BorrowType.LENT, stringResource(R.string.type_lent), selectedType == BorrowType.LENT, isRetro) { selectedType = BorrowType.LENT }
+                    BorrowTypeOption(BorrowType.FROM, stringResource(R.string.type_borrowed), selectedType == BorrowType.FROM, isRetro) { selectedType = BorrowType.FROM }
+                }
+
+                if (selectedType != BorrowType.NONE) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text(stringResource(R.string.name_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp),
+                        textStyle = if(isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current,
+                        colors = if(isRetro) OutlinedTextFieldDefaults.colors(focusedBorderColor = RetroGold, unfocusedBorderColor = RetroText) else OutlinedTextFieldDefaults.colors()
                     )
                 }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedType, name) }) {
+                Text(stringResource(R.string.save_button).let { if(isRetro) it.uppercase() else it }, color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it }, color = if(isRetro) RetroText else MaterialTheme.colorScheme.secondary)
             }
         }
-    }
+    )
+}
 
-    if (showEditDialog) {
-        AlertDialog(
-            onDismissRequest = { showEditDialog = false },
-            shape = if (isRetro) RectangleShape else AlertDialogDefaults.shape,
-            containerColor = if (isRetro) RetroBackground else AlertDialogDefaults.containerColor,
-            title = { 
-                Text(
-                    text = stringResource(R.string.borrow_dialog_title).let { if(isRetro) it.uppercase() else it },
-                    style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current
-                ) 
-            },
-            text = {
-                OutlinedTextField(
-                    value = tempBorrowedTo,
-                    onValueChange = { tempBorrowedTo = it },
-                    label = { Text(stringResource(R.string.name_hint), color = if(isRetro) RetroGold else Color.Unspecified) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = if (isRetro) RectangleShape else OutlinedTextFieldDefaults.shape,
-                    textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current,
-                    colors = if(isRetro) OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = RetroGold,
-                        unfocusedBorderColor = RetroText,
-                        cursorColor = RetroGold
-                    ) else OutlinedTextFieldDefaults.colors()
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    onStatusChange(true, tempBorrowedTo)
-                    showEditDialog = false
-                }) {
-                    Text(
-                        text = stringResource(R.string.save_button).let { if(isRetro) it.uppercase() else it },
-                        style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold) else LocalTextStyle.current
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) {
-                    Text(
-                        text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
-                        style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current
-                    )
-                }
-            }
+@Composable
+fun BorrowTypeOption(type: BorrowType, label: String, isSelected: Boolean, isRetro: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = isSelected, onClick = onClick, colors = if(isRetro) RadioButtonDefaults.colors(selectedColor = RetroGold, unselectedColor = RetroText) else RadioButtonDefaults.colors())
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(label.let { if(isRetro) it.uppercase() else it }, style = if(isRetro) MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+fun PixelActionButton(
+    icon: @Composable () -> Unit,
+    label: String,
+    isActive: Boolean,
+    activeColor: Color,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .pixelButtonFrame(isSelected = isActive, thickness = 2.dp)
+                .background(if (isActive) activeColor.copy(alpha = 0.2f) else Color.Transparent)
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            icon()
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label, 
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                color = RetroText,
+                fontWeight = FontWeight.Bold
+            )
         )
+    }
+}
+
+
+@Composable
+fun EditNotesDialog(
+    initialNotes: String,
+    isRetro: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var notes by remember { mutableStateOf(initialNotes) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(28.dp),
+        containerColor = if (isRetro) RetroBackground else MaterialTheme.colorScheme.surface,
+        title = { 
+            Text(
+                text = stringResource(R.string.notes_dialog_title).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleLarge
+            ) 
+        },
+        text = {
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
+                shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
+                textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
+                colors = if(isRetro) OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = RetroGold,
+                    unfocusedBorderColor = RetroText,
+                    cursorColor = RetroGold
+                ) else OutlinedTextFieldDefaults.colors()
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(notes); onDismiss() }) {
+                Text(
+                    text = stringResource(R.string.save_button).let { if(isRetro) it.uppercase() else it },
+                    style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold) else MaterialTheme.typography.labelLarge
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
+                    style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun ManagementIconButton(icon: ImageVector, label: String, isActive: Boolean, activeColor: Color, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.background(if (isActive) activeColor.copy(alpha = 0.1f) else Color.Transparent, RoundedCornerShape(12.dp))
+        ) {
+            Icon(icon, contentDescription = label, tint = if (isActive) activeColor else MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
-    Surface(
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surface,
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
-        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBlack) 
-                 else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(0.1f))
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val labelStyle = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge
+    
+    Box(
+        modifier = if (isRetro) Modifier
+            .pixelButtonFrame(thickness = 2.dp)
+            .padding(2.dp)
+            .background(RetroElementBackground) 
+        else Modifier
+            .background(surfaceColor, RoundedCornerShape(12.dp))
+            .drawBehind { drawRect(Color.White.copy(0.1f), style = Stroke(1.dp.toPx())) }
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -466,7 +766,7 @@ fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = label, 
-                style = if (isRetro) MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelLarge, 
+                style = labelStyle, 
                 fontWeight = FontWeight.Bold
             )
         }
@@ -475,17 +775,23 @@ fun MetadataChip(icon: String, label: String, isRetro: Boolean) {
 
 @Composable
 fun CategoryChip(category: String, isRetro: Boolean) {
-    Surface(
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(8.dp),
-        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBlack)
-                 else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val labelStyle = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelSmall
+    
+    Box(
+        modifier = if (isRetro) Modifier
+            .pixelButtonFrame(thickness = 2.dp)
+            .padding(2.dp)
+            .background(RetroElementBackground)
+        else Modifier
+            .background(primaryColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .drawBehind { drawRect(primaryColor.copy(alpha = 0.2f), style = Stroke(1.dp.toPx())) }
     ) {
         Text(
             text = if (isRetro) category.uppercase() else category,
-            style = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            color = if (isRetro) RetroText else MaterialTheme.colorScheme.primary,
+            style = labelStyle,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            color = if (isRetro) RetroText else primaryColor,
             fontWeight = FontWeight.Medium
         )
     }

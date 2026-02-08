@@ -15,5 +15,6 @@ interface GameRepository {
     suspend fun searchRemoteGames(query: String): List<Game>
     suspend fun searchByBarcode(barcode: String): List<Game>
     suspend fun getRemoteGameDetails(id: String): Game?
+    suspend fun updateNotes(gameId: String, notes: String)
     suspend fun importCollection(username: String): Int
 }

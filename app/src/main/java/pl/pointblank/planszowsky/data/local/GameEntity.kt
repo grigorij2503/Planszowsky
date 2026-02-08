@@ -21,6 +21,9 @@ data class GameEntity(
     val isFavorite: Boolean = false,
     val isBorrowed: Boolean = false,
     val borrowedTo: String? = null,
+    val isBorrowedFrom: Boolean = false,
+    val borrowedFrom: String? = null,
+    val notes: String? = null,
     val categories: List<String> = emptyList()
 )
 
@@ -52,6 +55,9 @@ fun GameEntity.toDomainModel(): Game {
         isFavorite = isFavorite,
         isBorrowed = isBorrowed,
         borrowedTo = borrowedTo,
+        isBorrowedFrom = isBorrowedFrom,
+        borrowedFrom = borrowedFrom,
+        notes = notes,
         categories = categories
     )
 }
@@ -72,6 +78,9 @@ fun Game.toEntity(): GameEntity {
         isFavorite = isFavorite,
         isBorrowed = isBorrowed,
         borrowedTo = borrowedTo,
+        isBorrowedFrom = isBorrowedFrom,
+        borrowedFrom = borrowedFrom,
+        notes = notes,
         categories = categories
     )
 }

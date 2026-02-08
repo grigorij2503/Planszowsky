@@ -190,6 +190,13 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun updateNotes(gameId: String, notes: String) {
+        val game = getGame(gameId)
+        game?.let {
+            dao.insertGame(it.copy(notes = notes).toEntity())
+        }
+    }
+
     override suspend fun importCollection(username: String): Int {
         ensureSession()
         var importedCount = 0

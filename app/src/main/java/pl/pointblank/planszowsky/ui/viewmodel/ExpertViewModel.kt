@@ -27,7 +27,7 @@ data class ChatMessage(
 @HiltViewModel
 class ExpertViewModel @Inject constructor(
     application: Application,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ) : AndroidViewModel(application) {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
@@ -87,7 +87,7 @@ class ExpertViewModel @Inject constructor(
         if (userMessage.isBlank()) return
 
         // Add user message immediately
-        _messages.value = _messages.value + ChatMessage(text = userMessage, isUser = true)
+        _messages.value += ChatMessage(text = userMessage, isUser = true)
         _isLoading.value = true
 
         viewModelScope.launch {

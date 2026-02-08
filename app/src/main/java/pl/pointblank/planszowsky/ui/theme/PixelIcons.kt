@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 // Definicja mapowania znaków na kolory
 val pixelColorMap = mapOf(
@@ -21,12 +20,13 @@ val pixelColorMap = mapOf(
     'W' to RetroBrown,       // Drewno/Półka
     'S' to Color(0xFFE0E0E0),// Srebrny/Szary (Hełm)
     'F' to Color(0xFFF8B888),// Twarz (Face)
-    'L' to Color.White       // Light (Błysk)
+    'L' to Color.White,      // Light (Błysk)
+    'X' to Color.Black,
+    'E' to Color(0xFF5D5D5D) // Edges / Inactive grey
 )
 
 /**
  * Rysuje ikonę na podstawie listy stringów.
- * Każdy znak w stringu to jeden "duży piksel".
  */
 @Composable
 fun PixelArtIcon(
@@ -36,8 +36,6 @@ fun PixelArtIcon(
     Canvas(modifier = modifier) {
         val rows = pixelMap.size
         val cols = pixelMap.maxOf { it.length }
-
-        // Automatycznie obliczamy wielkość piksela, żeby wypełnić dostępny obszar
         val pixelW = size.width / cols
         val pixelH = size.height / rows
 
@@ -48,7 +46,6 @@ fun PixelArtIcon(
                     drawRect(
                         color = color,
                         topLeft = Offset(colIndex * pixelW, rowIndex * pixelH),
-                        // Dodajemy minimalny nadmiar (+0.5f), żeby usunąć białe linie między pikselami na niektórych ekranach
                         size = Size(pixelW + 0.5f, pixelH + 0.5f)
                     )
                 }
@@ -58,9 +55,230 @@ fun PixelArtIcon(
 }
 
 @Composable
+fun PixelStar24(isSelected: Boolean) {
+    // Perfectly symmetrical 24x24 Star
+    val map = if (isSelected) {
+        listOf(
+            "........................",
+            "...........##...........",
+            "...........##...........",
+            "..........#YY#..........",
+            "..........#YY#..........",
+            ".........#YYYY#.........",
+            "........#YYYYYY#........",
+            "#########YYYYYY#########",
+            "#########YYYYYY#########",
+            ".#YYYYYYYYYYYYYYYYYYYY#.",
+            "..#YYYYYYYYYYYYYYYYYY#..",
+            "...#YYYYYYYYYYYYYYYY#...",
+            "....#YYYYYYYYYYYYYY#....",
+            ".....#YYYYYYYYYYYY#.....",
+            ".....#YYYYY##YYYYY#.....",
+            "....#YYYYY#..#YYYYY#....",
+            "....#YYY#......#YYY#...",
+            "....#YYY#......#YYY#....",
+            "....#YY#........#YY#....",
+            "....#Y#..........#Y#....",
+            "........................",
+            "........................",
+            "........................"
+        )
+    } else {
+        listOf(
+            "........................",
+            "...........##...........",
+            "...........##...........",
+            "..........#EE#..........",
+            "..........#EE#..........",
+            ".........#EEEE#.........",
+            "........#EEEEEE#........",
+            "#########EEEEEE#########",
+            "#########EEEEEE#########",
+            ".#EEEEEEEEEEEEEEEEEEEE#.",
+            "..#EEEEEEEEEEEEEEEEEE#..",
+            "...#EEEEEEEEEEEEEEEE#...",
+            "....#EEEEEEEEEEEEEE#....",
+            ".....#EEEEEEEEEEEE#.....",
+            ".....#EEEEE##EEEEE#.....",
+            "....#EEEEE#..#EEEEE#....",
+            "....#EEE#......#EEE#...",
+            "....#EEE#......#EEE#....",
+            "....#EE#........#EE#....",
+            "....#E#..........#E#....",
+            "........................",
+            "........................",
+            "........................"
+        )
+    }
+    val starMap = map.map { it.replace('#', if(isSelected) 'Y' else 'X').replace('E', if(isSelected) 'Y' else 'E') }
+    PixelArtIcon(starMap, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelChat24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        "....################....",
+        "...#LLLLLLLLLLLLLLLL#...",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "..#LLLLLLLLLLLLLLLLLL#..",
+        "...#LLLLLLLLLLLLLLLL#...",
+        "....################....",
+        ".........###............",
+        "........#LL#............",
+        ".......#LL#.............",
+        "......#LL#..............",
+        ".....#LL#...............",
+        "....#LL#................",
+        "....####................",
+        "........................"
+    )
+
+    // Custom drawing for chat bubble to ensure white fill
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val rows = map.size
+        val cols = map[0].length
+        val pW = size.width / cols
+        val pH = size.height / rows
+        map.forEachIndexed { r, row ->
+            row.forEachIndexed { c, char ->
+                val drawColor = when(char) {
+                    '#' -> color
+                    'L' -> Color.White
+                    else -> Color.Transparent
+                }
+                if(drawColor != Color.Transparent) {
+                    drawRect(drawColor, Offset(c * pW, r * pH), Size(pW + 0.5f, pH + 0.5f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PixelDelete24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        ".........######.........",
+        "........#......#........",
+        "      ##########        ",
+        "     ############       ",
+        "     #          #       ",
+        "     ############       ",
+        "      #        #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      # X X X  #        ",
+        "      #        #        ",
+        "      ##########        ",
+        "........................"
+    ).map { it.replace(' ', '.').replace('#', 'X') }
+
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelShinyHeart24(isSelected: Boolean) {
+    val map = if (isSelected) {
+        listOf(
+            "........................",
+            "......####....####......",
+            "....##RRRR#..#RRRR##....",
+            "...#RRRRRRR##RRRRRRR#...",
+            "..#RRRRRRRRRRRRRRRRRR#..",
+            "..#LRRRRRRRRRRRRRRRRR#..",
+            ".#LLRRRRRRRRRRRRRRRRRR#.",
+            ".#LRRRRRRRRRRRRRRRRRRR#.",
+            ".#RRRRRRRRRRRRRRRRRRRR#.",
+            ".#RRRRRRRRRRRRRRRRRRRR#.",
+            "..#RRRRRRRRRRRRRRRRRR#..",
+            "..#RRRRRRRRRRRRRRRRRR#..",
+            "...#RRRRRRRRRRRRRRRR#...",
+            "....#RRRRRRRRRRRRRR#....",
+            ".....#RRRRRRRRRRRR#.....",
+            "......#RRRRRRRRRR#......",
+            ".......#RRRRRRRR#.......",
+            "........#RRRRRR#........",
+            ".........#RRRR#.........",
+            "..........#RR#..........",
+            "...........##...........",
+            "........................"
+        )
+    } else {
+        listOf(
+            "........................",
+            "......####....####......",
+            "....##EEEE#..#EEEE##....",
+            "...#EEEEEEE##EEEEEEE#...",
+            "..#EEEEEEEEEEEEEEEEEE#..",
+            "..#LEEEEEEEEEEEEEEEEE#..",
+            ".#LLEEEEEEEEEEEEEEEEEE#.",
+            ".#LEEEEEEEEEEEEEEEEEEE#.",
+            ".#EEEEEEEEEEEEEEEEEEEE#.",
+            ".#EEEEEEEEEEEEEEEEEEEE#.",
+            "..#EEEEEEEEEEEEEEEEEE#..",
+            "..#EEEEEEEEEEEEEEEEEE#..",
+            "...#EEEEEEEEEEEEEEEE#...",
+            "....#EEEEEEEEEEEEEE#....",
+            ".....#EEEEEEEEEEEE#.....",
+            "......#EEEEEEEEEE#......",
+            ".......#EEEEEEEE#.......",
+            "........#EEEEEE#........",
+            ".........#EEEE#.........",
+            "..........#EE#..........",
+            "...........##...........",
+            "........................"
+        )
+    }
+    PixelArtIcon(map, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelShinyHeartIcon(isSelected: Boolean) {
+    val map = if (isSelected) {
+        listOf(
+            "............",
+            "..##...##...",
+            ".#RR#.#RR#..",
+            ".#LRR#RRRR#.",
+            ".#RRRRRRRR#.",
+            "..#RRRRRR#..",
+            "...#RRRR#...",
+            "....#RR#....",
+            ".....##.....",
+            "............"
+        )
+    } else {
+        listOf(
+            "............",
+            "..##...##...",
+            ".#..#.#..#..",
+            ".#L..#....#.",
+            ".#........#.",
+            "..#......#..",
+            "...#....#...",
+            "....#..#....",
+            ".....##.....",
+            "............"
+        )
+    }
+    PixelArtIcon(map, Modifier.fillMaxSize())
+}
+
+@Composable
 fun PixelCollectionIcon(isSelected: Boolean) {
-    // Półka z książkami - wersja detailed
-    // # - obrys, W - drewno, kolory książek
     val map = listOf(
         "............",
         "..########..",
@@ -69,10 +287,10 @@ fun PixelCollectionIcon(isSelected: Boolean) {
         ".#RR#GG#BB#.",
         ".#RR#GG#BB#.",
         ".##########.",
-        ".#WWWWWWWW#.",  // Półka
+        ".#WWWWWWWW#.",
         ".#WWWWWWWW#.",
         ".##########.",
-        ".#........#.",  // Cień pod półką
+        ".#........#.",
         "............"
     )
     PixelArtIcon(map, Modifier.fillMaxSize())
@@ -80,97 +298,43 @@ fun PixelCollectionIcon(isSelected: Boolean) {
 
 @Composable
 fun PixelDiceIcon(isSelected: Boolean) {
-    // Izometryczna kostka
-    // O - Pomarańcz, # - Oczka i obrys
     val map = listOf(
-        "...............", // Margines góra
         "...............",
-        "..###########..", // Górna krawędź
+        "...............",
+        "..###########..",
         "..#OOOOOOOOO#..",
-        "..#O#OOOOO#O#..", // Oczka (Góra-Lewo, Góra-Prawo)
-        "..#OOOOOOOOO#..",
-        "..#OOOOOOOOO#..",
-        "..#OOOO#OOOO#..", // Oczko (Środek)
+        "..#O#OOOOO#O#..",
         "..#OOOOOOOOO#..",
         "..#OOOOOOOOO#..",
-        "..#O#OOOOO#O#..", // Oczka (Dół-Lewo, Dół-Prawo)
+        "..#OOOO#OOOO#..",
         "..#OOOOOOOOO#..",
-        "..###########..", // Dolna krawędź
-        "...............", // Margines dół
+        "..#OOOOOOOOO#..",
+        "..#O#OOOOO#O#..",
+        "..#OOOOOOOOO#..",
+        "..###########..",
+        "...............",
         "..............."
     )
     PixelArtIcon(map, Modifier.fillMaxSize())
 }
 
 @Composable
-fun PixelHeartIcon(isSelected: Boolean) {
-    // Serce z błyskiem (L)
-    val map = listOf(
-        "............",
-        "..##...##...",
-        ".#RR#.#RR#..",
-        ".#LRR#RRRR#.", // L = Biały Błysk!
-        ".#RRRRRRRR#.",
-        "..#RRRRRR#..",
-        "...#RRRR#...",
-        "....#RR#....",
-        ".....##.....",
-        "............",
-        "............",
-        "............"
-    )
-    PixelArtIcon(map, Modifier.fillMaxSize())
-}
-
-@Composable
 fun PixelProfileIcon(isSelected: Boolean) {
-    // Rycerz w hełmie (S - stal, # - wizjer)
     val map = listOf(
         "............",
-        "...######...", // Góra włosów
-        "..#WWWWWW#..", // Włosy
-        "..#WFFFFW#..", // Włosy po bokach + czoło
-        "..#F#FF#F#..", // Oczy (# to czarny piksel na skórze)
-        "..#FFFFFF#..", // Policzki
-        "...######...", // Broda / Szyja
-        "..#YYYYYY#..", // Ramiona (Żółta koszulka)
-        ".#YYYYYYYY#.", // Tłów
+        "...######...",
+        "..#WWWWWW#..",
+        "..#WFFFFW#..",
+        "..#F#FF#F#..",
+        "..#FFFFFF#..",
+        "...######...",
+        "..#YYYYYY#..",
         ".#YYYYYYYY#.",
-        ".##########.", // Dół
+        ".#YYYYYYYY#.",
+        ".##########.",
         "............"
     )
     PixelArtIcon(map, Modifier.fillMaxSize())
-}
-
-// Ulepszone ikony akcji (Kamera i Plus)
-
-@Composable
-fun PixelCameraIcon(color: Color = RetroBlack) {
-    // Bardziej detaliczna kamera
-    val map = listOf(
-        "..........",
-        "....##....", // Przycisk
-        "..######..", // Góra body
-        ".#......#.",
-        ".#..##..#.", // Obiektyw góra
-        ".#.####.#.", // Obiektyw środek
-        ".#..##..#.", // Obiektyw dół
-        ".#......#.",
-        "..######..",
-        ".........."
-    )
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val p = size.width / 10f
-        // Rysowanie na podstawie mapy, ale "w locie" dla jednego koloru
-        map.forEachIndexed { r, row ->
-            row.forEachIndexed { c, char ->
-                if (char == '#') {
-                    drawRect(color, Offset(c*p, r*p), Size(p, p))
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -183,17 +347,9 @@ private fun DrawSingleColorPixelIcon(
     Canvas(modifier = modifier) {
         val rows = map.size
         val cols = map.maxOf { it.length }
-        
-        val pixelSize = if (forceSquare) {
-            minOf(size.width / cols, size.height / rows)
-        } else {
-            0f
-        }
-        
+        val pixelSize = if (forceSquare) minOf(size.width / cols, size.height / rows) else 0f
         val pixelW = if (forceSquare) pixelSize else size.width / cols
         val pixelH = if (forceSquare) pixelSize else size.height / rows
-        
-        // Centrowanie ikony jeśli wymusiliśmy kwadratowe piksele
         val offsetX = (size.width - (cols * pixelW)) / 2
         val offsetY = (size.height - (rows * pixelH)) / 2
 
@@ -211,27 +367,25 @@ private fun DrawSingleColorPixelIcon(
     }
 }
 
-// 1. PixelPlusIcon (Gruby plus)
 @Composable
 fun PixelPlusIcon(color: Color = RetroBlack) {
     val map = listOf(
+        "...........",
         "............",
-        "....XXXX....",
-        "....XXXX....",
-        "....XXXX....",
-        ".XXXXXXXXXX.",
-        ".XXXXXXXXXX.",
-        "....XXXX....",
-        "....XXXX....",
-        "....XXXX....",
+        ".....XX.....",
+        ".....XX.....",
+        "...XXXXXX...",
+        "...XXXXXX...",
+        ".....XX.....",
+        ".....XX.....",
+        "............",
         "............"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
-// 2. PixelSearchIcon (Lupa - poprawiona geometria)
 @Composable
-fun PixelSearchIcon(color: Color = RetroBlack, modifier: Modifier = Modifier.fillMaxSize()) {
+fun PixelSearchIcon(modifier: Modifier = Modifier, color: Color = RetroBlack) {
     val map = listOf(
         ".XXXXXX.....",
         "X......X....",
@@ -247,42 +401,7 @@ fun PixelSearchIcon(color: Color = RetroBlack, modifier: Modifier = Modifier.fil
     DrawSingleColorPixelIcon(map, color, modifier)
 }
 
-// 3. PixelChatIcon (Dymek rozmowy)
-@Composable
-fun PixelChatIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "XXXXXXXXXXX.",
-        "X.........X.",
-        "X.........X.",
-        "X.........X.",
-        "X.........X.",
-        "XXXXXXXXXXX.",
-        "..XX........",
-        ".XX.........",
-        "XX.........."
-    )
-    // Rysujemy wypełniony dymek
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val rows = map.size
-        val cols = map.maxOf { it.length }
-        val pixelW = size.width / cols
-        val pixelH = size.height / rows
 
-        map.forEachIndexed { rowIndex, rowString ->
-            rowString.forEachIndexed { colIndex, char ->
-                if (char == 'X') {
-                    // Obrys
-                    drawRect(color, Offset(colIndex * pixelW, rowIndex * pixelH), Size(pixelW + 0.5f, pixelH + 0.5f))
-                } else if (char == '.' && rowIndex < 5 && colIndex > 0 && colIndex < 11) {
-                    // Wnętrze dymku (możesz zmienić kolor na biały/kremowy jeśli wolisz)
-                    drawRect(Color.White, Offset(colIndex * pixelW, rowIndex * pixelH), Size(pixelW + 0.5f, pixelH + 0.5f))
-                }
-            }
-        }
-    }
-}
-
-// 4. PixelBackIcon (Strzałka w lewo)
 @Composable
 fun PixelBackIcon(color: Color = RetroBlack) {
     val map = listOf(
@@ -299,24 +418,6 @@ fun PixelBackIcon(color: Color = RetroBlack) {
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
-// 5. PixelDeleteIcon (Kosz na śmieci)
-@Composable
-fun PixelDeleteIcon(color: Color = RetroBlack) {
-    val map = listOf(
-        "...XXXXXX...",
-        ".XXXXXXXXXX.",
-        "X..X....X..X", // Pokrywa uniesiona (detal)
-        "...XXXXXX...",
-        "...X....X...",
-        "...X....X...",
-        "...X....X...",
-        "...X....X...",
-        "...XXXXXX..."
-    )
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
-}
-
-// 6. PixelSendIcon (Papierowy samolot / Kursor)
 @Composable
 fun PixelSendIcon(color: Color = RetroBlack) {
     val map = listOf(
@@ -333,54 +434,60 @@ fun PixelSendIcon(color: Color = RetroBlack) {
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
-// 7. PixelAddIcon (Mniejszy plusik, np. do listy)
 @Composable
-fun PixelAddIcon(color: Color = RetroBlack) {
+fun PixelHeart24(color: Color = RetroBlack) {
     val map = listOf(
-        "............",
-        ".....XX.....",
-        ".....XX.....",
-        ".....XX.....",
-        ".XXXXXXXXXX.",
-        ".XXXXXXXXXX.",
-        ".....XX.....",
-        ".....XX.....",
-        ".....XX.....",
-        "............"
+        "........................",
+        "........................",
+        "........................",
+        "........................",
+        ".....######..######.....",
+        "....#XXXXXX##XXXXXX#....",
+        "...#XXXXXXX#XXXXXXXX#...",
+        "...#XXXXXXXXXXXXXXXX#...",
+        "...#XXXXXXXXXXXXXXXX#...",
+        "...#XXXXXXXXXXXXXXXX#...",
+        "...#RRRRRRRRRRRRRRRR#...",
+        "....#RRRRRRRRRRRRRR#....",
+        ".....#RRRRRRRRRRRR#.....",
+        "......#RRRRRRRRRR#......",
+        ".......#RRRRRRRR#.......",
+        "........#RRRRRR#........",
+        ".........#RRRR#.........",
+        "..........#RR#..........",
+        "...........##...........",
+        "........................",
+        "........................",
+        "........................"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
 
 @Composable
-fun PixelBookmarkIcon(isSelected: Boolean, color: Color = RetroBlack) {
-    val map = if (isSelected) {
-        listOf(
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXX..XXXX",
-            "XXX....XXX",
-            "X........X"
-        )
-    } else {
-        listOf(
-            "XXXXXXXXXX",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X..X..X..X",
-            "X.X....X.X",
-            "XX......XX"
-        )
-    }
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize(), forceSquare = false)
+fun PixelPlus24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        "..XXXXXXXXXXXXXXXXXXXX..",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        ".........XXXXXX.........",
+        "........................"
+    )
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }

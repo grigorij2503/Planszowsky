@@ -63,11 +63,4 @@ class FirebaseManager @Inject constructor() {
         }
     }
 
-    fun refreshConfig() {
-        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                _isExpertChatEnabled.value = remoteConfig.getBoolean("is_expert_chat_enabled")
-            }
-        }
-    }
 }

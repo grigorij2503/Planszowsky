@@ -1,6 +1,5 @@
 package pl.pointblank.planszowsky.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +36,6 @@ import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.RandomizerViewModel
 import pl.pointblank.planszowsky.ui.viewmodel.DurationFilter
-import pl.pointblank.planszowsky.util.PixelationTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,11 +191,13 @@ fun RandomizerFilters(
             modifier = Modifier.padding(bottom = 8.dp)
         )
         
-        Row(
+        LazyRow(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 4.dp)
         ) {
-            (1..6).forEach { count ->
+            items((1..6).toList()) { count ->
                 val isSelected = playerFilter == count
                 if (isRetro) {
                     Box(
@@ -313,7 +313,7 @@ fun RetroSlotMachine(
     selectedGame: pl.pointblank.planszowsky.domain.model.Game?,
     allGames: List<pl.pointblank.planszowsky.domain.model.Game>
 ) {
-    var displayGame by remember { mutableStateOf<pl.pointblank.planszowsky.domain.model.Game?>(selectedGame) }
+    var displayGame by remember { mutableStateOf(selectedGame) }
     
     // Shuffle animation for retro look
     if (isSpinning) {
@@ -334,7 +334,7 @@ fun RetroSlotMachine(
             .size(300.dp)
             .padding(4.dp),
         backgroundColor = RetroBlack,
-        borderColor = if (isSpinning) RetroGold else RetroBlue
+        accentColor = if (isSpinning) RetroGold else RetroBlue
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -348,7 +348,6 @@ fun RetroSlotMachine(
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
-                            .transformations(PixelationTransformation(pixelSize = 8))
                             .build(),
                         contentDescription = null,
                         modifier = Modifier

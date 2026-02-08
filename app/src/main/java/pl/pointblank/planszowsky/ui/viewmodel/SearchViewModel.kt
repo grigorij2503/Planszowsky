@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +26,7 @@ import pl.pointblank.planszowsky.util.similarity
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
@@ -80,7 +79,7 @@ class SearchViewModel @Inject constructor(
             }
             
             _searchResults.value = rankResults(cleanQuery, results)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _error.value = "api_error"
             _searchResults.value = emptyList()
         } finally {
@@ -110,6 +109,18 @@ class SearchViewModel @Inject constructor(
             val fullGame = repository.getRemoteGameDetails(game.id)
             if (fullGame != null) {
                 repository.saveGame(fullGame)
+                _additionSuccess.value = true
+            }
+            _isLoading.value = false
+        }
+    }
+
+    fun addToWishlist(game: Game) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val fullGame = repository.getRemoteGameDetails(game.id)
+            if (fullGame != null) {
+                repository.updateGame(fullGame.copy(isOwned = false, isWishlisted = true))
                 _additionSuccess.value = true
             }
             _isLoading.value = false
