@@ -11,6 +11,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ fun ExpertChatBottomSheet(
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
+    val currentSpeakingId by viewModel.currentSpeakingId.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     // Initialize session when opened
@@ -112,7 +115,12 @@ fun ExpertChatBottomSheet(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(messages) { message ->
-                    ChatBubble(message, isRetro)
+                    ChatBubble(
+                        message = message, 
+                        isRetro = isRetro,
+                        isSpeaking = currentSpeakingId == message.id,
+                        onSpeak = { viewModel.speak(message) }
+                    )
                 }
                 
                 if (isLoading) {
@@ -237,7 +245,7 @@ fun ExpertChatBottomSheet(
 }
 
 @Composable
-fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
+fun ChatBubble(message: ChatMessage, isRetro: Boolean, isSpeaking: Boolean, onSpeak: () -> Unit) {
     val bubbleColor = if (isRetro) {
         if (message.isError) RetroRed else if (message.isUser) RetroBlue else RetroElementBackground
     } else {
@@ -262,31 +270,65 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = alignment
     ) {
-        if (isRetro) {
-            RetroChunkyBox(
-                modifier = Modifier.widthIn(max = 280.dp),
-                backgroundColor = bubbleColor,
-                accentColor = if (message.isUser) RetroGold else RetroBlack
-            ) {
-                MarkdownText(
-                    text = message.text,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = textColor),
-                    isRetro = true
-                )
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (!message.isUser) {
+                if (isRetro) {
+                    RetroSquareIconButton(
+                        onClick = onSpeak,
+                        color = if (isSpeaking) RetroRed else RetroGold,
+                        modifier = Modifier.size(32.dp).padding(bottom = 4.dp, end = 4.dp)
+                    ) {
+                        if (isSpeaking) {
+                            PixelStopIcon(modifier = Modifier.size(16.dp))
+                        } else {
+                            PixelSpeakerIcon(modifier = Modifier.size(16.dp))
+                        }
+                    }
+                } else {
+                    IconButton(
+                        onClick = onSpeak,
+                        modifier = Modifier.size(32.dp).padding(bottom = 4.dp, end = 4.dp)
+                    ) {
+                        Icon(
+                            if (isSpeaking) Icons.Default.Stop else Icons.Default.VolumeUp, 
+                            contentDescription = if (isSpeaking) "Stop" else "Speak",
+                            modifier = Modifier.size(20.dp),
+                            tint = if (isSpeaking) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
-        } else {
-            Surface(
-                color = bubbleColor,
-                shape = shape,
-                shadowElevation = 2.dp,
-                modifier = Modifier.widthIn(max = 280.dp)
-            ) {
-                MarkdownText(
-                    text = message.text,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+
+            if (isRetro) {
+                RetroChunkyBox(
+                    modifier = Modifier.widthIn(max = 260.dp),
+                    backgroundColor = bubbleColor,
+                    accentColor = if (message.isUser) RetroGold else RetroBlack
+                ) {
+                    MarkdownText(
+                        text = message.text,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = textColor),
+                        isRetro = true
+                    )
+                }
+            } else {
+                Surface(
+                    color = bubbleColor,
+                    shape = shape,
+                    shadowElevation = 2.dp,
+                    modifier = Modifier.widthIn(max = 260.dp)
+                ) {
+                    MarkdownText(
+                        text = message.text,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
             }
         }
         val labelText = if (message.isUser) stringResource(R.string.expert_label_user) 
@@ -298,11 +340,10 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean) {
             style = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText)
                     else MaterialTheme.typography.labelSmall,
             color = if (isRetro) RetroText else Color.Gray,
-            modifier = Modifier.padding(top = 4.dp, start = if (message.isUser) 0.dp else 8.dp, end = if (message.isUser) 8.dp else 0.dp)
+            modifier = Modifier.padding(top = 4.dp, start = if (message.isUser) 0.dp else 40.dp, end = if (message.isUser) 8.dp else 0.dp)
         )
     }
 }
-
 @Composable
 fun MarkdownText(
     text: String,

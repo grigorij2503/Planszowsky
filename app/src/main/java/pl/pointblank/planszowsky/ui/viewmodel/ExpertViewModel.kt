@@ -9,6 +9,7 @@ import pl.pointblank.planszowsky.BuildConfig
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
+import pl.pointblank.planszowsky.util.SpeechManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class ChatMessage(
+    val id: String = java.util.UUID.randomUUID().toString(),
     val text: String,
     val isUser: Boolean,
     val isError: Boolean = false
@@ -27,11 +29,14 @@ data class ChatMessage(
 @HiltViewModel
 class ExpertViewModel @Inject constructor(
     application: Application,
-    userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository,
+    private val speechManager: SpeechManager
 ) : AndroidViewModel(application) {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
+
+    val currentSpeakingId: StateFlow<String?> = speechManager.currentUtteranceId
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
@@ -41,6 +46,19 @@ class ExpertViewModel @Inject constructor(
 
     private var chatSession: com.google.ai.client.generativeai.Chat? = null
     private var currentGameTitle: String = ""
+
+    override fun onCleared() {
+        super.onCleared()
+        speechManager.stop()
+    }
+
+    fun speak(message: ChatMessage) {
+        if (currentSpeakingId.value == message.id) {
+            speechManager.stop()
+        } else {
+            speechManager.speak(message.text, message.id)
+        }
+    }
 
     fun initialize(gameTitle: String) {
         if (currentGameTitle == gameTitle && chatSession != null) return

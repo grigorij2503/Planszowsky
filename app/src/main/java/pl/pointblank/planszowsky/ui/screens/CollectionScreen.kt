@@ -429,8 +429,9 @@ fun CollectionScreen(
 }
 
 @Composable
-fun RetroDiceButton(onClick: () -> Unit) {
+fun RetroDiceButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     RetroFloatingButton(
+        modifier = modifier,
         onClick = onClick,
         color = RetroGold,
         icon = {

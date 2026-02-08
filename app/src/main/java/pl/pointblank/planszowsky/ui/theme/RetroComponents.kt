@@ -212,10 +212,11 @@ fun RetroFloatingButton(
     color: Color, 
     icon: @Composable () -> Unit, 
     buttonSize: Dp,
+    modifier: Modifier = Modifier,
     shape: Shape = RectangleShape
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(buttonSize)
             .pixelButtonFrame(thickness = 3.dp)
             .clip(shape)
@@ -231,10 +232,11 @@ fun RetroFloatingButton(
 fun RetroSquareIconButton(
     onClick: () -> Unit, 
     color: Color, 
+    modifier: Modifier = Modifier,
     icon: @Composable () -> Unit
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(44.dp)
             .pixelFrame(thickness = 2.dp)
             .background(color)
