@@ -17,6 +17,13 @@
     <string name="borrowed_from_prefix">"Od: %s"</string>
     <string name="no_borrowed_from_desc">"Brak opisu od kogo"</string>
     <string name="borrow_from_dialog_title">"Od kogo pożyczyłeś grę?"</string>
+    <string name="borrowing_label">"Status wypożyczenia"</string>
+    <string name="borrowing_hint">"Brak wypożyczenia"</string>
+    <string name="borrow_dialog_unified_title">"Szczegóły wypożyczenia"</string>
+    <string name="borrow_type_label">"Typ wypożyczenia:"</string>
+    <string name="type_lent">"Pożyczona komuś"</string>
+    <string name="type_borrowed">"Pożyczona od kogoś"</string>
+    <string name="type_none">"Brak (Oddana)"</string>
     
     <string name="edit_desc_button">"Edytuj opis"</string>
     <string name="name_hint">"Imię / Opis"</string>

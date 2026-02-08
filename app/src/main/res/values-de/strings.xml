@@ -17,6 +17,13 @@
     <string name="borrowed_from_prefix">"Von: %s"</string>
     <string name="no_borrowed_from_desc">"Keine Beschreibung zum Verleiher"</string>
     <string name="borrow_from_dialog_title">"Von wem hast du das Spiel geliehen?"</string>
+    <string name="borrowing_label">"Leihstatus"</string>
+    <string name="borrowing_hint">"Nicht verliehen/geliehen"</string>
+    <string name="borrow_dialog_unified_title">"Leihdetails"</string>
+    <string name="borrow_type_label">"Typ:"</string>
+    <string name="type_lent">"An jemanden verliehen"</string>
+    <string name="type_borrowed">"Von jemandem geliehen"</string>
+    <string name="type_none">"Keiner (Zurückgegeben)"</string>
 
     <string name="edit_desc_button">"Beschreibung bearbeiten"</string>
     <string name="name_hint">"Name / Beschreibung"</string>

@@ -17,6 +17,13 @@
     <string name="borrowed_from_prefix">"From: %s"</string>
     <string name="no_borrowed_from_desc">"No lender description"</string>
     <string name="borrow_from_dialog_title">"Who did you borrow the game from?"</string>
+    <string name="borrowing_label">"Borrowing Status"</string>
+    <string name="borrowing_hint">"Not borrowed"</string>
+    <string name="borrow_dialog_unified_title">"Borrowing Details"</string>
+    <string name="borrow_type_label">"Type:"</string>
+    <string name="type_lent">"Lent to someone"</string>
+    <string name="type_borrowed">"Borrowed from someone"</string>
+    <string name="type_none">"None (Returned)"</string>
 
     <string name="edit_desc_button">"Edit description"</string>
     <string name="name_hint">"Name / Description"</string>
