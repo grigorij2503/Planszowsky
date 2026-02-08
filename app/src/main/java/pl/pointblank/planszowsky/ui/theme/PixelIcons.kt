@@ -142,36 +142,6 @@ fun PixelProfileIcon(isSelected: Boolean) {
     PixelArtIcon(map, Modifier.fillMaxSize())
 }
 
-// Ulepszone ikony akcji (Kamera i Plus)
-
-@Composable
-fun PixelCameraIcon(color: Color = RetroBlack) {
-    // Bardziej detaliczna kamera
-    val map = listOf(
-        "..........",
-        "....##....", // Przycisk
-        "..######..", // Góra body
-        ".#......#.",
-        ".#..##..#.", // Obiektyw góra
-        ".#.####.#.", // Obiektyw środek
-        ".#..##..#.", // Obiektyw dół
-        ".#......#.",
-        "..######..",
-        ".........."
-    )
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val p = size.width / 10f
-        // Rysowanie na podstawie mapy, ale "w locie" dla jednego koloru
-        map.forEachIndexed { r, row ->
-            row.forEachIndexed { c, char ->
-                if (char == '#') {
-                    drawRect(color, Offset(c*p, r*p), Size(p, p))
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun DrawSingleColorPixelIcon(
@@ -215,15 +185,15 @@ private fun DrawSingleColorPixelIcon(
 @Composable
 fun PixelPlusIcon(color: Color = RetroBlack) {
     val map = listOf(
+        "...........",
         "............",
-        "....XXXX....",
-        "....XXXX....",
-        "....XXXX....",
-        ".XXXXXXXXXX.",
-        ".XXXXXXXXXX.",
-        "....XXXX....",
-        "....XXXX....",
-        "....XXXX....",
+        ".....XX.....",
+        ".....XX.....",
+        "...XXXXXX...",
+        "...XXXXXX...",
+        ".....XX.....",
+        ".....XX.....",
+        "............",
         "............"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
@@ -251,12 +221,12 @@ fun PixelSearchIcon(color: Color = RetroBlack, modifier: Modifier = Modifier.fil
 @Composable
 fun PixelChatIcon(color: Color = RetroBlack) {
     val map = listOf(
-        "XXXXXXXXXXX.",
-        "X.........X.",
-        "X.........X.",
-        "X.........X.",
-        "X.........X.",
-        "XXXXXXXXXXX.",
+        "............",
+        ".XXXXXXXXXX.",
+        ".X........X.",
+        ".X........X.",
+        ".X........X.",
+        ".XXXXXXXXXX.",
         "..XX........",
         ".XX.........",
         "XX.........."
@@ -338,17 +308,46 @@ fun PixelSendIcon(color: Color = RetroBlack) {
 fun PixelAddIcon(color: Color = RetroBlack) {
     val map = listOf(
         "............",
-        ".....XX.....",
+        "............",
         ".....XX.....",
         ".....XX.....",
         ".XXXXXXXXXX.",
         ".XXXXXXXXXX.",
         ".....XX.....",
         ".....XX.....",
-        ".....XX.....",
+        "............",
         "............"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelArtCameraIcon(
+    modifier: Modifier = Modifier,
+    bodyColorChar: Char = 'S', // Srebrny korpus
+    lensColorChar: Char = 'B'  // Niebieski obiektyw
+) {
+    val map = listOf(
+        "................",
+        ".....#####......", // Góra (garb)
+        ".....#YYY#......", // Y = Złoty/Żółty (Flash)
+        "....#######.....",
+        "..##RR#######...", // RR = Czerwony spust
+        ".##RR#######S#..",
+        ".#SSSSSSSSSSSS#.",
+        ".#SSSSSSSSSSSS#.",
+        ".#SSSS##SSSSS##.",
+        ".#SSS####SSS###.", // Obiektyw
+        ".#SSS####SSS###.",
+        ".#SSS####SSS###.",
+        ".#SSSS##SSSSS##.",
+        ".#SSSSSSSSSSSS#.",
+        "..############..",
+        "................"
+    )
+    
+    // Custom pixel art for camera using the existing character map
+    PixelArtIcon(map, modifier)
 }
 
 @Composable

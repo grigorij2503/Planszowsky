@@ -104,10 +104,26 @@ fun CollectionScreen(
                 horizontalAlignment = Alignment.End
             ) {
                 if (isRetro) {
+                    val scanColor = Color(0xFF009688)
                     RetroFloatingButton(
                         onClick = onScanClick,
-                        color = RetroRed,
-                        icon = { PixelCameraIcon(color = Color.White) },
+                        color = scanColor,
+                        icon = { 
+                            Canvas(modifier = Modifier.size(28.dp)) {
+                                val p = size.width / 14
+                                val c = Color.White
+                                
+                                // Body Outline
+                                drawRect(c, Offset(2*p, 4*p), Size(10*p, 7*p))
+                                // Top/Flash Outline
+                                drawRect(c, Offset(5*p, 2*p), Size(4*p, 2*p))
+                                
+                                // Lens Hole (cutout using button color)
+                                drawRect(scanColor, Offset(5*p, 6*p), Size(4*p, 3*p))
+                                // Inner Lens Sparkle
+                                drawRect(c, Offset(6*p, 7*p), Size(2*p, 1*p))
+                            }
+                        },
                         buttonSize = 56.dp
                     )
                     Spacer(modifier = Modifier.height(16.dp))

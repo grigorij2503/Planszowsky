@@ -93,46 +93,32 @@ fun Modifier.pixelFrame(
 
 fun Modifier.pixelButtonFrame(
     isSelected: Boolean = false,
-    thickness: Dp = 2.dp
+    thickness: Dp = 1.dp
 ) = this.drawWithContent {
     val t = thickness.toPx()
     val w = size.width
     val h = size.height
 
-    // 1. Heavy Shadow (Drawn first, offset)
-    if (!isSelected) {
-        drawRect(
-            color = Color.Black.copy(alpha = 0.5f),
-            topLeft = Offset(t * 1.5f, t * 1.5f),
-            size = Size(w, h)
-        )
-    }
-
-    // 2. Main Outer Black Border
+    // 1. Clean Black Outer Border (No heavy shadow)
     drawRect(color = RetroBlack, size = Size(w, h))
 
-    // 3. Emboss/Bevel Effect
-    val light = if (isSelected) RetroGold else Color.White.copy(alpha = 0.4f)
-    val dark = if (isSelected) Color.Black.copy(alpha = 0.4f) else Color.Black.copy(alpha = 0.2f)
+    // 2. Simple Pixel Bevel
+    val light = if (isSelected) RetroGold else Color.White.copy(alpha = 0.3f)
+    val dark = if (isSelected) Color.Black.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.2f)
 
     if (!isSelected) {
-        // Highlight (Top & Left)
+        // Highlight
         drawRect(color = light, topLeft = Offset(t, t), size = Size(w - 2 * t, t))
         drawRect(color = light, topLeft = Offset(t, t), size = Size(t, h - 2 * t))
-        
-        // Shadow inside border (Bottom & Right)
+        // Shadow
         drawRect(color = dark, topLeft = Offset(t, h - 2 * t), size = Size(w - 2 * t, t))
         drawRect(color = dark, topLeft = Offset(w - 2 * t, t), size = Size(t, h - 2 * t))
     } else {
-        // Inverted for "pressed" look
+        // Pressed
         drawRect(color = dark, topLeft = Offset(t, t), size = Size(w - 2 * t, t))
         drawRect(color = dark, topLeft = Offset(t, t), size = Size(t, h - 2 * t))
-        
-        drawRect(color = light, topLeft = Offset(t, h - 2 * t), size = Size(w - 2 * t, t))
-        drawRect(color = light, topLeft = Offset(w - 2 * t, t), size = Size(t, h - 2 * t))
     }
 
-    // 4. Draw the actual button content/background
     drawContent()
 }
 
@@ -255,15 +241,9 @@ fun RetroFloatingButton(
     Box(
         modifier = Modifier
             .size(buttonSize)
-            .drawBehind { drawDitheredShadow(size) }
+            .pixelButtonFrame(thickness = 3.dp)
             .background(color)
-            .clickable(onClick = onClick)
-            .drawBehind {
-                val stroke = 4.dp.toPx()
-                drawRect(RetroBlack, style = Stroke(stroke))
-                // Inner highlight
-                drawRect(Color.White.copy(alpha = 0.2f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
-            },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         icon()
