@@ -403,6 +403,41 @@ fun PixelSearchIcon(modifier: Modifier = Modifier, color: Color = RetroBlack) {
 
 
 @Composable
+fun PixelSpeakerIcon(modifier: Modifier = Modifier, color: Color = RetroBlack) {
+    val map = listOf(
+        "....X.......",
+        "...XX.......",
+        "..XXX..X....",
+        ".XXXX...X...",
+        ".XXXX....X..",
+        ".XXXX...X...",
+        "..XXX..X....",
+        "...XX.......",
+        "....X.......",
+        "............"
+    )
+    DrawSingleColorPixelIcon(map, color, modifier)
+}
+
+@Composable
+fun PixelStopIcon(modifier: Modifier = Modifier, color: Color = RetroBlack) {
+    val map = listOf(
+        "............",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        ".XXXXXXXXXX.",
+        "............"
+    )
+    DrawSingleColorPixelIcon(map, color, modifier)
+}
+
+@Composable
 fun PixelBackIcon(color: Color = RetroBlack) {
     val map = listOf(
         "............",

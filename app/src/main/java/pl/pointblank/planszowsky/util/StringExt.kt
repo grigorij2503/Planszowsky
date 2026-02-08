@@ -1,5 +1,13 @@
 package pl.pointblank.planszowsky.util
 
+import androidx.core.text.HtmlCompat
+
+/**
+ * Decodes HTML entities in a string.
+ */
+fun String.decodeHtml(): String {
+    return HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
+}
 
 /**
  * Calculates the Levenshtein distance between two strings.

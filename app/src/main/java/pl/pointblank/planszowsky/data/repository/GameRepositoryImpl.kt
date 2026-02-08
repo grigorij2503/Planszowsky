@@ -7,6 +7,7 @@ import pl.pointblank.planszowsky.data.remote.BggApi
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.util.FirebaseManager
+import pl.pointblank.planszowsky.util.decodeHtml
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.Dispatchers
@@ -110,7 +111,7 @@ class GameRepositoryImpl @Inject constructor(
                 
                 Game(
                     id = item.id,
-                    title = primaryName,
+                    title = primaryName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
                     yearPublished = item.yearPublished?.value
@@ -141,7 +142,7 @@ class GameRepositoryImpl @Inject constructor(
                 
                 Game(
                     id = item.id,
-                    title = primaryName,
+                    title = primaryName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
                     yearPublished = item.yearPublished?.value
@@ -170,10 +171,10 @@ class GameRepositoryImpl @Inject constructor(
 
             Game(
                 id = item.id,
-                title = primaryName,
+                title = primaryName.decodeHtml(),
                 thumbnailUrl = item.thumbnail,
                 imageUrl = item.image,
-                description = item.description,
+                description = item.description?.decodeHtml(),
                 yearPublished = item.yearPublished?.value,
                 minPlayers = item.minPlayers?.value,
                 maxPlayers = item.maxPlayers?.value,
@@ -205,7 +206,7 @@ class GameRepositoryImpl @Inject constructor(
             response.items?.forEach { item ->
                 val game = Game(
                     id = item.id,
-                    title = item.name ?: "Unknown",
+                    title = item.name?.decodeHtml() ?: "Unknown",
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
                     yearPublished = item.yearPublished,
