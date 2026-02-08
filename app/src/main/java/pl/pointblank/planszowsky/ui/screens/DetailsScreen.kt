@@ -336,11 +336,11 @@ fun RetroDetailsTopBar(
         }
         
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RetroSquareIconButton(onClick = onFavoriteClick, color = if (isFavorite) RetroRed else RetroElementBackground) {
-                PixelHeartIcon(isSelected = isFavorite)
+            RetroSquareIconButton(onClick = onFavoriteClick, color = if (isFavorite) RetroGold else RetroElementBackground) {
+                PixelStarIcon(isSelected = isFavorite, color = if(isFavorite) RetroBlack else RetroText)
             }
-            RetroSquareIconButton(onClick = onWishlistClick, color = if (isWishlisted) RetroGold else RetroElementBackground) {
-                PixelBookmarkIcon(isSelected = isWishlisted, color = if(isWishlisted) RetroBlack else RetroText)
+            RetroSquareIconButton(onClick = onWishlistClick, color = if (isWishlisted) RetroRed else RetroElementBackground) {
+                PixelHeartIcon(isSelected = isWishlisted, color = if(isWishlisted) Color.White else RetroText)
             }
             RetroSquareIconButton(onClick = onDeleteClick, color = RetroElementBackground) {
                 PixelDeleteIcon(color = RetroText)

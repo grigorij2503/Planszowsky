@@ -103,22 +103,97 @@ fun PixelDiceIcon(isSelected: Boolean) {
 }
 
 @Composable
-fun PixelHeartIcon(isSelected: Boolean) {
-    // Serce z błyskiem (L)
-    val map = listOf(
-        "............",
-        "..##...##...",
-        ".#RR#.#RR#..",
-        ".#LRR#RRRR#.", // L = Biały Błysk!
-        ".#RRRRRRRR#.",
-        "..#RRRRRR#..",
-        "...#RRRR#...",
-        "....#RR#....",
-        ".....##.....",
-        "............",
-        "............",
-        "............"
-    )
+fun PixelStarIcon(isSelected: Boolean, color: Color = RetroBlack) {
+    val map = if (isSelected) {
+        listOf(
+            ".....X.....",
+            "....XXX....",
+            "....XXX....",
+            "XXXXXXXXXXX",
+            "..XXXXXXX..",
+            "...XXXXX...",
+            "..XXXXXXX..",
+            ".XXX...XXX.",
+            "XX.......XX"
+        )
+    } else {
+        listOf(
+            ".....X.....",
+            "....X.X....",
+            "....X.X....",
+            ".XXX...XXX.",
+            "..X.....X..",
+            "...X...X...",
+            "..X.....X..",
+            ".X.......X.",
+            "X.........X"
+        )
+    }
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelHeartIcon(isSelected: Boolean, color: Color = RetroBlack) {
+    val map = if (isSelected) {
+        listOf(
+            "..XX...XX..",
+            ".XXXX.XXXX.",
+            "XXXXXXXXXXX",
+            "XXXXXXXXXXX",
+            "XXXXXXXXXXX",
+            ".XXXXXXXXX.",
+            "..XXXXXXX..",
+            "...XXXXX...",
+            "....XXX....",
+            ".....X....."
+        )
+    } else {
+        listOf(
+            "..XX...XX..",
+            ".X..X.X..X.",
+            "X....X....X",
+            "X.........X",
+            "X.........X",
+            ".X.......X.",
+            "..X.....X..",
+            "...X...X...",
+            "....X.X....",
+            ".....X....."
+        )
+    }
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelShinyHeartIcon(isSelected: Boolean) {
+    // Serce z błyskiem (L) - Retro RPG style
+    val map = if (isSelected) {
+        listOf(
+            "............",
+            "..##...##...",
+            ".##R#.#R##..", // L = Biały Błysk
+            ".#RLR#RRR#..", // # = Ciemny obrys
+            ".#RRRRRRR#..", // R = Czerwone wypełnienie
+            "..#RRRRR#..",
+            "...#RRR#...",
+            "....#R#....",
+            ".....#.....",
+            "............"
+        )
+    } else {
+        listOf(
+            "............",
+            "..##...##...",
+            ".#..#.#..#..",
+            ".#L..#....#.", 
+            ".#........#.",
+            "..#......#..",
+            "...#....#...",
+            "....#..#....",
+            ".....##.....",
+            "............"
+        )
+    }
     PixelArtIcon(map, Modifier.fillMaxSize())
 }
 
@@ -348,38 +423,4 @@ fun PixelArtCameraIcon(
     
     // Custom pixel art for camera using the existing character map
     PixelArtIcon(map, modifier)
-}
-
-@Composable
-fun PixelBookmarkIcon(isSelected: Boolean, color: Color = RetroBlack) {
-    val map = if (isSelected) {
-        listOf(
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXXXXXXXX",
-            "XXXX..XXXX",
-            "XXX....XXX",
-            "X........X"
-        )
-    } else {
-        listOf(
-            "XXXXXXXXXX",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X........X",
-            "X..X..X..X",
-            "X.X....X.X",
-            "XX......XX"
-        )
-    }
-    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize(), forceSquare = false)
 }

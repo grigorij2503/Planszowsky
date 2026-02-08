@@ -34,7 +34,7 @@ import pl.pointblank.planszowsky.ui.screens.*
 import pl.pointblank.planszowsky.ui.theme.*
 
 sealed class Screen(val route: String, val labelRes: Int, val icon: ImageVector) {
-    object Collection : Screen("collection", R.string.menu_collection, Icons.Default.Home)
+    object Collection : Screen("collection", R.string.menu_collection, Icons.Default.GridView)
     object DiceRoller : Screen("dice_roller", R.string.menu_dice, Icons.Default.Casino)
     object Wishlist : Screen("wishlist", R.string.menu_wishlist, Icons.Default.Favorite)
     object Profile : Screen("profile", R.string.menu_profile, Icons.Default.AccountCircle)
@@ -255,10 +255,10 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modif
             contentAlignment = Alignment.Center
         ) {
             when (screen) {
-                Screen.Collection -> PixelCollectionIcon(isSelected)
-                Screen.DiceRoller -> PixelDiceIcon(isSelected)
-                Screen.Wishlist -> PixelHeartIcon(isSelected)
-                Screen.Profile -> PixelProfileIcon(isSelected)
+                Screen.Collection -> PixelCollectionIcon(true)
+                Screen.DiceRoller -> PixelDiceIcon(true)
+                Screen.Wishlist -> PixelShinyHeartIcon(true)
+                Screen.Profile -> PixelProfileIcon(true)
             }
         }
         
