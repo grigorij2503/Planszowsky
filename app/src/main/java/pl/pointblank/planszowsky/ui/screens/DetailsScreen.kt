@@ -35,6 +35,7 @@ import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.DetailsViewModel
+import pl.pointblank.planszowsky.util.decodeHtml
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -148,7 +149,7 @@ fun DetailsScreen(
                 ) {
                     Column(modifier = Modifier.padding(24.dp)) {
                         Text(
-                            text = if (isRetro) g.title.uppercase() else g.title,
+                            text = if (isRetro) g.title.decodeHtml().uppercase() else g.title.decodeHtml(),
                             style = if (isRetro) MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
                                     else MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold
@@ -216,7 +217,7 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         Text(
-                            text = g.description ?: stringResource(R.string.no_description),
+                            text = g.description?.decodeHtml() ?: stringResource(R.string.no_description),
                             style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText)
                                     else MaterialTheme.typography.bodyLarge,
                             lineHeight = 24.sp,

@@ -33,6 +33,7 @@ import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.ChatMessage
 import pl.pointblank.planszowsky.ui.viewmodel.ExpertViewModel
+import pl.pointblank.planszowsky.util.decodeHtml
 
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -362,11 +363,12 @@ fun MarkdownText(
 }
 
 fun parseMarkdown(text: String): AnnotatedString {
+    val decodedText = text.decodeHtml()
     return buildAnnotatedString {
         val boldRegex = Regex("""\*\*(.*?)\*\*""")
         val italicRegex = Regex("""\*(.*?)\*""")
         
-        var currentText = text
+        var currentText = decodedText
         val boldMatches = boldRegex.findAll(currentText).toList()
         
         var lastIndex = 0
