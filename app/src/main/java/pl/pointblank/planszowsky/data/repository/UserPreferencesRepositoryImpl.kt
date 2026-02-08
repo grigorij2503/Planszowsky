@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import pl.pointblank.planszowsky.domain.model.AppTheme
+import pl.pointblank.planszowsky.domain.model.CollectionViewMode
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +24,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     private object PreferencesKeys {
         val APP_THEME = stringPreferencesKey("app_theme")
+        val COLLECTION_VIEW_MODE = stringPreferencesKey("collection_view_mode")
     }
 
     override val appTheme: Flow<AppTheme> = context.dataStore.data
@@ -35,9 +37,25 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             }
         }
 
+    override val collectionViewMode: Flow<CollectionViewMode> = context.dataStore.data
+        .map { preferences ->
+            val modeName = preferences[PreferencesKeys.COLLECTION_VIEW_MODE] ?: CollectionViewMode.GRID.name
+            try {
+                CollectionViewMode.valueOf(modeName)
+            } catch (_: IllegalArgumentException) {
+                CollectionViewMode.GRID
+            }
+        }
+
     override suspend fun setAppTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_THEME] = theme.name
+        }
+    }
+
+    override suspend fun setCollectionViewMode(mode: CollectionViewMode) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.COLLECTION_VIEW_MODE] = mode.name
         }
     }
 }

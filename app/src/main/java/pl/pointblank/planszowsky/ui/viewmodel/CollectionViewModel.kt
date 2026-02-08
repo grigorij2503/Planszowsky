@@ -3,6 +3,7 @@ package pl.pointblank.planszowsky.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import pl.pointblank.planszowsky.domain.model.AppTheme
+import pl.pointblank.planszowsky.domain.model.CollectionViewMode
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
@@ -13,16 +14,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class CollectionViewModel @Inject constructor(
-    repository: GameRepository,
-    userPreferencesRepository: UserPreferencesRepository
+    private val repository: GameRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
+
+    val collectionViewMode: StateFlow<CollectionViewMode> = userPreferencesRepository.collectionViewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionViewMode.GRID)
 
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory
@@ -58,5 +63,16 @@ class CollectionViewModel @Inject constructor(
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
+    }
+
+    fun toggleViewMode() {
+        viewModelScope.launch {
+            val nextMode = when (collectionViewMode.value) {
+                CollectionViewMode.GRID -> CollectionViewMode.LIST
+                CollectionViewMode.LIST -> CollectionViewMode.COMPACT
+                CollectionViewMode.COMPACT -> CollectionViewMode.GRID
+            }
+            userPreferencesRepository.setCollectionViewMode(nextMode)
+        }
     }
 }

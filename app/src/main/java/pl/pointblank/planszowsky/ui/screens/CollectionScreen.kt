@@ -45,6 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
+import pl.pointblank.planszowsky.domain.model.CollectionViewMode
 import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.CollectionViewModel
@@ -64,6 +65,7 @@ fun CollectionScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
+    val viewMode by viewModel.collectionViewMode.collectAsState()
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
     var isCategoriesExpanded by remember { mutableStateOf(false) }
@@ -156,8 +158,14 @@ fun CollectionScreen(
                 .padding(paddingValues)
         ) {
             // Główna zawartość
+            val columns = when(viewMode) {
+                CollectionViewMode.GRID -> 2
+                CollectionViewMode.LIST -> 1
+                CollectionViewMode.COMPACT -> 3
+            }
+
             LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
+                columns = StaggeredGridCells.Fixed(columns),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = 16.dp, 
@@ -185,14 +193,30 @@ fun CollectionScreen(
                                         else MaterialTheme.typography.headlineLarge,
                             )
                             
-                            if (isRetro) {
-                                RetroDiceButton(onClick = onRandomizerClick)
-                            } else {
-                                IconButton(
-                                    onClick = onRandomizerClick,
-                                    modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
-                                ) {
-                                    Text("🎲", fontSize = 20.sp)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (isRetro) {
+                                    RetroDiceButton(onClick = onRandomizerClick)
+                                } else {
+                                    IconButton(
+                                        onClick = viewModel::toggleViewMode,
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Text(
+                                            when(viewMode) {
+                                                CollectionViewMode.GRID -> "📱"
+                                                CollectionViewMode.LIST -> "🗒️"
+                                                CollectionViewMode.COMPACT -> "🔡"
+                                            }, 
+                                            fontSize = 20.sp
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    IconButton(
+                                        onClick = onRandomizerClick,
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Text("🎲", fontSize = 20.sp)
+                                    }
                                 }
                             }
                         }
@@ -279,7 +303,11 @@ fun CollectionScreen(
                     }
                 }
                 items(games, key = { it.id }) { game ->
-                    GameCard(game, isRetro = isRetro, onClick = { onGameClick(game.id) })
+                    when(viewMode) {
+                        CollectionViewMode.GRID -> GameCard(game, isRetro = isRetro, onClick = { onGameClick(game.id) })
+                        CollectionViewMode.LIST -> GameListRow(game, isRetro = isRetro, onClick = { onGameClick(game.id) })
+                        CollectionViewMode.COMPACT -> GameCompactCard(game, isRetro = isRetro, onClick = { onGameClick(game.id) })
+                    }
                 }
                 
                 item(span = StaggeredGridItemSpan.FullLine) {
@@ -349,6 +377,12 @@ fun CollectionScreen(
                                 Icon(Icons.Default.Close, contentDescription = null, tint = RetroText)
                             }
                         }
+                        
+                        // Przycisk zmiany widoku wewnątrz paska wyszukiwania
+                        RetroViewModeButton(
+                            viewMode = viewMode, 
+                            onClick = viewModel::toggleViewMode
+                        )
                     }
                 }
             } else {
@@ -634,6 +668,223 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RetroViewModeButton(viewMode: CollectionViewMode, onClick: () -> Unit) {
+    RetroFloatingButton(
+        onClick = onClick,
+        color = RetroGold,
+        icon = {
+            when(viewMode) {
+                CollectionViewMode.GRID -> {
+                    // 2x2 Grid Icon
+                    val map = listOf(
+                        "XX.XX",
+                        "XX.XX",
+                        ".....",
+                        "XX.XX",
+                        "XX.XX"
+                    )
+                    PixelArtIcon(map.map { it.replace('X', '#').replace('.', '.') }, Modifier.size(18.dp))
+                }
+                CollectionViewMode.LIST -> {
+                    // List Icon
+                    val map = listOf(
+                        "XXXXX",
+                        ".....",
+                        "XXXXX",
+                        ".....",
+                        "XXXXX"
+                    )
+                    PixelArtIcon(map.map { it.replace('X', '#').replace('.', '.') }, Modifier.size(18.dp))
+                }
+                CollectionViewMode.COMPACT -> {
+                    // 3x3 Grid Icon
+                    val map = listOf(
+                        "X.X.X",
+                        ".....",
+                        "X.X.X",
+                        ".....",
+                        "X.X.X"
+                    )
+                    PixelArtIcon(map.map { it.replace('X', '#').replace('.', '.') }, Modifier.size(18.dp))
+                }
+            }
+        },
+        buttonSize = 40.dp
+    )
+}
+
+@Composable
+fun GameListRow(game: Game, isRetro: Boolean, onClick: () -> Unit) {
+    if (isRetro) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .rpgGameFrame(
+                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
+                    thickness = 3.dp
+                )
+                .background(RetroBlack)
+        ) {
+            Row(
+                modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = game.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(50.dp),
+                    contentScale = ContentScale.Crop,
+                    filterQuality = FilterQuality.None
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = game.title.uppercase(),
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFamily = FontFamily.Monospace,
+                            color = RetroText,
+                            fontSize = 12.sp
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (game.yearPublished != null) {
+                        Text(
+                            text = game.yearPublished,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = FontFamily.Monospace,
+                                color = RetroGold,
+                                fontSize = 10.sp
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = game.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = game.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = game.categories.take(2).joinToString(", "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1
+                    )
+                }
+                if (game.isBorrowed || game.isBorrowedFrom) {
+                    Text("📦", fontSize = 16.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun GameCompactCard(game: Game, isRetro: Boolean, onClick: () -> Unit) {
+    if (isRetro) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clickable(onClick = onClick)
+                .rpgGameFrame(
+                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
+                    thickness = 2.dp
+                )
+                .background(RetroBlack)
+        ) {
+            AsyncImage(
+                model = game.thumbnailUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                filterQuality = FilterQuality.None
+            )
+            
+            // Thin overlay for title at bottom
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(RetroBlack.copy(alpha = 0.7f))
+                    .padding(2.dp)
+            ) {
+                Text(
+                    text = game.title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = RetroText,
+                        fontSize = 8.sp,
+                        lineHeight = 9.sp
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+    } else {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.8f)
+                .clickable(onClick = onClick),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                AsyncImage(
+                    model = game.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // Overlay for borrowed status
+                if (game.isBorrowed || game.isBorrowedFrom) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp)
+                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                            .padding(2.dp)
+                    ) {
+                        Text("📦", fontSize = 10.sp)
+                    }
                 }
             }
         }
