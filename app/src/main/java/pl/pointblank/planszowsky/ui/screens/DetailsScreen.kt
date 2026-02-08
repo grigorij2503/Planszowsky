@@ -701,7 +701,7 @@ fun EditNotesDialog(
         text = {
             OutlinedTextField(
                 value = notes,
-                onValueChange = { },
+                onValueChange = { notes = it },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
                 shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
                 textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
