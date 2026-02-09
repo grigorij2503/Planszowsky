@@ -8,6 +8,7 @@ import pl.pointblank.planszowsky.domain.model.Game
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import pl.pointblank.planszowsky.util.FirebaseManager
+import pl.pointblank.planszowsky.util.TranslationManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DetailsViewModel @Inject constructor(
     private val repository: GameRepository,
+    private val translationManager: TranslationManager,
     userPreferencesRepository: UserPreferencesRepository,
     firebaseManager: FirebaseManager,
     savedStateHandle: SavedStateHandle
@@ -35,9 +37,34 @@ class DetailsViewModel @Inject constructor(
     private val _game = MutableStateFlow<Game?>(null)
     val game: StateFlow<Game?> = _game.asStateFlow()
 
+    private val _isTranslating = MutableStateFlow(false)
+    val isTranslating: StateFlow<Boolean> = _isTranslating.asStateFlow()
+
+    private val _translatedDescription = MutableStateFlow<String?>(null)
+    val translatedDescription: StateFlow<String?> = _translatedDescription.asStateFlow()
+
     init {
         viewModelScope.launch {
             _game.value = repository.getGame(gameId)
+        }
+    }
+
+    fun translateDescription() {
+        val currentDescription = _game.value?.description ?: return
+        if (_translatedDescription.value != null) {
+            _translatedDescription.value = null // Toggle off
+            return
+        }
+
+        viewModelScope.launch {
+            _isTranslating.value = true
+            val result = translationManager.translate(currentDescription)
+            result.onSuccess {
+                _translatedDescription.value = it
+            }.onFailure {
+                // For now, just stop loading. In a real app, show error.
+            }
+            _isTranslating.value = false
         }
     }
     

@@ -106,7 +106,7 @@ class SearchViewModel @Inject constructor(
     fun addToCollection(game: Game) {
         viewModelScope.launch {
             _isLoading.value = true
-            val fullGame = repository.getRemoteGameDetails(game.id)
+            val fullGame = repository.getRemoteGameDetails(game.id, game.title)
             if (fullGame != null) {
                 repository.saveGame(fullGame)
                 _additionSuccess.value = true
@@ -118,7 +118,7 @@ class SearchViewModel @Inject constructor(
     fun addToWishlist(game: Game) {
         viewModelScope.launch {
             _isLoading.value = true
-            val fullGame = repository.getRemoteGameDetails(game.id)
+            val fullGame = repository.getRemoteGameDetails(game.id, game.title)
             if (fullGame != null) {
                 repository.updateGame(fullGame.copy(isOwned = false, isWishlisted = true))
                 _additionSuccess.value = true

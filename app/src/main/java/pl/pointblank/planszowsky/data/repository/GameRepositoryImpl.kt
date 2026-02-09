@@ -16,6 +16,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import pl.pointblank.planszowsky.util.similarity
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -105,13 +106,14 @@ class GameRepositoryImpl @Inject constructor(
             
             val detailsResponse = api.getGameDetails(ids.joinToString(","))
             detailsResponse.items?.map { item ->
-                val primaryName = item.names?.find { it.type == "primary" }?.value 
+                val bestName = item.names?.map { it.value }?.maxByOrNull { it.similarity(query) }
+                    ?: item.names?.find { it.type == "primary" }?.value 
                     ?: item.names?.firstOrNull()?.value 
                     ?: "Unknown"
                 
                 Game(
                     id = item.id,
-                    title = primaryName.decodeHtml(),
+                    title = bestName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
                     yearPublished = item.yearPublished?.value
@@ -157,13 +159,13 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getRemoteGameDetails(id: String): Game? {
+    override suspend fun getRemoteGameDetails(id: String, preferredTitle: String?): Game? {
         ensureSession()
         return try {
             val response = api.getGameDetails(id)
             val item = response.items?.firstOrNull() ?: return null
             
-            val primaryName = item.names?.find { it.type == "primary" }?.value 
+            val title = preferredTitle ?: item.names?.find { it.type == "primary" }?.value 
                 ?: item.names?.firstOrNull()?.value 
                 ?: "Unknown"
 
@@ -171,7 +173,7 @@ class GameRepositoryImpl @Inject constructor(
 
             Game(
                 id = item.id,
-                title = primaryName.decodeHtml(),
+                title = title.decodeHtml(),
                 thumbnailUrl = item.thumbnail,
                 imageUrl = item.image,
                 description = item.description?.decodeHtml(),
@@ -190,6 +192,7 @@ class GameRepositoryImpl @Inject constructor(
             null
         }
     }
+
 
     override suspend fun updateNotes(gameId: String, notes: String) {
         val game = getGame(gameId)

@@ -46,6 +46,8 @@ fun DetailsScreen(
     val game by viewModel.game.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
     val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsState()
+    val isTranslating by viewModel.isTranslating.collectAsState()
+    val translatedDescription by viewModel.translatedDescription.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     var showChat by remember { mutableStateOf(false) }
@@ -207,17 +209,62 @@ fun DetailsScreen(
 
                         Spacer(modifier = Modifier.height(32.dp))
                         
-                        Text(
-                            text = stringResource(R.string.description_label).let { if(isRetro) it.uppercase() else it },
-                            style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
-                                    else MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.description_label).let { if(isRetro) it.uppercase() else it },
+                                style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
+                                        else MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            if (isRetro) {
+                                Box(
+                                    modifier = Modifier
+                                        .pixelButtonFrame(isSelected = translatedDescription != null, thickness = 2.dp)
+                                        .background(if (translatedDescription != null) RetroBlue else RetroElementBackground)
+                                        .clickable { viewModel.translateDescription() }
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(
+                                        text = if (isTranslating) stringResource(R.string.translating).uppercase()
+                                               else if (translatedDescription != null) stringResource(R.string.show_original).uppercase()
+                                               else stringResource(R.string.translate_button).uppercase(),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontFamily = FontFamily.Monospace,
+                                            color = if(translatedDescription != null) Color.White else RetroText,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            } else {
+                                TextButton(
+                                    onClick = { viewModel.translateDescription() },
+                                    enabled = !isTranslating
+                                ) {
+                                    if (isTranslating) {
+                                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(stringResource(R.string.translating))
+                                    } else {
+                                        Icon(Icons.Default.Translate, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            if (translatedDescription != null) stringResource(R.string.show_original)
+                                            else stringResource(R.string.translate_button)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                         
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         Text(
-                            text = g.description?.decodeHtml() ?: stringResource(R.string.no_description),
+                            text = translatedDescription ?: g.description?.decodeHtml() ?: stringResource(R.string.no_description),
                             style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText)
                                     else MaterialTheme.typography.bodyLarge,
                             lineHeight = 24.sp,
