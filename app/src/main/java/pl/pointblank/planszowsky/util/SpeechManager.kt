@@ -44,6 +44,11 @@ class SpeechManager @Inject constructor(
                     _isSpeaking.value = false
                     _currentUtteranceId.value = null
                 }
+
+                override fun onError(utteranceId: String?, errorCode: Int) {
+                    _isSpeaking.value = false
+                    _currentUtteranceId.value = null
+                }
             })
             
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {

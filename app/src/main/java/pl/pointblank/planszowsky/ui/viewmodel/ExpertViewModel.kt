@@ -3,9 +3,10 @@ package pl.pointblank.planszowsky.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.ai.client.generativeai.GenerativeModel
-import com.google.ai.client.generativeai.type.content
-import pl.pointblank.planszowsky.BuildConfig
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
+import com.google.firebase.ai.type.content
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
@@ -44,7 +45,7 @@ class ExpertViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private var chatSession: com.google.ai.client.generativeai.Chat? = null
+    private var chatSession: com.google.firebase.ai.Chat? = null
     private var currentGameTitle: String = ""
 
     override fun onCleared() {
@@ -62,7 +63,7 @@ class ExpertViewModel @Inject constructor(
 
     fun initialize(gameTitle: String) {
         if (currentGameTitle == gameTitle && chatSession != null) return
-        
+
         currentGameTitle = gameTitle
         val app = getApplication<Application>()
         _messages.value = listOf(
@@ -73,31 +74,22 @@ class ExpertViewModel @Inject constructor(
         )
 
         try {
-            val apiKey = BuildConfig.GEMINI_API_KEY
-            if (apiKey.isBlank()) {
-                _messages.value += ChatMessage(
-                                    text = app.getString(R.string.expert_api_error),
-                                    isUser = false,
-                                    isError = true
-                                )
-                return
-            }
+            val generativeModel = Firebase.ai(backend = GenerativeBackend.googleAI())
+                .generativeModel("gemini-3-flash-preview", systemInstruction = content {
+                    text(app.getString(R.string.expert_system_instruction, gameTitle))
+                })
 
-            val generativeModel = GenerativeModel(
-                modelName = "gemini-3-flash-preview",
-                apiKey = apiKey,
-                systemInstruction = content { 
-                    text(app.getString(R.string.expert_system_instruction, gameTitle)) 
-                }
-            )
-            
+
             chatSession = generativeModel.startChat()
         } catch (e: Exception) {
             _messages.value += ChatMessage(
-                            text = app.getString(R.string.expert_init_error, e.localizedMessage ?: "Unknown error"),
-                            isUser = false,
-                            isError = true
-                        )
+                text = app.getString(
+                    R.string.expert_init_error,
+                    e.localizedMessage ?: "Unknown error"
+                ),
+                isUser = false,
+                isError = true
+            )
         }
     }
 
@@ -113,26 +105,32 @@ class ExpertViewModel @Inject constructor(
                 val session = chatSession
                 if (session == null) {
                     _messages.value += ChatMessage(
-                                            text = "Sesja czatu nie jest aktywna (brak klucza API?).",
-                                            isUser = false,
-                                            isError = true
-                                        )
+                        text = "Sesja czatu nie jest aktywna (Błąd inicjalizacji Firebase AI).",
+                        isUser = false,
+                        isError = true
+                    )
                 } else {
                     val response = session.sendMessage(userMessage)
                     val aiResponseText = response.text ?: "Brak odpowiedzi od modelu."
 
                     _messages.value += ChatMessage(
-                                            text = aiResponseText,
-                                            isUser = false
-                                        )
+                        text = aiResponseText,
+                        isUser = false
+                    )
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ExpertViewModel", "Gemini Error", e)
+                android.util.Log.e("ExpertViewModel", "VertexAI Error", e)
+                val errorMessage = if (e.localizedMessage?.contains("429") == true) {
+                    "Zbyt wiele zapytań. Spróbuj ponownie za chwilę."
+                } else {
+                    "Błąd komunikacji: ${e.localizedMessage}"
+                }
+
                 _messages.value += ChatMessage(
-                                    text = "Błąd komunikacji: ${e.localizedMessage}",
-                                    isUser = false,
-                                    isError = true
-                                )
+                    text = errorMessage,
+                    isUser = false,
+                    isError = true
+                )
             } finally {
                 _isLoading.value = false
             }

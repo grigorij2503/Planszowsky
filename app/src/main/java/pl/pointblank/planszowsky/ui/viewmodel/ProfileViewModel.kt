@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
-import pl.pointblank.planszowsky.util.FirebaseManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +20,11 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository,
-    firebaseManager: FirebaseManager
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
-
-    val installationId: StateFlow<String?> = firebaseManager.installationId
 
     private val _bggUsername = MutableStateFlow("")
     val bggUsername: StateFlow<String> = _bggUsername.asStateFlow()

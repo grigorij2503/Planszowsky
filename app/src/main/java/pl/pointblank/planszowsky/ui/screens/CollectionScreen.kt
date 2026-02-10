@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -471,6 +472,42 @@ fun RetroFilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
+fun ModernCategoryChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.height(36.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp).padding(end = 4.dp)
+                )
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelMedium,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun CategoryChip(
     text: String,
     isSelected: Boolean,
@@ -485,10 +522,10 @@ fun CategoryChip(
             onClick = onClick
         )
     } else {
-        FilterChip(
-            selected = isSelected,
+        ModernCategoryChip(
+            text = text,
+            isSelected = isSelected,
             onClick = onClick,
-            label = { Text(text, maxLines = 1) },
             modifier = modifier
         )
     }
@@ -507,7 +544,7 @@ fun ExpandedCategoriesFlow(
             .fillMaxWidth()
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp),
-        verticalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         categories.forEach { category ->
             CategoryChip(

@@ -28,15 +28,12 @@ android {
             useSupportLibrary = true
         }
 
-        // Gemini API Key configuration
         val properties = Properties()
         val localPropertiesFile = project.rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             properties.load(FileInputStream(localPropertiesFile))
         }
-        val geminiKey = properties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
         val bggKey = properties.getProperty("BGG_API_KEY") ?: System.getenv("BGG_API_KEY") ?: ""
-        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
         buildConfigField("String", "BGG_API_KEY", "\"$bggKey\"")
     }
 
@@ -124,15 +121,12 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.translate)
     
-    // Gemini AI SDK
-    implementation(libs.generativeai)
-
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
-    implementation(libs.firebase.config)
     implementation(libs.firebase.installations)
+    implementation(libs.firebase.ai)
 
     // Accompanist Permissions
     implementation(libs.accompanist.permissions)

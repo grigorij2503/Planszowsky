@@ -11,8 +11,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -295,7 +295,7 @@ fun ChatBubble(message: ChatMessage, isRetro: Boolean, isSpeaking: Boolean, onSp
                         modifier = Modifier.size(32.dp).padding(bottom = 4.dp, end = 4.dp)
                     ) {
                         Icon(
-                            if (isSpeaking) Icons.Default.Stop else Icons.Default.VolumeUp, 
+                            if (isSpeaking) Icons.Default.Stop else Icons.AutoMirrored.Filled.VolumeUp,
                             contentDescription = if (isSpeaking) "Stop" else "Speak",
                             modifier = Modifier.size(20.dp),
                             tint = if (isSpeaking) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary

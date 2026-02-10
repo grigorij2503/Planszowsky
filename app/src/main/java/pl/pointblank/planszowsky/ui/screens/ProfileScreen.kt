@@ -42,7 +42,6 @@ fun ProfileScreen(
     val username by viewModel.bggUsername.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
     val importResult by viewModel.importResult.collectAsState(initial = null)
-    val installationId by viewModel.installationId.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -63,18 +62,6 @@ fun ProfileScreen(
                 }
             }
             android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
-        }
-    }
-
-    val clipboard = androidx.compose.ui.platform.LocalClipboard.current
-
-    val onCopyId: () -> Unit = {
-        installationId?.let { id ->
-            coroutineScope.launch {
-                val clipData = android.content.ClipData.newPlainText("Installation ID", id)
-                clipboard.setClipEntry(androidx.compose.ui.platform.ClipEntry(clipData))
-                android.widget.Toast.makeText(context, context.resources.getString(R.string.id_copied), android.widget.Toast.LENGTH_SHORT).show()
-            }
         }
     }
 
@@ -300,52 +287,7 @@ fun ProfileScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
 
-        // Firebase Diagnostics Card
-        if (isRetro) {
-            RetroChunkyBox(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = installationId != null, onClick = onCopyId),
-                accentColor = RetroBlue
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.diagnostics_title).uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroBlue, fontWeight = FontWeight.Bold)
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.installation_id_label, installationId ?: stringResource(R.string.loading)).uppercase(),
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, color = RetroText),
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-            }
-        } else {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = installationId != null, onClick = onCopyId),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.diagnostics_title),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.installation_id_label, installationId ?: stringResource(R.string.loading)),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
-                }
-            }
-        }
         
         Spacer(modifier = Modifier.height(48.dp))
         
@@ -353,7 +295,7 @@ fun ProfileScreen(
                           else MaterialTheme.typography.labelSmall
         
         Text(
-            text = stringResource(R.string.app_version),
+            text = "Planszowsky v${pl.pointblank.planszowsky.BuildConfig.VERSION_NAME}",
             style = footerStyle,
             color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
         )

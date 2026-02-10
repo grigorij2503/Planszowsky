@@ -55,9 +55,6 @@ The project follows **Modern Android Development (MAD)** standards:
 
 ### API Setup
 1.  **BGG API:** Currently in **MOCK MODE**.
-2.  **Gemini AI:** 
-    *   Create a key at [Google AI Studio](https://aistudio.google.com/).
-    *   Add `GEMINI_API_KEY=your_key` to `local.properties`.
 
 ### Commands
 *   **Build Debug APK:**
