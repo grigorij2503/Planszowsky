@@ -103,4 +103,10 @@
     <string name="notes_label">"Persönliche Notizen"</string>
     <string name="notes_hint">"Schreibe etwas über dieses Spiel…"</string>
     <string name="notes_dialog_title">"Spielnotizen"</string>
+    <string name="item_management">"VERWALTUNG"</string>
+    <string name="tap_to_scribble">"Tippen zum Schreiben..."</string>
+    <string name="ask_expert_ellipsis">"EXPERTEN FRAGEN..."</string>
+    <string name="action_fav">"FAV"</string>
+    <string name="action_wish">"WUNSCH"</string>
+    <string name="action_del">"LÖSCH"</string>
 </resources>

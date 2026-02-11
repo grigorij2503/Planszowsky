@@ -14,13 +14,13 @@ android {
     namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
-    val baseVersion = "0.5"
+    val baseVersion = "0.6"
 
     defaultConfig {
         applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        versionCode = 6
         versionName = baseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

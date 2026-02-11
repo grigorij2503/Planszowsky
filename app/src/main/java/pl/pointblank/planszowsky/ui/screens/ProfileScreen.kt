@@ -304,10 +304,14 @@ fun ProfileScreen(
             style = footerStyle,
             color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
         )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = stringResource(R.string.legal_disclaimer),
             style = footerStyle,
-            color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f)
+            color = if (isRetro) RetroText.copy(alpha = 0.4f) else Color.White.copy(alpha = 0.3f),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
         
         Spacer(modifier = Modifier.height(32.dp))
