@@ -37,6 +37,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 firebase-installations = { group = "com.google.firebase", name = "firebase-installations" }
+firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 android-play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }

@@ -63,6 +63,9 @@
     <string name="expert_label_user">"Spieler"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="expert_limit_reached">"Limit erreicht! Du kannst 5 Fragen pro Tag stellen. Der Spielleiter muss sich bis morgen ausruhen."</string>
+    <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
+    <string name="expert_limit_short">"Limit erreicht"</string>
     <string name="no_results">Keine Suchergebnisse gefunden.</string>
     <string name="theme_selection_title">App-Erscheinungsbild</string>
     <string name="theme_modern">Modern</string>

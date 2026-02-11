@@ -78,7 +78,7 @@ fun DetailsScreen(
                     )
                 } else {
                     FloatingActionButton(
-                        onClick = { },
+                        onClick = { showChat = true },
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ) {

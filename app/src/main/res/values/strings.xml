@@ -63,6 +63,9 @@
     <string name="expert_label_user">"Gracz"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="expert_limit_reached">"Limit wyczerpany! Możesz zadać 5 pytań dziennie. Mistrz Gry musi odpocząć do jutra."</string>
+    <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
+    <string name="expert_limit_short">"Limit wyczerpany"</string>
     <string name="no_results">Brak wyników wyszukiwania.</string>
     <string name="bgg_api_error">Wystąpił problem z połączeniem do BoardGameGeek. Spróbuj ponownie później.</string>
     <string name="theme_selection_title">Wygląd aplikacji</string>
