@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.android.play.integrity)
     
     // Navigation
     implementation(libs.androidx.navigation.compose)
