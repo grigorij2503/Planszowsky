@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -32,6 +33,13 @@ import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.ProfileViewModel
+
+import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.EmojiEvents
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +50,7 @@ fun ProfileScreen(
     val username by viewModel.bggUsername.collectAsState()
     val isImporting by viewModel.isImporting.collectAsState()
     val importResult by viewModel.importResult.collectAsState(initial = null)
+    val stats by viewModel.stats.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -111,7 +120,12 @@ fun ProfileScreen(
             fontWeight = FontWeight.Bold
         )
         
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Collection Stats Section
+        StatsSection(stats = stats, isRetro = isRetro)
+
+        Spacer(modifier = Modifier.height(32.dp))
         
         // Theme Selection Card
         if (isRetro) {
@@ -326,6 +340,130 @@ fun ProfileScreen(
         )
         
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun StatsSection(
+    stats: pl.pointblank.planszowsky.domain.model.CollectionStats,
+    isRetro: Boolean
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.profile_stats_title).let { if(isRetro) it.uppercase() else it },
+            style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText)
+                    else MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier.fillMaxWidth(),
+                backgroundColor = RetroElementBackground,
+                accentColor = RetroGold
+            ) {
+                Column(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
+                    // Player Style highlighted
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+                            PixelStar24(isSelected = true)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.stats_category).uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.6f), fontSize = 8.sp)
+                            )
+                            Text(
+                                text = stats.topCategory?.uppercase() ?: "---",
+                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroGold, fontWeight = FontWeight.ExtraBold)
+                            )
+                        }
+                    }
+                    
+                    Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(RetroBlack))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        MiniStat(stringResource(R.string.stats_games), stats.totalOwned.toString(), isRetro, RetroBlue)
+                        MiniStat(stringResource(R.string.stats_favorites), stats.favoriteCount.toString(), isRetro, RetroRed)
+                        MiniStat(stringResource(R.string.stats_wishlist), stats.wishlistCount.toString(), isRetro, RetroGrey)
+                        MiniStat(stringResource(R.string.stats_lent), stats.lentCount.toString(), isRetro, RetroOrange)
+                    }
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.EmojiEvents, null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.stats_category),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = stats.topCategory ?: "---",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                    
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        ModernMiniStat(stringResource(R.string.stats_games), stats.totalOwned.toString(), Icons.Default.Casino)
+                        ModernMiniStat(stringResource(R.string.stats_favorites), stats.favoriteCount.toString(), Icons.Default.Star)
+                        ModernMiniStat(stringResource(R.string.stats_wishlist), stats.wishlistCount.toString(), Icons.Default.AddCircle)
+                        ModernMiniStat(stringResource(R.string.stats_lent), stats.lentCount.toString(), Icons.Default.SwapHoriz)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MiniStat(label: String, value: String, isRetro: Boolean, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = color, fontWeight = FontWeight.ExtraBold)
+        )
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText, fontSize = 8.sp)
+        )
+    }
+}
+
+@Composable
+fun ModernMiniStat(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

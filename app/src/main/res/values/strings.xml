@@ -116,4 +116,10 @@
     <string name="action_fav">"ULUB"</string>
     <string name="action_wish">"CHCĘ"</string>
     <string name="action_del">"USUŃ"</string>
+    <string name="profile_stats_title">"Twoje Statystyki"</string>
+    <string name="stats_games">"Gry"</string>
+    <string name="stats_category">"Twój Styl"</string>
+    <string name="stats_favorites">"Ulubione"</string>
+    <string name="stats_wishlist">"Chcę"</string>
+    <string name="stats_lent">"Pożyczone"</string>
 </resources>

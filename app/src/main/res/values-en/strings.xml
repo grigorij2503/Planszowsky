@@ -112,4 +112,10 @@
     <string name="action_fav">"FAV"</string>
     <string name="action_wish">"WISH"</string>
     <string name="action_del">"DEL"</string>
+    <string name="profile_stats_title">"Your Statistics"</string>
+    <string name="stats_games">"Games"</string>
+    <string name="stats_category">"Your Style"</string>
+    <string name="stats_favorites">"Favs"</string>
+    <string name="stats_wishlist">"Wish"</string>
+    <string name="stats_lent">"Lent"</string>
 </resources>

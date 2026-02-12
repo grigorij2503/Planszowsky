@@ -3,6 +3,7 @@ package pl.pointblank.planszowsky.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import pl.pointblank.planszowsky.domain.model.AppTheme
+import pl.pointblank.planszowsky.domain.model.CollectionStats
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,9 @@ class ProfileViewModel @Inject constructor(
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
+
+    val stats: StateFlow<CollectionStats> = repository.getCollectionStats()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionStats())
 
     private val _bggUsername = MutableStateFlow("")
     val bggUsername: StateFlow<String> = _bggUsername.asStateFlow()
