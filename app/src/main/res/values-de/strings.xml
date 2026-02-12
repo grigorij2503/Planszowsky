@@ -41,6 +41,7 @@
     <string name="empty_collection_warning">"Füge Spiele zu deiner Sammlung hinzu, um zu losen!"</string>
     <string name="search_title">"Spiel suchen"</string>
     <string name="search_field_hint">"Spieltitel eingeben…"</string>
+    <string name="search_bgg_hint">"In BoardGameGeek suchen…"</string>
     <string name="all_categories">"Alle"</string>
     <string name="wishlist_title">"Wunschliste"</string>
     <string name="wishlist_empty">"Deine Wunschliste ist leer."</string>
