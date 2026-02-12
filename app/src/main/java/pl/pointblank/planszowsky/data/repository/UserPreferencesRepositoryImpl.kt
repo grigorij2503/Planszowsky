@@ -86,6 +86,18 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun resetAiUsageIfNewDay() {
+        context.dataStore.edit { preferences ->
+            val lastTimestamp = preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] ?: 0L
+            val now = System.currentTimeMillis()
+
+            if (isNewDay(lastTimestamp, now)) {
+                preferences[PreferencesKeys.AI_USAGE_COUNT] = 0
+                // We don't update timestamp here to avoid blocking next usage if reset fails or app closes
+            }
+        }
+    }
+
     private fun isNewDay(lastTimestamp: Long, currentTimestamp: Long): Boolean {
         if (lastTimestamp == 0L) return true
         val lastCalendar = Calendar.getInstance().apply { timeInMillis = lastTimestamp }

@@ -75,6 +75,10 @@ class ExpertViewModel @Inject constructor(
     }
 
     fun initialize(gameTitle: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.resetAiUsageIfNewDay()
+        }
+        
         if (currentGameTitle == gameTitle && chatSession != null) return
 
         currentGameTitle = gameTitle

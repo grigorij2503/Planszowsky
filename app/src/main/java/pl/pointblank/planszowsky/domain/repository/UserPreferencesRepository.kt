@@ -13,4 +13,5 @@ interface UserPreferencesRepository {
     suspend fun setAppTheme(theme: AppTheme)
     suspend fun setCollectionViewMode(mode: CollectionViewMode)
     suspend fun incrementAiUsage(resetIfNewDay: Boolean)
+    suspend fun resetAiUsageIfNewDay()
 }
