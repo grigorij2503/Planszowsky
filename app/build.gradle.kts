@@ -119,7 +119,6 @@ dependencies {
 
     // ML Kit
     implementation(libs.mlkit.text.recognition)
-    implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.translate)
     
     // Firebase

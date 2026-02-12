@@ -164,7 +164,7 @@ fun CameraPreview(
                         accentColor = RetroGold
                     ) {
                         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
+                            val label = stringResource(R.string.title_detected)
                             
                             Text(
                                 text = label.uppercase(),
@@ -191,7 +191,7 @@ fun CameraPreview(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
                         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            val label = if (detectedValue.all { it.isDigit() }) stringResource(R.string.barcode_detected) else stringResource(R.string.title_detected)
+                            val label = stringResource(R.string.title_detected)
                             Text(label, style = MaterialTheme.typography.labelSmall)
                             Text(detectedValue, style = MaterialTheme.typography.titleMedium)
                             Spacer(modifier = Modifier.height(8.dp))
