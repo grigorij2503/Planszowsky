@@ -23,4 +23,19 @@ interface GameDao {
 
     @Delete
     suspend fun deleteGame(game: GameEntity)
+
+    @Query("SELECT COUNT(*) FROM games WHERE isWishlisted = 0")
+    fun getOwnedCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM games WHERE isWishlisted = 1")
+    fun getWishlistCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM games WHERE isFavorite = 1")
+    fun getFavoriteCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM games WHERE isBorrowed = 1")
+    fun getLentCount(): Flow<Int>
+
+    @Query("SELECT categories FROM games WHERE isWishlisted = 0")
+    fun getAllOwnedCategories(): Flow<List<String>>
 }

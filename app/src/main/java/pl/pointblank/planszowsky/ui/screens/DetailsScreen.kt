@@ -78,7 +78,7 @@ fun DetailsScreen(
                     )
                 } else {
                     FloatingActionButton(
-                        onClick = { },
+                        onClick = { showChat = true },
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ) {
@@ -337,7 +337,7 @@ fun GameManagementPanel(
                     .padding(vertical = 6.dp, horizontal = 12.dp)
             ) {
                 Text(
-                    text = "ITEM MANAGEMENT",
+                    text = stringResource(R.string.item_management),
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = FontFamily.Monospace,
                         color = RetroGold,
@@ -355,21 +355,21 @@ fun GameManagementPanel(
                 ) {
                     PixelActionButton(
                         icon = { PixelStar24(isSelected = game.isFavorite) },
-                        label = "FAV",
+                        label = stringResource(R.string.action_fav),
                         isActive = game.isFavorite,
                         activeColor = RetroGold,
                         onClick = onToggleFavorite
                     )
                     PixelActionButton(
                         icon = { PixelShinyHeart24(isSelected = game.isWishlisted) },
-                        label = "WISH",
+                        label = stringResource(R.string.action_wish),
                         isActive = game.isWishlisted,
                         activeColor = RetroRed,
                         onClick = onToggleWishlist
                     )
                                     PixelActionButton(
                                         icon = { PixelDelete24(color = RetroText) },
-                                        label = "DEL",
+                                        label = stringResource(R.string.action_del),
                                         isActive = false,
                                         activeColor = RetroBlack,
                                         onClick = onDelete
@@ -481,7 +481,7 @@ fun GameManagementPanel(
                         .heightIn(min = 60.dp)
                 ) {
                     Text(
-                        text = if(game.notes?.isNotBlank() == true) game.notes else "Tap to scribble...",
+                        text = if(game.notes?.isNotBlank() == true) game.notes else stringResource(R.string.tap_to_scribble),
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontFamily = FontFamily.Monospace,
                             color = RetroBlack

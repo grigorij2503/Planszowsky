@@ -52,6 +52,10 @@ fun ExpertChatBottomSheet(
     val isLoading by viewModel.isLoading.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
     val currentSpeakingId by viewModel.currentSpeakingId.collectAsState()
+    val aiUsageCount by viewModel.aiUsageCount.collectAsState()
+    val aiDailyLimit by viewModel.aiDailyLimit.collectAsState()
+    val isLimitReached by viewModel.isLimitReached.collectAsState()
+    
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     // Initialize session when opened
@@ -84,13 +88,25 @@ fun ExpertChatBottomSheet(
                 } else Modifier)
         ) {
             // Header
-            Text(
-                text = stringResource(R.string.expert_chat_title, gameTitle).let { if(isRetro) it.uppercase() else it },
-                style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
-                        else MaterialTheme.typography.titleLarge,
-                color = if (isRetro) RetroText else MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(vertical = 16.dp).align(Alignment.CenterHorizontally)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.expert_chat_title, gameTitle).let { if(isRetro) it.uppercase() else it },
+                    style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
+                            else MaterialTheme.typography.titleLarge,
+                    color = if (isRetro) RetroText else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                
+                Text(
+                    text = stringResource(R.string.expert_limit_status, aiUsageCount, aiDailyLimit).let { if(isRetro) it.uppercase() else it },
+                    style = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText)
+                            else MaterialTheme.typography.labelSmall,
+                    color = if (isLimitReached) (if (isRetro) RetroRed else MaterialTheme.colorScheme.error) else (if (isRetro) RetroText else Color.Gray),
+                    modifier = Modifier.align(Alignment.End).padding(top = 4.dp)
+                )
+            }
             
             if (!isRetro) {
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -152,7 +168,7 @@ fun ExpertChatBottomSheet(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp)
-                            .background(RetroElementBackground)
+                            .background(if (isLimitReached) RetroRed.copy(alpha = 0.2f) else RetroElementBackground)
                             .drawBehind {
                                 drawRect(RetroBlack, style = Stroke(3.dp.toPx()))
                             }
@@ -161,13 +177,14 @@ fun ExpertChatBottomSheet(
                     ) {
                         BasicTextField(
                             value = inputText,
-                            onValueChange = { inputText = it },
+                            onValueChange = { if (!isLimitReached) inputText = it },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
+                            enabled = !isLimitReached,
                             textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                             keyboardActions = KeyboardActions(onSend = {
-                                if (inputText.isNotBlank()) {
+                                if (inputText.isNotBlank() && !isLimitReached) {
                                     viewModel.sendMessage(inputText)
                                     inputText = ""
                                     focusManager.clearFocus()
@@ -177,7 +194,7 @@ fun ExpertChatBottomSheet(
                                 Box {
                                     if (inputText.isEmpty()) {
                                         Text(
-                                            text = "ASK EXPERT...",
+                                            text = if (isLimitReached) stringResource(R.string.expert_limit_short).uppercase() else stringResource(R.string.ask_expert_ellipsis).uppercase(),
                                             style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.5f))
                                         )
                                     }
@@ -191,27 +208,29 @@ fun ExpertChatBottomSheet(
                     
                     RetroSquareIconButton(
                         onClick = {
-                            if (inputText.isNotBlank()) {
+                            if (inputText.isNotBlank() && !isLimitReached) {
                                 viewModel.sendMessage(inputText)
                                 inputText = ""
                                 focusManager.clearFocus()
                             }
                         },
-                        color = RetroBlue
+                        color = if (isLimitReached) Color.Gray else RetroBlue,
+                        enabled = !isLimitReached
                     ) {
                         PixelSendIcon()
                     }
                 } else {
                     OutlinedTextField(
                         value = inputText,
-                        onValueChange = { inputText = it },
-                        placeholder = { Text(stringResource(R.string.expert_hint)) },
+                        onValueChange = { if (!isLimitReached) inputText = it },
+                        placeholder = { Text(if (isLimitReached) stringResource(R.string.expert_limit_short) else stringResource(R.string.expert_hint)) },
                         modifier = Modifier.weight(1f),
+                        enabled = !isLimitReached,
                         shape = RoundedCornerShape(24.dp),
                         maxLines = 3,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                         keyboardActions = KeyboardActions(onSend = {
-                            if (inputText.isNotBlank()) {
+                            if (inputText.isNotBlank() && !isLimitReached) {
                                 viewModel.sendMessage(inputText)
                                 inputText = ""
                                 focusManager.clearFocus()
@@ -223,16 +242,17 @@ fun ExpertChatBottomSheet(
                     
                     IconButton(
                         onClick = {
-                            if (inputText.isNotBlank()) {
+                            if (inputText.isNotBlank() && !isLimitReached) {
                                 viewModel.sendMessage(inputText)
                                 inputText = ""
                                 focusManager.clearFocus()
                             }
                         },
-                        enabled = !isLoading && inputText.isNotBlank(),
+                        enabled = !isLoading && inputText.isNotBlank() && !isLimitReached,
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            disabledContainerColor = Color.Gray
                         )
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Wyślij")

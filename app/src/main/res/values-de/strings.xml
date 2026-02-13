@@ -41,6 +41,7 @@
     <string name="empty_collection_warning">"Füge Spiele zu deiner Sammlung hinzu, um zu losen!"</string>
     <string name="search_title">"Spiel suchen"</string>
     <string name="search_field_hint">"Spieltitel eingeben…"</string>
+    <string name="search_bgg_hint">"In BoardGameGeek suchen…"</string>
     <string name="all_categories">"Alle"</string>
     <string name="wishlist_title">"Wunschliste"</string>
     <string name="wishlist_empty">"Deine Wunschliste ist leer."</string>
@@ -63,10 +64,18 @@
     <string name="expert_label_user">"Spieler"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="expert_limit_reached">"Limit erreicht! Du kannst 5 Fragen pro Tag stellen. Der Spielleiter muss sich bis morgen ausruhen."</string>
+    <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
+    <string name="expert_limit_short">"Limit erreicht"</string>
     <string name="no_results">Keine Suchergebnisse gefunden.</string>
     <string name="theme_selection_title">App-Erscheinungsbild</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
+    <string name="language_selection_title">App-Sprache</string>
+    <string name="language_system">Systemstandard</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_en">English</string>
+    <string name="language_de">Deutsch</string>
     <string name="diagnostics_title">Firebase-Diagnose</string>
     <string name="installation_id_label">Installations-ID: %s</string>
     <string name="id_copied">ID kopiert!</string>
@@ -103,4 +112,16 @@
     <string name="notes_label">"Persönliche Notizen"</string>
     <string name="notes_hint">"Schreibe etwas über dieses Spiel…"</string>
     <string name="notes_dialog_title">"Spielnotizen"</string>
+    <string name="item_management">"VERWALTUNG"</string>
+    <string name="tap_to_scribble">"Tippen zum Schreiben..."</string>
+    <string name="ask_expert_ellipsis">"EXPERTEN FRAGEN..."</string>
+    <string name="action_fav">"FAV"</string>
+    <string name="action_wish">"WUNSCH"</string>
+    <string name="action_del">"LÖSCH"</string>
+    <string name="profile_stats_title">"Deine Statistiken"</string>
+    <string name="stats_games">"Spiele"</string>
+    <string name="stats_category">"Genre"</string>
+    <string name="stats_favorites">"Favs"</string>
+    <string name="stats_wishlist">"Wunsch"</string>
+    <string name="stats_lent">"Gelihen"</string>
 </resources>

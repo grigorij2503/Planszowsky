@@ -4,8 +4,6 @@ import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -18,13 +16,11 @@ class GameScannerAnalyzer(
 ) : ImageAnalysis.Analyzer {
 
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-    private val barcodeScanner = BarcodeScanning.getClient()
 
-    // --- ULEPSZONA STABILIZACJA ---
-    // Przechowujemy listę ostatnich wykryć z ostatnich ramek
+    // --- STABILIZACJA ---
     private val recentDetections = mutableListOf<String>()
-    private val HISTORY_SIZE = 7 // Sprawdzamy więcej ramek wstecz
-    private val CONFIDENCE_THRESHOLD = 4 // Ile razy podobny tekst musi wystąpić
+    private val HISTORY_SIZE = 5 
+    private val CONFIDENCE_THRESHOLD = 3 
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
@@ -33,83 +29,55 @@ class GameScannerAnalyzer(
             val rotation = imageProxy.imageInfo.rotationDegrees
             val image = InputImage.fromMediaImage(mediaImage, rotation)
 
-            // Pobieramy wymiary uwzględniając rotację (ważne dla orientacji portretowej!)
+            // Pobieramy wymiary uwzględniając rotację
             val imageWidth = if (rotation == 90 || rotation == 270) image.height.toFloat() else image.width.toFloat()
             val imageHeight = if (rotation == 90 || rotation == 270) image.width.toFloat() else image.height.toFloat()
             val imageCenterX = imageWidth / 2f
             val imageCenterY = imageHeight / 2f
 
-            var barcodeFound = false
+            textRecognizer.process(image)
+                .addOnSuccessListener { visionText ->
+                    // Szukamy najlepszego bloku tekstu
+                    val bestCandidate = visionText.textBlocks.mapNotNull { block ->
+                        val rect = block.boundingBox ?: return@mapNotNull null
+                        val text = block.text.cleanOcrText()
 
-            barcodeScanner.process(image)
-                .addOnSuccessListener { barcodes ->
-                    val barcode = barcodes.firstOrNull {
-                        it.format == Barcode.FORMAT_EAN_13 || it.format == Barcode.FORMAT_EAN_8 || it.format == Barcode.FORMAT_UPC_A
-                    }
-                    if (barcode != null) {
-                        barcode.rawValue?.let {
-                            onResultDetected(it)
-                            barcodeFound = true
-                        }
+                        // 1. Odrzucamy oczywiste śmieci
+                        if (text.length < 3) return@mapNotNull null
+                        if (text.isLikelyGameMetadata()) return@mapNotNull null
+                        
+                        // 2. Musi być odpowiednio duży (min 5% wysokości ekranu)
+                        if (rect.height() < imageHeight * 0.05f) return@mapNotNull null
+
+                        // 3. Punktacja
+                        // A. Powierzchnia (im większy, tym lepiej)
+                        val areaScore = (rect.width() * rect.height()).toFloat() / (imageWidth * imageHeight)
+                        
+                        // B. Centralność (im bliżej środka, tym lepiej)
+                        val distX = abs(rect.centerX() - imageCenterX) / imageWidth
+                        val distY = abs(rect.centerY() - imageCenterY) / imageHeight
+                        val centralityScore = 1.0f - (distX + distY)
+
+                        val totalScore = areaScore * 2.0f + centralityScore
+
+                        Candidate(text, totalScore)
+                    }.maxByOrNull { it.score }
+
+                    if (bestCandidate != null && bestCandidate.score > 0.8f) { // Wyższy próg pewności
+                        processStabilityFuzzy(bestCandidate.text)
                     }
                 }
                 .addOnCompleteListener {
-                    if (!barcodeFound) {
-                        textRecognizer.process(image)
-                            .addOnSuccessListener { visionText ->
-                                // 1. Zbieramy WSZYSTKIE linie tekstu, nie tylko bloki
-                                val allLines = visionText.textBlocks.flatMap { it.lines }
-
-                                val bestCandidate = allLines.mapNotNull { line ->
-                                    val rect = line.boundingBox ?: return@mapNotNull null
-                                    val text = line.text.cleanOcrText()
-
-                                    // 2. Filtrowanie Śmieci (Garbage Collection)
-                                    if (text.length < 3) return@mapNotNull null // Za krótkie
-                                    if (text.isLikelyGameMetadata()) return@mapNotNull null
-                                    // Zmniejszamy próg szerokości do 5% (było 15%)
-                                    if (rect.width() < imageWidth * 0.05f) return@mapNotNull null
-
-                                    // 3. System Punktacji (Heurystyka dla gier planszowych)
-
-                                    // A. Wielkość czcionki (Wysokość prostokąta jest tu kluczowa - tytuły są wysokie)
-                                    val heightScore = (rect.height().toFloat() / imageHeight) * 2.0f // Wysokość ma podwójną wagę
-
-                                    // B. Centralność
-                                    val distX = abs(rect.centerX() - imageCenterX)
-                                    val distY = abs(rect.centerY() - imageCenterY)
-                                    // Bardziej karzemy odchylenie w pionie (tytuł zazwyczaj jest wyżej lub na środku)
-                                    val centralityScore = 1.0f - ((distX / imageWidth) + (distY / imageHeight))
-
-                                    // C. Bonus za ALL CAPS (Tytuły często są wielkimi literami)
-                                    val capsBonus = if (text.isUpperCase()) 0.3f else 0.0f
-
-                                    // D. Kara za zbyt długi tekst (To pewnie opis fabuły, a nie tytuł)
-                                    val lengthPenalty = if (text.length > 30) 0.5f else 0.0f
-
-                                    val totalScore = heightScore + centralityScore + capsBonus - lengthPenalty
-
-                                    Candidate(text, totalScore)
-                                }.maxByOrNull { it.score }
-
-                                if (bestCandidate != null && bestCandidate.score > 0.5f) {
-                                    processStabilityFuzzy(bestCandidate.text)
-                                }
-                            }
-                            .addOnCompleteListener {
-                                imageProxy.close()
-                            }
-                    } else {
-                        imageProxy.close()
-                    }
+                    imageProxy.close()
+                }
+                .addOnFailureListener {
+                    imageProxy.close()
                 }
         } else {
             imageProxy.close()
         }
     }
 
-    // --- LOGIKA FUZZY STABILITY ---
-    // Zamiast szukać identycznego stringa, szukamy "podobnego"
     private fun processStabilityFuzzy(newText: String) {
         recentDetections.add(newText)
         if (recentDetections.size > HISTORY_SIZE) {
@@ -118,12 +86,10 @@ class GameScannerAnalyzer(
 
         // Sprawdzamy, czy w historii jest wystarczająco dużo tekstów podobnych do ostatniego
         val similarCount = recentDetections.count { historyItem ->
-            calculateSimilarity(newText, historyItem) > 0.8 // 80% podobieństwa
+            calculateSimilarity(newText, historyItem) > 0.8
         }
 
         if (similarCount >= CONFIDENCE_THRESHOLD) {
-            // Znaleźliśmy stabilny wynik!
-            // Wybieramy najczęstszą wersję tego tekstu z bufora (żeby uniknąć literówek)
             val bestVersion = recentDetections
                 .filter { calculateSimilarity(newText, it) > 0.8 }
                 .groupingBy { it }
@@ -131,11 +97,10 @@ class GameScannerAnalyzer(
                 .maxByOrNull { it.value }?.key ?: newText
 
             onResultDetected(bestVersion)
-            recentDetections.clear() // Reset po sukcesie
+            // Nie czyścimy historii natychmiast, żeby nie migało przy ciągłym patrzeniu na to samo pudełko
         }
     }
 
-    // Prosta implementacja Levenshteina do oceny podobieństwa (0.0 - 1.0)
     private fun calculateSimilarity(s1: String, s2: String): Double {
         val longer = if (s1.length > s2.length) s1 else s2
         val shorter = if (s1.length > s2.length) s2 else s1
@@ -166,23 +131,18 @@ class GameScannerAnalyzer(
         return cost[lhsLength]
     }
 
-    // Helper Class
     private data class Candidate(val text: String, val score: Float)
 
-    // Extensions
     private fun String.cleanOcrText(): String {
-        return this.replace("\n", " ").trim()
+        return this.replace("\n", " ")
+            .replace(Regex("[^a-zA-Z0-9 ]"), "") // Usuwamy znaki specjalne
+            .trim()
+            .replace(Regex(" +"), " ") // Usuwamy podwójne spacje
     }
 
-    private fun String.isUpperCase(): Boolean {
-        return this.all { !it.isLowerCase() }
-    }
-
-    // Tu wstaw swoją logikę filtrowania (np. słowa kluczowe jak "Players", "Ages", "Minutes")
     private fun String.isLikelyGameMetadata(): Boolean {
-        val metaKeywords = listOf("players", "graczy", "wiek", "ages", "minutes", "minut", "time", "czas", "author", "autor")
+        val metaKeywords = listOf("players", "graczy", "wiek", "ages", "minutes", "minut", "time", "czas", "author", "autor", "spiel", "game")
         val lower = this.lowercase(Locale.getDefault())
-        // Jeśli tekst zawiera cyfry i słowa kluczowe, to pewnie metadane
         return metaKeywords.any { lower.contains(it) } && this.any { it.isDigit() }
     }
 }

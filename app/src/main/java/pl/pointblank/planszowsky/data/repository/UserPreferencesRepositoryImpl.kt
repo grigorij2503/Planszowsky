@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -11,7 +13,9 @@ import pl.pointblank.planszowsky.domain.model.CollectionViewMode
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,6 +29,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     private object PreferencesKeys {
         val APP_THEME = stringPreferencesKey("app_theme")
         val COLLECTION_VIEW_MODE = stringPreferencesKey("collection_view_mode")
+        val AI_USAGE_COUNT = intPreferencesKey("ai_usage_count")
+        val LAST_AI_USAGE_TIMESTAMP = longPreferencesKey("last_ai_usage_timestamp")
+        val APP_LOCALE = stringPreferencesKey("app_locale")
     }
 
     override val appTheme: Flow<AppTheme> = context.dataStore.data
@@ -47,6 +54,15 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             }
         }
 
+    override val aiUsageCount: Flow<Int> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.AI_USAGE_COUNT] ?: 0 }
+
+    override val lastAiUsageTimestamp: Flow<Long> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] ?: 0L }
+
+    override val appLocale: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.APP_LOCALE] ?: "system" }
+
     override suspend fun setAppTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_THEME] = theme.name
@@ -57,5 +73,47 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.COLLECTION_VIEW_MODE] = mode.name
         }
+    }
+
+    override suspend fun setAppLocale(locale: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.APP_LOCALE] = locale
+        }
+    }
+
+    override suspend fun incrementAiUsage(resetIfNewDay: Boolean) {
+        context.dataStore.edit { preferences ->
+            val currentCount = preferences[PreferencesKeys.AI_USAGE_COUNT] ?: 0
+            val lastTimestamp = preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] ?: 0L
+            val now = System.currentTimeMillis()
+
+            if (resetIfNewDay && isNewDay(lastTimestamp, now)) {
+                preferences[PreferencesKeys.AI_USAGE_COUNT] = 1
+            } else {
+                preferences[PreferencesKeys.AI_USAGE_COUNT] = currentCount + 1
+            }
+            preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] = now
+        }
+    }
+
+    override suspend fun resetAiUsageIfNewDay() {
+        context.dataStore.edit { preferences ->
+            val lastTimestamp = preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] ?: 0L
+            val now = System.currentTimeMillis()
+
+            if (isNewDay(lastTimestamp, now)) {
+                preferences[PreferencesKeys.AI_USAGE_COUNT] = 0
+                // We don't update timestamp here to avoid blocking next usage if reset fails or app closes
+            }
+        }
+    }
+
+    private fun isNewDay(lastTimestamp: Long, currentTimestamp: Long): Boolean {
+        if (lastTimestamp == 0L) return true
+        val lastCalendar = Calendar.getInstance().apply { timeInMillis = lastTimestamp }
+        val currentCalendar = Calendar.getInstance().apply { timeInMillis = currentTimestamp }
+        
+        return lastCalendar.get(Calendar.DAY_OF_YEAR) != currentCalendar.get(Calendar.DAY_OF_YEAR) ||
+                lastCalendar.get(Calendar.YEAR) != currentCalendar.get(Calendar.YEAR)
     }
 }

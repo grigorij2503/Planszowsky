@@ -22,6 +22,10 @@ import pl.pointblank.planszowsky.ui.theme.PlanszowskyTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import pl.pointblank.planszowsky.util.LanguageManager
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -30,11 +34,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
+        super.onCreate(savedInstanceState)
+        
+        // Apply saved language preference
+        runBlocking {
+            val locale = userPreferencesRepository.appLocale.first()
+            if (locale != "system") {
+                LanguageManager.applyLocale(this@MainActivity, locale)
+            }
+        }
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
         )
-        super.onCreate(savedInstanceState)
+
         setContent {
             val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
             

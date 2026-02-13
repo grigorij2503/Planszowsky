@@ -7,6 +7,13 @@ import kotlinx.coroutines.flow.Flow
 interface UserPreferencesRepository {
     val appTheme: Flow<AppTheme>
     val collectionViewMode: Flow<CollectionViewMode>
+    val aiUsageCount: Flow<Int>
+    val lastAiUsageTimestamp: Flow<Long>
+    val appLocale: Flow<String>
+
     suspend fun setAppTheme(theme: AppTheme)
     suspend fun setCollectionViewMode(mode: CollectionViewMode)
+    suspend fun setAppLocale(locale: String)
+    suspend fun incrementAiUsage(resetIfNewDay: Boolean)
+    suspend fun resetAiUsageIfNewDay()
 }

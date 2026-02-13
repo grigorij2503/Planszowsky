@@ -14,13 +14,13 @@ android {
     namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
-    val baseVersion = "0.5"
+    val baseVersion = "0.7"
 
     defaultConfig {
         applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        versionCode = 7
         versionName = baseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -83,6 +83,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.android.play.integrity)
     
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -118,13 +119,13 @@ dependencies {
 
     // ML Kit
     implementation(libs.mlkit.text.recognition)
-    implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.translate)
     
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.config)
     implementation(libs.firebase.installations)
     implementation(libs.firebase.ai)
 

@@ -20,12 +20,59 @@ import pl.pointblank.planszowsky.util.similarity
 import retrofit2.HttpException
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.combine
+import pl.pointblank.planszowsky.domain.model.CollectionStats
+
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
     private val api: BggApi,
     private val okHttpClient: OkHttpClient,
     private val firebaseManager: FirebaseManager
 ) : GameRepository {
+
+    override fun getCollectionStats(): Flow<CollectionStats> {
+        return combine(
+            dao.getOwnedCount(),
+            dao.getWishlistCount(),
+            dao.getFavoriteCount(),
+            dao.getLentCount(),
+            dao.getAllOwnedCategories()
+        ) { owned, wishlist, favorite, lent, categoriesRaw ->
+            val categoryMap = mapOf(
+                "Card Game" to "Karciarz",
+                "Fantasy" to "Fan Fantasy",
+                "Economic" to "Strateg / Ekonomista",
+                "War Game" to "Wojownik",
+                "Adventure" to "Poszukiwacz Przygód",
+                "Dice" to "Fan Kości",
+                "Party Game" to "Król Imprezy",
+                "Abstract Strategy" to "Abstrakcyjny Umysł",
+                "Horror" to "Fan Grozy",
+                "Science Fiction" to "Fan Sci-Fi",
+                "Medieval" to "Władca Średniowiecza",
+                "Civilization" to "Budowniczy Cywilizacji",
+                "Exploration" to "Odkrywca",
+                "Ancient" to "Antyczny Badacz"
+            )
+
+            val rawTop = categoriesRaw
+                .flatMap { it.split(",").filter { cat -> cat.isNotBlank() } }
+                .groupingBy { it }
+                .eachCount()
+                .maxByOrNull { it.value }
+                ?.key
+
+            val topCategory = categoryMap[rawTop] ?: rawTop
+
+            CollectionStats(
+                totalOwned = owned,
+                wishlistCount = wishlist,
+                favoriteCount = favorite,
+                lentCount = lent,
+                topCategory = topCategory
+            )
+        }
+    }
 
     private val sessionMutex = Mutex()
     private var isSessionInitialized = false

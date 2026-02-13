@@ -41,6 +41,7 @@
     <string name="empty_collection_warning">"Add games to your collection to spin!"</string>
     <string name="search_title">"Search Game"</string>
     <string name="search_field_hint">"Enter game title…"</string>
+    <string name="search_bgg_hint">"Search in BoardGameGeek…"</string>
     <string name="all_categories">"All"</string>
     <string name="wishlist_title">"Wishlist"</string>
     <string name="wishlist_empty">"Your wishlist is empty."</string>
@@ -63,10 +64,18 @@
     <string name="expert_label_user">"Player"</string>
     <string name="expert_label_ai">"Planszowsky"</string>
     <string name="expert_label_system">"System"</string>
+    <string name="expert_limit_reached">"Limit reached! You can ask 5 questions per day. The Game Master needs to rest until tomorrow."</string>
+    <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
+    <string name="expert_limit_short">"Limit reached"</string>
     <string name="no_results">No search results found.</string>
     <string name="theme_selection_title">App Appearance</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
+    <string name="language_selection_title">App Language</string>
+    <string name="language_system">System Default</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_en">English</string>
+    <string name="language_de">Deutsch</string>
     <string name="diagnostics_title">Firebase Diagnostics</string>
     <string name="installation_id_label">Installation ID: %s</string>
     <string name="id_copied">ID copied!</string>
@@ -103,4 +112,16 @@
     <string name="notes_label">"Personal Notes"</string>
     <string name="notes_hint">"Write something about this game…"</string>
     <string name="notes_dialog_title">"Game Notes"</string>
+    <string name="item_management">"ITEM MANAGEMENT"</string>
+    <string name="tap_to_scribble">"Tap to scribble..."</string>
+    <string name="ask_expert_ellipsis">"ASK EXPERT..."</string>
+    <string name="action_fav">"FAV"</string>
+    <string name="action_wish">"WISH"</string>
+    <string name="action_del">"DEL"</string>
+    <string name="profile_stats_title">"Your Statistics"</string>
+    <string name="stats_games">"Games"</string>
+    <string name="stats_category">"Your Style"</string>
+    <string name="stats_favorites">"Favs"</string>
+    <string name="stats_wishlist">"Wish"</string>
+    <string name="stats_lent">"Lent"</string>
 </resources>

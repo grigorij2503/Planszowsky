@@ -1,11 +1,13 @@
 package pl.pointblank.planszowsky.domain.repository
 
+import pl.pointblank.planszowsky.domain.model.CollectionStats
 import pl.pointblank.planszowsky.domain.model.Game
 import kotlinx.coroutines.flow.Flow
 
 interface GameRepository {
     fun getSavedGames(): Flow<List<Game>>
     fun getWishlistedGames(): Flow<List<Game>>
+    fun getCollectionStats(): Flow<CollectionStats>
     suspend fun getGame(id: String): Game?
     suspend fun saveGame(game: Game)
     suspend fun updateGame(game: Game)

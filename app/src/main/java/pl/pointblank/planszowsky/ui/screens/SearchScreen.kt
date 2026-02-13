@@ -87,7 +87,7 @@ fun SearchScreen(
                         OutlinedTextField(
                             value = query,
                             onValueChange = viewModel::onQueryChange,
-                            placeholder = { Text(stringResource(R.string.search_hint)) },
+                            placeholder = { Text(stringResource(R.string.search_bgg_hint)) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(end = 16.dp)
@@ -210,7 +210,7 @@ fun RetroSearchTopBar(
                     Box {
                         if (query.isEmpty()) {
                             Text(
-                                text = "SEARCH...",
+                                text = stringResource(R.string.search_bgg_hint).uppercase(),
                                 style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.5f))
                             )
                         }

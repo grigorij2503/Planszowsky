@@ -233,14 +233,15 @@ fun RetroSquareIconButton(
     onClick: () -> Unit, 
     color: Color, 
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     icon: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
             .size(44.dp)
             .pixelFrame(thickness = 2.dp)
-            .background(color)
-            .clickable(onClick = onClick),
+            .background(if (enabled) color else Color.Gray)
+            .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         icon()
