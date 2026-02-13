@@ -71,6 +71,11 @@
     <string name="theme_selection_title">App-Erscheinungsbild</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
+    <string name="language_selection_title">App-Sprache</string>
+    <string name="language_system">Systemstandard</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_en">English</string>
+    <string name="language_de">Deutsch</string>
     <string name="diagnostics_title">Firebase-Diagnose</string>
     <string name="installation_id_label">Installations-ID: %s</string>
     <string name="id_copied">ID kopiert!</string>

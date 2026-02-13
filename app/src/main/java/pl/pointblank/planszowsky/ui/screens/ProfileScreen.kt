@@ -28,14 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.ProfileViewModel
 
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -195,6 +193,112 @@ fun ProfileScreen(
                             isRetro = false,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setTheme(AppTheme.PIXEL_ART) }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Language Selection Card
+        val currentLocale by viewModel.appLocale.collectAsState()
+        
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier.fillMaxWidth(),
+                accentColor = RetroGold
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.language_selection_title).uppercase(),
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        FlagButton(
+                            flag = "⚙\uFE0F", // Gear emoji for System
+                            isSelected = currentLocale == "system",
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("system") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDF5\uD83C\uDDF1", // PL Flag
+                            isSelected = currentLocale == "pl",
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("pl") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDEC\uD83C\uDDE7", // GB Flag
+                            isSelected = currentLocale == "en",
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("en") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDE9\uD83C\uDDEA", // DE Flag
+                            isSelected = currentLocale == "de",
+                            isRetro = true,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("de") }
+                        )
+                    }
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.language_selection_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        FlagButton(
+                            flag = "⚙\uFE0F",
+                            isSelected = currentLocale == "system",
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("system") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDF5\uD83C\uDDF1",
+                            isSelected = currentLocale == "pl",
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("pl") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDEC\uD83C\uDDE7",
+                            isSelected = currentLocale == "en",
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("en") }
+                        )
+                        FlagButton(
+                            flag = "\uD83C\uDDE9\uD83C\uDDEA",
+                            isSelected = currentLocale == "de",
+                            isRetro = false,
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.setLocale("de") }
                         )
                     }
                 }
@@ -512,6 +616,53 @@ fun ThemeButton(
             )
         ) {
             Text(text = text, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun FlagButton(
+    flag: String,
+    isSelected: Boolean,
+    isRetro: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    if (isRetro) {
+        Box(
+            modifier = modifier
+                .height(48.dp)
+                .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
+                .background(if (isSelected) RetroGold else RetroBackground)
+                .clickable(onClick = onClick)
+                .drawBehind {
+                    val stroke = 2.dp.toPx()
+                    drawRect(RetroBlack, style = Stroke(stroke * 2f))
+                    if (isSelected) {
+                        drawRect(Color.White.copy(alpha = 0.3f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = flag, 
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontFamily = FontFamily.Monospace // Keep emoji somewhat standardized
+                )
+            )
+        }
+    } else {
+        Button(
+            onClick = onClick,
+            modifier = modifier.height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            contentPadding = PaddingValues(0.dp) // Tight padding for flags
+        ) {
+            Text(text = flag, style = MaterialTheme.typography.headlineSmall)
         }
     }
 }

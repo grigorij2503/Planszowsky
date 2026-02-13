@@ -1,6 +1,6 @@
 package pl.pointblank.planszowsky.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.CollectionStats
@@ -18,14 +18,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import pl.pointblank.planszowsky.util.LanguageManager
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val repository: GameRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
-) : ViewModel() {
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val application: android.app.Application
+) : AndroidViewModel(application) {
 
     val appTheme: StateFlow<AppTheme> = userPreferencesRepository.appTheme
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppTheme.MODERN)
+    
+    val appLocale: StateFlow<String> = userPreferencesRepository.appLocale
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "system")
 
     val stats: StateFlow<CollectionStats> = repository.getCollectionStats()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionStats())
@@ -51,6 +57,13 @@ class ProfileViewModel @Inject constructor(
     fun setTheme(theme: AppTheme) {
         viewModelScope.launch {
             userPreferencesRepository.setAppTheme(theme)
+        }
+    }
+    
+    fun setLocale(locale: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAppLocale(locale)
+            LanguageManager.applyLocale(application, locale)
         }
     }
 

@@ -33,7 +33,7 @@ data class ChatMessage(
 class ExpertViewModel @Inject constructor(
     application: Application,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val firebaseManager: FirebaseManager,
+    firebaseManager: FirebaseManager,
     private val speechManager: SpeechManager
 ) : AndroidViewModel(application) {
 
@@ -92,7 +92,7 @@ class ExpertViewModel @Inject constructor(
 
         try {
             val generativeModel = Firebase.ai(backend = GenerativeBackend.googleAI())
-                .generativeModel("gemini-3-flash-preview", systemInstruction = content {
+                .generativeModel("gemini-2.5-flash", systemInstruction = content {
                     text(app.getString(R.string.expert_system_instruction, gameTitle))
                 })
 

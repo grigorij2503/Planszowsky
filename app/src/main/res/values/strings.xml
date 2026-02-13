@@ -72,6 +72,11 @@
     <string name="theme_selection_title">Wygląd aplikacji</string>
     <string name="theme_modern">Modern</string>
     <string name="theme_pixel_art">Pixel Art</string>
+    <string name="language_selection_title">Język aplikacji</string>
+    <string name="language_system">Systemowy</string>
+    <string name="language_pl">Polski</string>
+    <string name="language_en">English</string>
+    <string name="language_de">Deutsch</string>
     <string name="diagnostics_title">Diagnostyka Firebase</string>
     <string name="installation_id_label">Installation ID: %s</string>
     <string name="id_copied">ID skopiowane!</string>

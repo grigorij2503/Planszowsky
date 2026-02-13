@@ -31,6 +31,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val COLLECTION_VIEW_MODE = stringPreferencesKey("collection_view_mode")
         val AI_USAGE_COUNT = intPreferencesKey("ai_usage_count")
         val LAST_AI_USAGE_TIMESTAMP = longPreferencesKey("last_ai_usage_timestamp")
+        val APP_LOCALE = stringPreferencesKey("app_locale")
     }
 
     override val appTheme: Flow<AppTheme> = context.dataStore.data
@@ -59,6 +60,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val lastAiUsageTimestamp: Flow<Long> = context.dataStore.data
         .map { preferences -> preferences[PreferencesKeys.LAST_AI_USAGE_TIMESTAMP] ?: 0L }
 
+    override val appLocale: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.APP_LOCALE] ?: "system" }
+
     override suspend fun setAppTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_THEME] = theme.name
@@ -68,6 +72,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setCollectionViewMode(mode: CollectionViewMode) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.COLLECTION_VIEW_MODE] = mode.name
+        }
+    }
+
+    override suspend fun setAppLocale(locale: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.APP_LOCALE] = locale
         }
     }
 
