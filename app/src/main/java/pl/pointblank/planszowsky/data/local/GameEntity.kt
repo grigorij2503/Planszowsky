@@ -25,7 +25,8 @@ data class GameEntity(
     val borrowedFrom: String? = null,
     val notes: String? = null,
     val categories: List<String> = emptyList(),
-    val ownerId: String? = null
+    val ownerId: String? = null,
+    val websiteUrl: String? = null
 )
 
 class Converters {
@@ -60,7 +61,8 @@ fun GameEntity.toDomainModel(): Game {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
-        ownerId = ownerId
+        ownerId = ownerId,
+        websiteUrl = websiteUrl
     )
 }
 
@@ -84,6 +86,7 @@ fun Game.toEntity(): GameEntity {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
-        ownerId = ownerId
+        ownerId = ownerId,
+        websiteUrl = websiteUrl
     )
 }

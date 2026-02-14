@@ -163,7 +163,8 @@ class GameRepositoryImpl @Inject constructor(
                     title = bestName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
-                    yearPublished = item.yearPublished?.value
+                    yearPublished = item.yearPublished?.value,
+                    websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
@@ -194,7 +195,8 @@ class GameRepositoryImpl @Inject constructor(
                     title = primaryName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
-                    yearPublished = item.yearPublished?.value
+                    yearPublished = item.yearPublished?.value,
+                    websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
@@ -229,7 +231,8 @@ class GameRepositoryImpl @Inject constructor(
                 maxPlayers = item.maxPlayers?.value,
                 playingTime = item.playingTime?.value,
                 isOwned = false,
-                categories = categories
+                categories = categories,
+                websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
             )
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Details Error (${e.code()}): $id")
@@ -281,7 +284,8 @@ class GameRepositoryImpl @Inject constructor(
                             isOwned = item.status?.own == "1",
                             isWishlisted = item.status?.wishlist == "1",
                             categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
-                            ownerId = username
+                            ownerId = username,
+                            websiteUrl = details?.links?.find { it.type == "boardgamewebsite" }?.value
                         )
                         importedGames.add(game)
                     }

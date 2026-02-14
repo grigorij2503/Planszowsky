@@ -526,3 +526,29 @@ fun PixelPlus24(color: Color = RetroBlack) {
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
 }
+
+@Composable
+fun PixelWeb24(color: Color = RetroBlack) {
+    // Classic "e" with orbital ring style
+    val map = listOf(
+        "........................",
+        "..........####..........",
+        ".......##BBBBBB##.......",
+        ".....##BBBBBBBBBB##.....",
+        "....#BBBBBBBBBBBBBB#....",
+        "...#BBBBBB####BBBBBB#...",
+        "..#BBBBBB#....#BBBBBB#..",
+        ".#BBBBBB#......#BBBBBB#.",
+        ".#BBBBBBBBBBBBBBBBBBBB#.",
+        ".#BBBBBBBBBBBBBBBBBBBB#.",
+        ".#BBBBBB###############.",
+        ".#BBBBBB#...............",
+        "..#BBBBB#.......BBBBB...",
+        "...#BBBBBB####BBBBBB#...",
+        "....#BBBBBBBBBBBBBB#....",
+        "......##BBBBBBBBB#.....",
+        ".........########.......",
+        "........................"
+    )
+    PixelArtIcon(map, Modifier.fillMaxSize())
+}
