@@ -24,6 +24,7 @@ interface BggApi {
     @GET("collection")
     suspend fun getCollection(
         @Query("username") username: String,
-        @Query("own") own: Int? = 1
+        @Query("own") own: Int? = 1,
+        @Query("stats") stats: Int = 1
     ): BggCollectionResponse
 }

@@ -134,7 +134,25 @@ data class BggCollectionItem(
     var yearPublished: String? = null,
 
     @field:JacksonXmlProperty(localName = "status")
-    var status: BggStatus? = null
+    var status: BggStatus? = null,
+
+    @field:JacksonXmlProperty(localName = "stats")
+    var stats: BggCollectionStats? = null,
+    
+    @field:JacksonXmlProperty(localName = "comment")
+    var comment: String? = null
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BggCollectionStats(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var minplayers: String? = null,
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var maxplayers: String? = null,
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var playingtime: String? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

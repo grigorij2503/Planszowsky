@@ -253,18 +253,60 @@ class GameRepositoryImpl @Inject constructor(
         var importedCount = 0
         try {
             val response = api.getCollection(username)
-            response.items?.forEach { item ->
-                val game = Game(
-                    id = item.id,
-                    title = item.name?.decodeHtml() ?: "Unknown",
-                    thumbnailUrl = item.thumbnail,
-                    imageUrl = item.image,
-                    yearPublished = item.yearPublished,
-                    isOwned = item.status?.own == "1",
-                    isWishlisted = item.status?.wishlist == "1"
-                )
-                dao.insertGame(game.toEntity())
-                importedCount++
+            val items = response.items ?: emptyList()
+            if (items.isEmpty()) return 0
+
+            // Batch IDs to fetch details (description, categories etc.)
+            // BGG allows multiple IDs in 'id' parameter comma-separated
+            val chunkedItems = items.chunked(20)
+
+            chunkedItems.forEach { batch ->
+                val ids = batch.joinToString(",") { it.id }
+                try {
+                    val detailsResponse = api.getGameDetails(ids)
+                    val detailsMap = detailsResponse.items?.associateBy { it.id } ?: emptyMap()
+
+                    batch.forEach { item ->
+                        val details = detailsMap[item.id]
+                        
+                        val game = Game(
+                            id = item.id,
+                            title = item.name?.decodeHtml() ?: details?.names?.find { it.type == "primary" }?.value ?: "Unknown",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            description = details?.description?.decodeHtml(),
+                            yearPublished = item.yearPublished,
+                            minPlayers = item.stats?.minplayers ?: details?.minPlayers?.value,
+                            maxPlayers = item.stats?.maxplayers ?: details?.maxPlayers?.value,
+                            playingTime = item.stats?.playingtime ?: details?.playingTime?.value,
+                            notes = item.comment,
+                            isOwned = item.status?.own == "1",
+                            isWishlisted = item.status?.wishlist == "1",
+                            categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList()
+                        )
+                        dao.insertGame(game.toEntity())
+                        importedCount++
+                    }
+                } catch (e: Exception) {
+                    // Fallback to basic info if details fetch fails for a batch
+                    batch.forEach { item ->
+                        val game = Game(
+                            id = item.id,
+                            title = item.name?.decodeHtml() ?: "Unknown",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            yearPublished = item.yearPublished,
+                            minPlayers = item.stats?.minplayers,
+                            maxPlayers = item.stats?.maxplayers,
+                            playingTime = item.stats?.playingtime,
+                            notes = item.comment,
+                            isOwned = item.status?.own == "1",
+                            isWishlisted = item.status?.wishlist == "1"
+                        )
+                        dao.insertGame(game.toEntity())
+                        importedCount++
+                    }
+                }
             }
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Import Error (${e.code()}): $username")
