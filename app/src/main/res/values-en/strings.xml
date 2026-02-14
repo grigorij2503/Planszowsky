@@ -84,6 +84,10 @@
     <string name="import_button_label">Import</string>
     <string name="import_success">Imported %d games!</string>
     <string name="import_error">Import error</string>
+    <string name="import_conflict_title">Import Conflict</string>
+    <string name="import_conflict_message">Some games (%d) are already in your collection. Do you want to update their data (descriptions, images, notes) with data from BGG?</string>
+    <string name="import_conflict_overwrite">Update all</string>
+    <string name="import_conflict_skip">Skip existing</string>
     <string name="expert_chat_fab">Ask Game Master</string>
 
     <!-- Navigation Menu -->

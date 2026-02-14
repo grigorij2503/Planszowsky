@@ -248,16 +248,14 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun importCollection(username: String): Int {
+    override suspend fun fetchCollection(username: String): List<Game> {
         ensureSession()
-        var importedCount = 0
+        val importedGames = mutableListOf<Game>()
         try {
             val response = api.getCollection(username)
             val items = response.items ?: emptyList()
-            if (items.isEmpty()) return 0
+            if (items.isEmpty()) return emptyList()
 
-            // Batch IDs to fetch details (description, categories etc.)
-            // BGG allows multiple IDs in 'id' parameter comma-separated
             val chunkedItems = items.chunked(20)
 
             chunkedItems.forEach { batch ->
@@ -285,11 +283,9 @@ class GameRepositoryImpl @Inject constructor(
                             categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
                             ownerId = username
                         )
-                        dao.insertGame(game.toEntity())
-                        importedCount++
+                        importedGames.add(game)
                     }
                 } catch (e: Exception) {
-                    // Fallback to basic info if details fetch fails for a batch
                     batch.forEach { item ->
                         val game = Game(
                             id = item.id,
@@ -305,19 +301,30 @@ class GameRepositoryImpl @Inject constructor(
                             isWishlisted = item.status?.wishlist == "1",
                             ownerId = username
                         )
-                        dao.insertGame(game.toEntity())
-                        importedCount++
+                        importedGames.add(game)
                     }
                 }
             }
         } catch (e: HttpException) {
-            firebaseManager.logError(e, "BGG Import Error (${e.code()}): $username")
+            firebaseManager.logError(e, "BGG Fetch Error (${e.code()}): $username")
             throw e
         } catch (e: Exception) {
-            firebaseManager.logError(e, "BGG Import Exception: $username")
+            firebaseManager.logError(e, "BGG Fetch Exception: $username")
             throw e
         }
-        return importedCount
+        return importedGames
+    }
+
+    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean): Int {
+        var count = 0
+        games.forEach { game ->
+            val existing = dao.getGameById(game.id)
+            if (existing == null || overwriteExisting) {
+                dao.insertGame(game.toEntity())
+                count++
+            }
+        }
+        return count
     }
 
     override suspend fun fetchBggUserProfile(username: String): String? {

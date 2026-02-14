@@ -55,22 +55,139 @@ fun ProfileScreen(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     
+    var showConflictDialog by remember { mutableStateOf(false) }
+    var conflictCount by remember { mutableIntStateOf(0) }
+    
     val context = LocalContext.current
 
     LaunchedEffect(importResult) {
         importResult?.let { result ->
             val res = context.resources
-            val message = when (result) {
+            when (result) {
                 is ProfileViewModel.ImportResult.Success -> {
                     val base = res.getString(R.string.import_success, result.count)
-                    if (isRetro) base.uppercase() else base
+                    val message = if (isRetro) base.uppercase() else base
+                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
                 }
                 is ProfileViewModel.ImportResult.Error -> {
                     val base = res.getString(R.string.import_error)
-                    if (isRetro) base.uppercase() else base
+                    val message = if (isRetro) base.uppercase() else base
+                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+                }
+                is ProfileViewModel.ImportResult.Conflict -> {
+                    conflictCount = result.count
+                    showConflictDialog = true
                 }
             }
-            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
+    if (showConflictDialog) {
+        if (isRetro) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { showConflictDialog = false }) {
+                RetroChunkyBox(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    accentColor = RetroGold,
+                    backgroundColor = RetroBackground
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.import_conflict_title).uppercase(),
+                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.import_conflict_message, conflictCount).uppercase(),
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        RetroSquareButton(
+                            text = stringResource(R.string.import_conflict_overwrite).uppercase(),
+                            color = RetroGreen,
+                            onClick = {
+                                showConflictDialog = false
+                                viewModel.confirmImport(overwriteExisting = true)
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        RetroSquareButton(
+                            text = stringResource(R.string.import_conflict_skip).uppercase(),
+                            color = RetroGrey,
+                            onClick = {
+                                showConflictDialog = false
+                                viewModel.confirmImport(overwriteExisting = false)
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { showConflictDialog = false }) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = RoundedCornerShape(32.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.SwapHoriz, null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                stringResource(R.string.import_conflict_title),
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            stringResource(R.string.import_conflict_message, conflictCount),
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+                        
+                        Button(
+                            onClick = {
+                                showConflictDialog = false
+                                viewModel.confirmImport(overwriteExisting = true)
+                            },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(stringResource(R.string.import_conflict_overwrite), fontWeight = FontWeight.Bold)
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        TextButton(
+                            onClick = {
+                                showConflictDialog = false
+                                viewModel.confirmImport(overwriteExisting = false)
+                            },
+                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                        ) {
+                            Text(stringResource(R.string.import_conflict_skip), color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
         }
     }
 

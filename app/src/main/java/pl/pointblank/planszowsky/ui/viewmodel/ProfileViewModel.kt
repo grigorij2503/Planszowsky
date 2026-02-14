@@ -51,9 +51,12 @@ class ProfileViewModel @Inject constructor(
     private val _importResult = MutableSharedFlow<ImportResult>()
     val importResult: SharedFlow<ImportResult> = _importResult.asSharedFlow()
 
+    private var pendingImportGames: List<pl.pointblank.planszowsky.domain.model.Game> = emptyList()
+
     sealed class ImportResult {
         data class Success(val count: Int) : ImportResult()
         data class Error(val message: String) : ImportResult()
+        data class Conflict(val count: Int) : ImportResult()
     }
 
     fun onUsernameChange(username: String) {
@@ -85,9 +88,48 @@ class ProfileViewModel @Inject constructor(
                 userPreferencesRepository.setBggAvatarUrl(avatarUrl)
                 userPreferencesRepository.setBggUsername(username)
                 
-                // 2. Import Collection
-                val count = repository.importCollection(username)
+                // 2. Fetch Collection
+                val fetchedGames = repository.fetchCollection(username)
+                
+                // 3. Detect Conflicts
+                val existingIds = mutableSetOf<String>()
+                // We need to check existence. Repo already has getGame(id).
+                // But checking 600 games one by one is slow.
+                // However, we don't have a batch check in DAO yet.
+                // Let's assume for now we check against currently saved games list.
+                // We can't easily get ALL IDs from repo as Flow without collecting.
+                
+                // Alternative: Repo.saveImportedGames returns the count of NEW games.
+                // But we want to ASK before saving.
+                
+                // Let's add a quick check:
+                var conflictCount = 0
+                fetchedGames.forEach { 
+                    if (repository.getGame(it.id) != null) conflictCount++
+                }
+
+                if (conflictCount > 0) {
+                    pendingImportGames = fetchedGames
+                    _importResult.emit(ImportResult.Conflict(conflictCount))
+                } else {
+                    val count = repository.saveImportedGames(fetchedGames, overwriteExisting = false)
+                    _importResult.emit(ImportResult.Success(count))
+                }
+            } catch (e: Exception) {
+                _importResult.emit(ImportResult.Error(e.message ?: "Unknown error"))
+            } finally {
+                _isImporting.value = false
+            }
+        }
+    }
+
+    fun confirmImport(overwriteExisting: Boolean) {
+        viewModelScope.launch {
+            _isImporting.value = true
+            try {
+                val count = repository.saveImportedGames(pendingImportGames, overwriteExisting)
                 _importResult.emit(ImportResult.Success(count))
+                pendingImportGames = emptyList()
             } catch (e: Exception) {
                 _importResult.emit(ImportResult.Error(e.message ?: "Unknown error"))
             } finally {
