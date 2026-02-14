@@ -163,3 +163,25 @@ data class BggStatus(
     @field:JacksonXmlProperty(isAttribute = true)
     var wishlist: String = "0"
 )
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "user")
+data class BggUserResponse(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var id: String = "",
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var name: String = "",
+    
+    @field:JacksonXmlProperty(localName = "firstname")
+    var firstName: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "lastname")
+    var lastName: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "avatarlink")
+    var avatarLink: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "yearregistered")
+    var yearRegistered: BggValue? = null
+)

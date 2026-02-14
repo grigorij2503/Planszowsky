@@ -33,6 +33,12 @@ class ProfileViewModel @Inject constructor(
     val appLocale: StateFlow<String> = userPreferencesRepository.appLocale
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "system")
 
+    val bggAvatarUrl: StateFlow<String?> = userPreferencesRepository.bggAvatarUrl
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val persistedUsername: StateFlow<String?> = userPreferencesRepository.bggUsername
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val stats: StateFlow<CollectionStats> = repository.getCollectionStats()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionStats())
 
@@ -74,6 +80,12 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _isImporting.value = true
             try {
+                // 1. Fetch User Profile (Avatar)
+                val avatarUrl = repository.fetchBggUserProfile(username)
+                userPreferencesRepository.setBggAvatarUrl(avatarUrl)
+                userPreferencesRepository.setBggUsername(username)
+                
+                // 2. Import Collection
                 val count = repository.importCollection(username)
                 _importResult.emit(ImportResult.Success(count))
             } catch (e: Exception) {

@@ -19,4 +19,5 @@ interface GameRepository {
     suspend fun getRemoteGameDetails(id: String, preferredTitle: String? = null): Game?
     suspend fun updateNotes(gameId: String, notes: String)
     suspend fun importCollection(username: String): Int
+    suspend fun fetchBggUserProfile(username: String): String?
 }

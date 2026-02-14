@@ -282,7 +282,8 @@ class GameRepositoryImpl @Inject constructor(
                             notes = item.comment,
                             isOwned = item.status?.own == "1",
                             isWishlisted = item.status?.wishlist == "1",
-                            categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList()
+                            categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
+                            ownerId = username
                         )
                         dao.insertGame(game.toEntity())
                         importedCount++
@@ -301,7 +302,8 @@ class GameRepositoryImpl @Inject constructor(
                             playingTime = item.stats?.playingtime,
                             notes = item.comment,
                             isOwned = item.status?.own == "1",
-                            isWishlisted = item.status?.wishlist == "1"
+                            isWishlisted = item.status?.wishlist == "1",
+                            ownerId = username
                         )
                         dao.insertGame(game.toEntity())
                         importedCount++
@@ -316,5 +318,16 @@ class GameRepositoryImpl @Inject constructor(
             throw e
         }
         return importedCount
+    }
+
+    override suspend fun fetchBggUserProfile(username: String): String? {
+        ensureSession()
+        return try {
+            val response = api.getUser(username)
+            response.avatarLink?.value?.takeIf { it.isNotBlank() && it != "N/A" }
+        } catch (e: Exception) {
+            firebaseManager.logError(e, "BGG User Fetch Error: $username")
+            null
+        }
     }
 }

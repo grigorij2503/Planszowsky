@@ -49,6 +49,8 @@ fun ProfileScreen(
     val isImporting by viewModel.isImporting.collectAsState()
     val importResult by viewModel.importResult.collectAsState(initial = null)
     val stats by viewModel.stats.collectAsState()
+    val bggAvatarUrl by viewModel.bggAvatarUrl.collectAsState()
+    val persistedUsername by viewModel.persistedUsername.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -90,21 +92,41 @@ fun ProfileScreen(
                     .drawBehind { drawRect(RetroBlack, style = Stroke(4.dp.toPx())) },
                 contentAlignment = Alignment.Center
             ) {
-                PixelProfileIcon(isSelected = true)
+                if (bggAvatarUrl != null) {
+                    AsyncImage(
+                        model = bggAvatarUrl,
+                        contentDescription = "BGG Avatar",
+                        modifier = Modifier.fillMaxSize().padding(4.dp),
+                        contentScale = ContentScale.Crop,
+                        filterQuality = FilterQuality.None
+                    )
+                } else {
+                    PixelProfileIcon(isSelected = true)
+                }
             }
         } else {
             Surface(
-                modifier = Modifier.size(120.dp),
+                modifier = Modifier
+                    .size(120.dp),
                 shape = RoundedCornerShape(40.dp),
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Default.Person, 
-                        contentDescription = null, 
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    if (bggAvatarUrl != null) {
+                        AsyncImage(
+                            model = bggAvatarUrl,
+                            contentDescription = "BGG Avatar",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Person, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
@@ -112,7 +134,7 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = stringResource(R.string.profile_title).let { if(isRetro) it.uppercase() else it },
+            text = (persistedUsername ?: stringResource(R.string.profile_title)).let { if(isRetro) it.uppercase() else it },
             style = if (isRetro) MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold) 
                     else MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold

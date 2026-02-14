@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [GameEntity::class], version = 6, exportSchema = false)
+@Database(entities = [GameEntity::class], version = 7, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
@@ -17,6 +17,12 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE games ADD COLUMN notes TEXT")
                 db.execSQL("ALTER TABLE games ADD COLUMN isBorrowedFrom INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE games ADD COLUMN borrowedFrom TEXT")
+            }
+        }
+        
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE games ADD COLUMN ownerId TEXT")
             }
         }
     }

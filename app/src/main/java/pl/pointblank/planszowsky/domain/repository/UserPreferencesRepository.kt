@@ -10,10 +10,14 @@ interface UserPreferencesRepository {
     val aiUsageCount: Flow<Int>
     val lastAiUsageTimestamp: Flow<Long>
     val appLocale: Flow<String>
+    val bggAvatarUrl: Flow<String?>
+    val bggUsername: Flow<String?>
 
     suspend fun setAppTheme(theme: AppTheme)
     suspend fun setCollectionViewMode(mode: CollectionViewMode)
     suspend fun setAppLocale(locale: String)
+    suspend fun setBggAvatarUrl(url: String?)
+    suspend fun setBggUsername(username: String?)
     suspend fun incrementAiUsage(resetIfNewDay: Boolean)
     suspend fun resetAiUsageIfNewDay()
 }
