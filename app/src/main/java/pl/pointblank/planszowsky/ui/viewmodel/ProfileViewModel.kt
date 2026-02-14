@@ -137,4 +137,49 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
+    suspend fun exportCollection(): String {
+        return repository.exportCollectionToJson()
+    }
+
+    suspend fun exportCollectionCsv(): String {
+        return repository.exportCollectionToCsv()
+    }
+
+    fun startCsvImport(csv: String) {
+        viewModelScope.launch {
+            _isImporting.value = true
+            try {
+                val fetchedGames = repository.parseCsv(csv)
+                if (fetchedGames.isEmpty()) {
+                    _isImporting.value = false
+                    return@launch
+                }
+
+                var conflictCount = 0
+                fetchedGames.forEach { 
+                    if (repository.getGame(it.id) != null) conflictCount++
+                }
+
+                if (conflictCount > 0) {
+                    pendingImportGames = fetchedGames
+                    _importResult.emit(ImportResult.Conflict(conflictCount))
+                } else {
+                    val count = repository.saveImportedGames(fetchedGames, overwriteExisting = false)
+                    _importResult.emit(ImportResult.Success(count))
+                }
+            } catch (e: Exception) {
+                _importResult.emit(ImportResult.Error(e.message ?: "Unknown error"))
+            } finally {
+                _isImporting.value = false
+            }
+        }
+    }
+
+    fun resetImportResult() {
+        viewModelScope.launch {
+            // SharedFlow doesn't have a reset, but we can emit a null-like state if needed.
+            // Or just rely on the UI state.
+        }
+    }
 }

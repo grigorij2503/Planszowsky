@@ -89,6 +89,12 @@
     <string name="import_conflict_message">Niektóre gry (%d) są już w Twojej kolekcji. Czy chcesz zaktualizować ich dane (opisy, zdjęcia, notatki) danymi z BGG?</string>
     <string name="import_conflict_overwrite">Zaktualizuj wszystkie</string>
     <string name="import_conflict_skip">Pomiń istniejące</string>
+    <string name="export_title">Kopia zapasowa</string>
+    <string name="export_button">Eksport</string>
+    <string name="import_file_button">Import</string>
+    <string name="import_file_success">Zaimportowano %d gier z pliku!</string>
+    <string name="export_success">Kolekcja wyeksportowana pomyślnie!</string>
+    <string name="export_error">Błąd podczas eksportu: %s</string>
     <string name="expert_chat_fab">Zapytaj Mistrza Gry</string>
     <string name="translator_system_instruction">"Jesteś tłumaczem gier planszowych. Twoim zadaniem jest przetłumaczenie opisu gry z języka angielskiego na polski. Tłumaczenie powinno być naturalne, profesjonalne i zachęcające. Zachowaj terminologię gier planszowych (np. mechaniki, setup). Zwróć tylko przetłumaczony tekst, bez żadnych komentarzy."</string>
     

@@ -23,6 +23,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
 import pl.pointblank.planszowsky.domain.model.CollectionStats
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
     private val api: BggApi,
@@ -340,5 +342,116 @@ class GameRepositoryImpl @Inject constructor(
             firebaseManager.logError(e, "BGG User Fetch Error: $username")
             null
         }
+    }
+
+    override suspend fun exportCollectionToJson(): String {
+        return withContext(Dispatchers.IO) {
+            val entities = dao.getAllGamesSync()
+            val games = entities.map { it.toDomainModel() }
+            val mapper = jacksonObjectMapper()
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(games)
+        }
+    }
+
+    override suspend fun exportCollectionToCsv(): String {
+        return withContext(Dispatchers.IO) {
+            val entities = dao.getAllGamesSync()
+            val games = entities.map { it.toDomainModel() }
+            
+            val sb = StringBuilder()
+            // Header
+            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image\n")
+            
+            games.forEach { g ->
+                val row = listOf(
+                    g.id,
+                    escapeCsv(g.title),
+                    g.yearPublished ?: "",
+                    g.minPlayers ?: "",
+                    g.maxPlayers ?: "",
+                    g.playingTime ?: "",
+                    g.isOwned,
+                    g.isWishlisted,
+                    g.isFavorite,
+                    escapeCsv(g.notes ?: ""),
+                    escapeCsv(g.categories.joinToString("|")),
+                    g.websiteUrl ?: "",
+                    g.thumbnailUrl ?: "",
+                    g.imageUrl ?: ""
+                )
+                sb.append(row.joinToString(",")).append("\n")
+            }
+            sb.toString()
+        }
+    }
+
+    override suspend fun parseCsv(csv: String): List<Game> {
+        return withContext(Dispatchers.IO) {
+            val lines = csv.lines()
+            if (lines.size <= 1) return@withContext emptyList()
+            
+            val games = mutableListOf<Game>()
+            // Skip header
+            lines.drop(1).filter { it.isNotBlank() }.forEach { line ->
+                try {
+                    val parts = parseCsvLine(line)
+                    if (parts.size >= 9) {
+                        val game = Game(
+                            id = parts[0],
+                            title = parts[1],
+                            yearPublished = parts[2].takeIf { it.isNotBlank() },
+                            minPlayers = parts[3].takeIf { it.isNotBlank() },
+                            maxPlayers = parts[4].takeIf { it.isNotBlank() },
+                            playingTime = parts[5].takeIf { it.isNotBlank() },
+                            isOwned = parts[6].toBoolean(),
+                            isWishlisted = parts[7].toBoolean(),
+                            isFavorite = parts[8].toBoolean(),
+                            notes = parts.getOrNull(9)?.takeIf { it.isNotBlank() },
+                            categories = parts.getOrNull(10)?.split("|")?.filter { it.isNotBlank() } ?: emptyList(),
+                            websiteUrl = parts.getOrNull(11)?.takeIf { it.isNotBlank() },
+                            thumbnailUrl = parts.getOrNull(12)?.takeIf { it.isNotBlank() },
+                            imageUrl = parts.getOrNull(13)?.takeIf { it.isNotBlank() }
+                        )
+                        games.add(game)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            games
+        }
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        var cur = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < line.length) {
+            val c = line[i]
+            if (c == '\"') {
+                if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
+                    cur.append('\"')
+                    i++
+                } else {
+                    inQuotes = !inQuotes
+                }
+            } else if (c == ',' && !inQuotes) {
+                result.add(cur.toString())
+                cur = StringBuilder()
+            } else {
+                cur.append(c)
+            }
+            i++
+        }
+        result.add(cur.toString())
+        return result
+    }
+
+    private fun escapeCsv(value: String): String {
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"${value.replace("\"", "\"\"")}\""
+        }
+        return value
     }
 }

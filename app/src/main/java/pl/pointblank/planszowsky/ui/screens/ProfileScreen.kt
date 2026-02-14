@@ -39,6 +39,12 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.EmojiEvents
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
+import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -59,6 +65,50 @@ fun ProfileScreen(
     var conflictCount by remember { mutableIntStateOf(0) }
     
     val context = LocalContext.current
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                try {
+                    val csv = viewModel.exportCollectionCsv()
+                    context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                        outputStream.write(csv.toByteArray())
+                    }
+                    android.widget.Toast.makeText(context, R.string.export_success, android.widget.Toast.LENGTH_LONG).show()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, context.getString(R.string.export_error, e.localizedMessage), android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun exportToFile() {
+        val fileName = "planszowsky_export_${System.currentTimeMillis()}.csv"
+        exportLauncher.launch(fileName)
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                try {
+                    context.contentResolver.openInputStream(it)?.use { inputStream ->
+                        val csv = inputStream.bufferedReader().readText()
+                        viewModel.startCsvImport(csv)
+                    }
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, "Import error: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    fun importFromFile() {
+        importLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"))
+    }
 
     LaunchedEffect(importResult) {
         importResult?.let { result ->
@@ -439,6 +489,81 @@ fun ProfileScreen(
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("de") }
                         )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Export Card
+        if (isRetro) {
+            RetroChunkyBox(
+                modifier = Modifier.fillMaxWidth(),
+                accentColor = RetroBlue
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.export_title).uppercase(),
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        RetroSquareButton(
+                            text = stringResource(R.string.export_button).uppercase(),
+                            color = RetroGrey,
+                            modifier = Modifier.weight(1f),
+                            onClick = { exportToFile() }
+                        )
+                        RetroSquareButton(
+                            text = stringResource(R.string.import_file_button).uppercase(),
+                            color = RetroGrey,
+                            modifier = Modifier.weight(1f),
+                            onClick = { importFromFile() }
+                        )
+                    }
+                }
+            }
+        } else {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = stringResource(R.string.export_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { exportToFile() },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.Download, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.export_button))
+                        }
+                        
+                        OutlinedButton(
+                            onClick = { importFromFile() },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Default.Upload, null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.import_file_button))
+                        }
                     }
                 }
             }

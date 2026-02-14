@@ -38,4 +38,7 @@ interface GameDao {
 
     @Query("SELECT categories FROM games WHERE isWishlisted = 0")
     fun getAllOwnedCategories(): Flow<List<String>>
+
+    @Query("SELECT * FROM games")
+    suspend fun getAllGamesSync(): List<GameEntity>
 }

@@ -88,6 +88,12 @@
     <string name="import_conflict_message">Some games (%d) are already in your collection. Do you want to update their data (descriptions, images, notes) with data from BGG?</string>
     <string name="import_conflict_overwrite">Update all</string>
     <string name="import_conflict_skip">Skip existing</string>
+    <string name="export_title">Backup</string>
+    <string name="export_button">Export</string>
+    <string name="import_file_button">Import</string>
+    <string name="import_file_success">Imported %d games from file!</string>
+    <string name="export_success">Collection exported successfully!</string>
+    <string name="export_error">Export error: %s</string>
     <string name="expert_chat_fab">Ask Game Master</string>
 
     <!-- Navigation Menu -->
