@@ -26,23 +26,35 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import pl.pointblank.planszowsky.util.LanguageManager
 
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var userPreferencesRepository: UserPreferencesRepository
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface MainActivityEntryPoint {
+        fun userPreferencesRepository(): UserPreferencesRepository
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
-        super.onCreate(savedInstanceState)
         
-        // Apply saved language preference
+        // Apply saved language preference using EntryPoint to avoid injection timing issues
         runBlocking {
+            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
+            val userPreferencesRepository = entryPoint.userPreferencesRepository()
+            
             val locale = userPreferencesRepository.appLocale.first()
             if (locale != "system") {
                 LanguageManager.applyLocale(this@MainActivity, locale)
             }
         }
+
+        super.onCreate(savedInstanceState)
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -50,6 +62,14 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
+            // We can still use the entry point here or inject a ViewModel that holds it.
+            // But for the theme, we need the repo again. 
+            // Since we removed the field, let's get it from the entry point again or let Hilt inject into the ViewModel.
+            // For the theme flow, we need the repo instance.
+            
+            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
+            val userPreferencesRepository = entryPoint.userPreferencesRepository()
+            
             val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
             
             PlanszowskyTheme(appTheme = appTheme) {
