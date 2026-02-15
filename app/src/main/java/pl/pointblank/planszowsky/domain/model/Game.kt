@@ -19,6 +19,7 @@ data class Game(
     val borrowedFrom: String? = null,
     val notes: String? = null,
     val categories: List<String> = emptyList(),
-    val ownerId: String? = null,
+    val collectionId: String = "main",
+    val isReadOnly: Boolean = false,
     val websiteUrl: String? = null
 )

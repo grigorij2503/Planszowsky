@@ -5,9 +5,13 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import pl.pointblank.planszowsky.domain.model.Game
 
-@Entity(tableName = "games")
+@Entity(
+    tableName = "games",
+    primaryKeys = ["id", "collectionId"]
+)
 data class GameEntity(
-    @PrimaryKey val id: String,
+    val id: String,
+    val collectionId: String = "main",
     val title: String,
     val thumbnailUrl: String?,
     val imageUrl: String?,
@@ -25,7 +29,6 @@ data class GameEntity(
     val borrowedFrom: String? = null,
     val notes: String? = null,
     val categories: List<String> = emptyList(),
-    val ownerId: String? = null,
     val websiteUrl: String? = null
 )
 
@@ -44,6 +47,7 @@ class Converters {
 fun GameEntity.toDomainModel(): Game {
     return Game(
         id = id,
+        collectionId = collectionId,
         title = title,
         thumbnailUrl = thumbnailUrl,
         imageUrl = imageUrl,
@@ -61,7 +65,6 @@ fun GameEntity.toDomainModel(): Game {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
-        ownerId = ownerId,
         websiteUrl = websiteUrl
     )
 }
@@ -69,6 +72,7 @@ fun GameEntity.toDomainModel(): Game {
 fun Game.toEntity(): GameEntity {
     return GameEntity(
         id = id,
+        collectionId = collectionId,
         title = title,
         thumbnailUrl = thumbnailUrl,
         imageUrl = imageUrl,
@@ -86,7 +90,6 @@ fun Game.toEntity(): GameEntity {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
-        ownerId = ownerId,
         websiteUrl = websiteUrl
     )
 }

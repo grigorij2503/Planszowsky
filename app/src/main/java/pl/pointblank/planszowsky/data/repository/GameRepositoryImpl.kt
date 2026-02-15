@@ -32,13 +32,13 @@ class GameRepositoryImpl @Inject constructor(
     private val firebaseManager: FirebaseManager
 ) : GameRepository {
 
-    override fun getCollectionStats(): Flow<CollectionStats> {
+    override fun getCollectionStats(collectionId: String): Flow<CollectionStats> {
         return combine(
-            dao.getOwnedCount(),
-            dao.getWishlistCount(),
-            dao.getFavoriteCount(),
-            dao.getLentCount(),
-            dao.getAllOwnedCategories()
+            dao.getOwnedCount(collectionId),
+            dao.getWishlistCount(collectionId),
+            dao.getFavoriteCount(collectionId),
+            dao.getLentCount(collectionId),
+            dao.getAllOwnedCategories(collectionId)
         ) { owned, wishlist, favorite, lent, categoriesRaw ->
             val categoryMap = mapOf(
                 "Card Game" to "Karciarz",
@@ -103,20 +103,24 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getSavedGames(): Flow<List<Game>> {
-        return dao.getAllGames().map { entities ->
-            entities.map { it.toDomainModel() }
+    override fun getSavedGames(collectionId: String): Flow<List<Game>> {
+        return combine(dao.getAllGames(collectionId), dao.getAllCollections()) { entities, collections ->
+            val isReadOnly = collections.find { it.id == collectionId }?.isReadOnly ?: false
+            entities.map { it.toDomainModel().copy(isReadOnly = isReadOnly) }
         }
     }
 
-    override fun getWishlistedGames(): Flow<List<Game>> {
-        return dao.getWishlistedGames().map { entities ->
-            entities.map { it.toDomainModel() }
+    override fun getWishlistedGames(collectionId: String): Flow<List<Game>> {
+        return combine(dao.getWishlistedGames(collectionId), dao.getAllCollections()) { entities, collections ->
+            val isReadOnly = collections.find { it.id == collectionId }?.isReadOnly ?: false
+            entities.map { it.toDomainModel().copy(isReadOnly = isReadOnly) }
         }
     }
 
-    override suspend fun getGame(id: String): Game? {
-        return dao.getGameById(id)?.toDomainModel()
+    override suspend fun getGame(id: String, collectionId: String): Game? {
+        val game = dao.getGameById(id, collectionId)?.toDomainModel()
+        val collection = dao.getCollectionById(collectionId)
+        return game?.copy(isReadOnly = collection?.isReadOnly ?: false)
     }
 
     override suspend fun saveGame(game: Game) {
@@ -246,8 +250,8 @@ class GameRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun updateNotes(gameId: String, notes: String) {
-        val game = getGame(gameId)
+    override suspend fun updateNotes(gameId: String, collectionId: String, notes: String) {
+        val game = getGame(gameId, collectionId)
         game?.let {
             dao.insertGame(it.copy(notes = notes).toEntity())
         }
@@ -286,7 +290,7 @@ class GameRepositoryImpl @Inject constructor(
                             isOwned = item.status?.own == "1",
                             isWishlisted = item.status?.wishlist == "1",
                             categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
-                            ownerId = username,
+                            collectionId = "main",
                             websiteUrl = details?.links?.find { it.type == "boardgamewebsite" }?.value
                         )
                         importedGames.add(game)
@@ -305,7 +309,7 @@ class GameRepositoryImpl @Inject constructor(
                             notes = item.comment,
                             isOwned = item.status?.own == "1",
                             isWishlisted = item.status?.wishlist == "1",
-                            ownerId = username
+                            collectionId = "main"
                         )
                         importedGames.add(game)
                     }
@@ -321,12 +325,54 @@ class GameRepositoryImpl @Inject constructor(
         return importedGames
     }
 
-    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean): Int {
+    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String): Int {
         var count = 0
+        
+        // Find games that are missing crucial metadata
+        val incompleteGames = games.filter { it.imageUrl.isNullOrBlank() || it.description.isNullOrBlank() }
+        val enrichedData = mutableMapOf<String, Game>()
+        
+        if (incompleteGames.isNotEmpty()) {
+            incompleteGames.chunked(20).forEach { batch ->
+                try {
+                    val ids = batch.joinToString(",") { it.id }
+                    val detailsResponse = api.getGameDetails(ids)
+                    detailsResponse.items?.forEach { item ->
+                        enrichedData[item.id] = Game(
+                            id = item.id,
+                            title = item.names?.find { it.type == "primary" }?.value ?: "",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            description = item.description?.decodeHtml(),
+                            yearPublished = item.yearPublished?.value,
+                            minPlayers = item.minPlayers?.value,
+                            maxPlayers = item.maxPlayers?.value,
+                            playingTime = item.playingTime?.value,
+                            categories = item.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList()
+                        )
+                    }
+                } catch (e: Exception) {
+                    firebaseManager.logError(e, "Enrichment Error during import")
+                }
+            }
+        }
+
         games.forEach { game ->
-            val existing = dao.getGameById(game.id)
+            val existing = dao.getGameById(game.id, collectionId)
             if (existing == null || overwriteExisting) {
-                dao.insertGame(game.toEntity())
+                val enriched = enrichedData[game.id]
+                val gameToSave = game.copy(
+                    collectionId = collectionId,
+                    thumbnailUrl = game.thumbnailUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.thumbnailUrl,
+                    imageUrl = game.imageUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.imageUrl,
+                    description = game.description.takeIf { !it.isNullOrBlank() } ?: enriched?.description,
+                    yearPublished = game.yearPublished ?: enriched?.yearPublished,
+                    minPlayers = game.minPlayers ?: enriched?.minPlayers,
+                    maxPlayers = game.maxPlayers ?: enriched?.maxPlayers,
+                    playingTime = game.playingTime ?: enriched?.playingTime,
+                    categories = game.categories.takeIf { it.isNotEmpty() } ?: enriched?.categories ?: emptyList()
+                )
+                dao.insertGame(gameToSave.toEntity())
                 count++
             }
         }
@@ -360,7 +406,7 @@ class GameRepositoryImpl @Inject constructor(
             
             val sb = StringBuilder()
             // Header
-            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image\n")
+            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image,Description\n")
             
             games.forEach { g ->
                 val row = listOf(
@@ -377,7 +423,8 @@ class GameRepositoryImpl @Inject constructor(
                     escapeCsv(g.categories.joinToString("|")),
                     g.websiteUrl ?: "",
                     g.thumbnailUrl ?: "",
-                    g.imageUrl ?: ""
+                    g.imageUrl ?: "",
+                    escapeCsv(g.description ?: "")
                 )
                 sb.append(row.joinToString(",")).append("\n")
             }
@@ -410,7 +457,8 @@ class GameRepositoryImpl @Inject constructor(
                             categories = parts.getOrNull(10)?.split("|")?.filter { it.isNotBlank() } ?: emptyList(),
                             websiteUrl = parts.getOrNull(11)?.takeIf { it.isNotBlank() },
                             thumbnailUrl = parts.getOrNull(12)?.takeIf { it.isNotBlank() },
-                            imageUrl = parts.getOrNull(13)?.takeIf { it.isNotBlank() }
+                            imageUrl = parts.getOrNull(13)?.takeIf { it.isNotBlank() },
+                            description = parts.getOrNull(14)?.takeIf { it.isNotBlank() }
                         )
                         games.add(game)
                     }
@@ -419,6 +467,82 @@ class GameRepositoryImpl @Inject constructor(
                 }
             }
             games
+        }
+    }
+
+    override suspend fun importRemoteCollection(url: String, name: String): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val downloadUrl = transformGoogleDriveUrl(url)
+            val request = Request.Builder().url(downloadUrl).build()
+            val response = okHttpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to download collection: ${response.code}"))
+            
+            val csvContent = response.body?.string() ?: return@withContext Result.failure(Exception("Empty response body"))
+            val games = parseCsv(csvContent)
+            
+            val collectionId = java.util.UUID.randomUUID().toString()
+            val collection = pl.pointblank.planszowsky.data.local.CollectionEntity(
+                id = collectionId,
+                name = name,
+                sourceUrl = url, // Keep original URL for reference
+                isReadOnly = true,
+                lastUpdated = System.currentTimeMillis()
+            )
+            
+            dao.insertCollection(collection)
+            val count = saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            
+            Result.success(count)
+        } catch (e: Exception) {
+            firebaseManager.logError(e, "Remote Import Error: $url")
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun refreshCollection(collectionId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val collection = dao.getCollectionById(collectionId) ?: return@withContext Result.failure(Exception("Collection not found"))
+            val url = collection.sourceUrl ?: return@withContext Result.failure(Exception("Collection has no source URL"))
+            
+            val downloadUrl = transformGoogleDriveUrl(url)
+            val request = Request.Builder().url(downloadUrl).build()
+            val response = okHttpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to refresh: ${response.code}"))
+            
+            val csvContent = response.body?.string() ?: return@withContext Result.failure(Exception("Empty body"))
+            val games = parseCsv(csvContent)
+            
+            dao.deleteGamesByCollection(collectionId)
+            saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            
+            dao.insertCollection(collection.copy(lastUpdated = System.currentTimeMillis()))
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            firebaseManager.logError(e, "Refresh Error: $collectionId")
+            Result.failure(e)
+        }
+    }
+
+    private fun transformGoogleDriveUrl(url: String): String {
+        return if (url.contains("drive.google.com")) {
+            val fileId = Regex("/d/([^/]+)").find(url)?.groupValues?.get(1)
+            if (fileId != null) {
+                "https://drive.google.com/uc?export=download&id=$fileId"
+            } else url
+        } else url
+    }
+
+    override fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>> {
+        return dao.getAllCollections()
+    }
+
+    override suspend fun deleteCollection(collectionId: String) {
+        if (collectionId == "main") return // Cannot delete main
+        val collection = dao.getCollectionById(collectionId)
+        if (collection != null) {
+            dao.deleteGamesByCollection(collectionId)
+            dao.deleteCollection(collection)
         }
     }
 

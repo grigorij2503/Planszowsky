@@ -398,16 +398,18 @@ fun GameManagementPanel(
                         activeColor = RetroBlue,
                         onClick = onWebsiteClick
                     )
-                    PixelActionButton(
-                        icon = { PixelDelete24(color = RetroText) },
-                        label = stringResource(R.string.action_del),
-                        isActive = false,
-                        activeColor = RetroBlack,
-                        onClick = onDelete
-                    )
+                    if (!game.isReadOnly) {
+                        PixelActionButton(
+                            icon = { PixelDelete24(color = RetroText) },
+                            label = stringResource(R.string.action_del),
+                            isActive = false,
+                            activeColor = RetroBlack,
+                            onClick = onDelete
+                        )
+                    }
                 }
 
-                if (!game.isWishlisted) {
+                if (!game.isWishlisted && !game.isReadOnly) {
                     Spacer(modifier = Modifier.height(24.dp))
                     Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(RetroBlack.copy(alpha = 0.3f)))
                     Spacer(modifier = Modifier.height(16.dp))
@@ -563,16 +565,18 @@ fun GameManagementPanel(
                         activeColor = MaterialTheme.colorScheme.primary,
                         onClick = onWebsiteClick
                     )
-                    ManagementIconButton(
-                        icon = Icons.Default.Delete,
-                        label = "DEL",
-                        isActive = false,
-                        activeColor = MaterialTheme.colorScheme.error,
-                        onClick = onDelete
-                    )
+                    if (!game.isReadOnly) {
+                        ManagementIconButton(
+                            icon = Icons.Default.Delete,
+                            label = "DEL",
+                            isActive = false,
+                            activeColor = MaterialTheme.colorScheme.error,
+                            onClick = onDelete
+                        )
+                    }
                 }
                 
-                if (!game.isWishlisted) {
+                if (!game.isWishlisted && !game.isReadOnly) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                     
                     var showBorrowDialog by remember { mutableStateOf(false) }

@@ -133,5 +133,14 @@
     <string name="stats_category">"Genre"</string>
     <string name="stats_favorites">"Favs"</string>
     <string name="stats_wishlist">"Wunsch"</string>
-    <string name="stats_lent">"Gelihen"</string>
-</resources>
+        <string name="stats_lent">"Gelihen"</string>
+        <string name="cancel">Abbrechen</string>
+        <string name="import_remote_title">Externe Sammlung</string>
+        <string name="import_remote_desc">Möchten Sie diese Sammlung hinzufügen? Die Daten werden von der angegebenen URL geladen.</string>
+        <string name="collection_name_label">Sammlungsname</string>
+        <string name="collections_title">Ihre Sammlungen</string>
+        <string name="readonly_notice">Nur Lesezugriff</string>
+        <string name="refresh_collection">Aktualisieren</string>
+        <string name="delete_collection_confirm">Diese Sammlung löschen?</string>
+    </resources>
+    
