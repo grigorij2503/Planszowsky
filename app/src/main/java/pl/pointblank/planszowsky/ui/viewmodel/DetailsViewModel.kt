@@ -121,4 +121,17 @@ class DetailsViewModel @Inject constructor(
             _game.value = repository.getGame(gameId, collectionId)
         }
     }
+
+    fun toggleExpansion(expansionId: String) {
+        viewModelScope.launch {
+            _game.value?.let { current ->
+                val updatedExpansions = current.expansions.map {
+                    if (it.id == expansionId) it.copy(isOwned = !it.isOwned) else it
+                }
+                val updatedGame = current.copy(expansions = updatedExpansions)
+                repository.updateGame(updatedGame)
+                _game.value = repository.getGame(gameId, collectionId)
+            }
+        }
+    }
 }

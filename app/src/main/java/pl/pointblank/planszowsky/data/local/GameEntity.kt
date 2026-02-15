@@ -3,7 +3,10 @@ package pl.pointblank.planszowsky.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import pl.pointblank.planszowsky.domain.model.Game
+import pl.pointblank.planszowsky.domain.model.Expansion
 
 @Entity(
     tableName = "games",
@@ -29,6 +32,7 @@ data class GameEntity(
     val borrowedFrom: String? = null,
     val notes: String? = null,
     val categories: List<String> = emptyList(),
+    val expansions: List<Expansion> = emptyList(),
     val websiteUrl: String? = null
 )
 
@@ -41,6 +45,23 @@ class Converters {
     @TypeConverter
     fun fromList(list: List<String>?): String {
         return list?.joinToString(",") ?: ""
+    }
+
+    private val mapper = jacksonObjectMapper()
+
+    @TypeConverter
+    fun fromExpansionList(value: List<Expansion>?): String {
+        return mapper.writeValueAsString(value ?: emptyList<Expansion>())
+    }
+
+    @TypeConverter
+    fun toExpansionList(value: String?): List<Expansion> {
+        if (value.isNullOrBlank()) return emptyList()
+        return try {
+            mapper.readValue(value)
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 }
 
@@ -65,6 +86,7 @@ fun GameEntity.toDomainModel(): Game {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
+        expansions = expansions,
         websiteUrl = websiteUrl
     )
 }
@@ -90,6 +112,7 @@ fun Game.toEntity(): GameEntity {
         borrowedFrom = borrowedFrom,
         notes = notes,
         categories = categories,
+        expansions = expansions,
         websiteUrl = websiteUrl
     )
 }

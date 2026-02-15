@@ -100,7 +100,11 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
             composable(Screen.Collection.route) {
                 CollectionScreen(
                     onAddGameClick = { navController.navigate("search") },
-                    onGameClick = { gameId, collectionId -> navController.navigate("details/$gameId/$collectionId") },
+                    onGameClick = { gameId, collectionId -> 
+                        val encodedId = android.net.Uri.encode(gameId)
+                        val encodedColl = android.net.Uri.encode(collectionId)
+                        navController.navigate("details/$encodedId/$encodedColl") 
+                    },
                     onRandomizerClick = { navController.navigate("randomizer") },
                     onScanClick = { navController.navigate("scan") }
                 )

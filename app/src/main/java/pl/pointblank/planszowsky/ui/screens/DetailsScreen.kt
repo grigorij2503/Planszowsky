@@ -215,6 +215,16 @@ fun DetailsScreen(
                                 onWebsiteClick = { openGameWebsite(g) }
                             )
 
+                            if (g.expansions.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(32.dp))
+                                ExpansionsSection(
+                                    expansions = g.expansions,
+                                    isReadOnly = g.isReadOnly,
+                                    isRetro = isRetro,
+                                    onToggle = { viewModel.toggleExpansion(it) }
+                                )
+                            }
+
                             Spacer(modifier = Modifier.height(32.dp))
                             
                             Row(
@@ -830,6 +840,89 @@ fun ManagementIconButton(icon: ImageVector, label: String, isActive: Boolean, ac
             Icon(icon, contentDescription = label, tint = if (isActive) activeColor else MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+fun ExpansionsSection(
+    expansions: List<pl.pointblank.planszowsky.domain.model.Expansion>,
+    isReadOnly: Boolean,
+    isRetro: Boolean,
+    onToggle: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "DODATKI".let { if (isRetro) it.uppercase() else it },
+            style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
+                    else MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Column(
+            modifier = if (isRetro) Modifier
+                .pixelButtonFrame(thickness = 2.dp)
+                .background(RetroElementBackground)
+                .padding(8.dp)
+            else Modifier
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            expansions.forEach { expansion ->
+                ExpansionItem(
+                    expansion = expansion,
+                    isReadOnly = isReadOnly,
+                    isRetro = isRetro,
+                    onClick = { if (!isReadOnly) onToggle(expansion.id) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpansionItem(
+    expansion: pl.pointblank.planszowsky.domain.model.Expansion,
+    isReadOnly: Boolean,
+    isRetro: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = !isReadOnly, onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (isRetro) {
+            Text(
+                text = if (expansion.isOwned) "[X]" else "[ ]",
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = if(expansion.isOwned) RetroGold else RetroText),
+                fontWeight = FontWeight.ExtraBold
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = expansion.title.uppercase(),
+                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                modifier = Modifier.weight(1f)
+            )
+        } else {
+            Checkbox(
+                checked = expansion.isOwned,
+                onCheckedChange = { if(!isReadOnly) onClick() },
+                enabled = !isReadOnly,
+                colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = expansion.title,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 

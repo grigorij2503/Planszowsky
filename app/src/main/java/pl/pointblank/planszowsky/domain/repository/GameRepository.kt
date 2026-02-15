@@ -21,8 +21,8 @@ interface GameRepository {
     suspend fun fetchCollection(username: String): List<Game>
     suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String = "main"): Int
     suspend fun fetchBggUserProfile(username: String): String?
-    suspend fun exportCollectionToJson(): String
-    suspend fun exportCollectionToCsv(): String
+    suspend fun exportCollectionToJson(collectionId: String = "main"): String
+    suspend fun exportCollectionToCsv(collectionId: String = "main"): String
     suspend fun parseCsv(csv: String): List<Game>
 
     // Collections

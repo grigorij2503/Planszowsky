@@ -35,7 +35,8 @@ object AppModule {
             AppDatabase.MIGRATION_5_6, 
             AppDatabase.MIGRATION_6_7, 
             AppDatabase.MIGRATION_7_8,
-            AppDatabase.MIGRATION_8_9
+            AppDatabase.MIGRATION_8_9,
+            AppDatabase.MIGRATION_9_10
         )
         .build()
     }
@@ -56,9 +57,10 @@ object AppModule {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
-                    .header("User-Agent", "Planszowsky/0.1 (Android)")
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36")
                 
-                if (pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY.isNotBlank()) {
+                // Only add BGG API Key to BGG requests
+                if (original.url.host.contains("boardgamegeek.com") && pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY.isNotBlank()) {
                     requestBuilder.header("Authorization", "Bearer ${pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY}")
                 }
                 

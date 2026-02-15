@@ -172,11 +172,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun exportCollection(): String {
-        return repository.exportCollectionToJson()
+        return repository.exportCollectionToJson(activeCollectionId.value)
     }
 
     suspend fun exportCollectionCsv(): String {
-        return repository.exportCollectionToCsv()
+        return repository.exportCollectionToCsv(activeCollectionId.value)
     }
 
     fun startCsvImport(csv: String) {
