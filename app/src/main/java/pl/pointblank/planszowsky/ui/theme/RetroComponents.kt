@@ -258,12 +258,9 @@ fun RetroSquareButton(
     Box(
         modifier = modifier
             .height(56.dp)
+            .pixelButtonFrame(thickness = 2.dp)
             .background(color)
             .clickable(onClick = onClick)
-            .drawBehind {
-                val stroke = 3.dp.toPx()
-                drawRect(RetroBlack, style = Stroke(stroke))
-            }
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -272,7 +269,7 @@ fun RetroSquareButton(
             style = MaterialTheme.typography.labelLarge.copy(
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                color = RetroText
+                color = if (color == RetroGold) RetroBlack else Color.White
             )
         )
     }

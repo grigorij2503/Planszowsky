@@ -23,6 +23,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
 import pl.pointblank.planszowsky.domain.model.CollectionStats
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
     private val api: BggApi,
@@ -163,7 +165,8 @@ class GameRepositoryImpl @Inject constructor(
                     title = bestName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
-                    yearPublished = item.yearPublished?.value
+                    yearPublished = item.yearPublished?.value,
+                    websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
@@ -194,7 +197,8 @@ class GameRepositoryImpl @Inject constructor(
                     title = primaryName.decodeHtml(),
                     thumbnailUrl = item.thumbnail,
                     imageUrl = item.image,
-                    yearPublished = item.yearPublished?.value
+                    yearPublished = item.yearPublished?.value,
+                    websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
                 )
             } ?: emptyList()
         } catch (e: HttpException) {
@@ -229,7 +233,8 @@ class GameRepositoryImpl @Inject constructor(
                 maxPlayers = item.maxPlayers?.value,
                 playingTime = item.playingTime?.value,
                 isOwned = false,
-                categories = categories
+                categories = categories,
+                websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
             )
         } catch (e: HttpException) {
             firebaseManager.logError(e, "BGG Details Error (${e.code()}): $id")
@@ -248,31 +253,205 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun importCollection(username: String): Int {
+    override suspend fun fetchCollection(username: String): List<Game> {
         ensureSession()
-        var importedCount = 0
+        val importedGames = mutableListOf<Game>()
         try {
             val response = api.getCollection(username)
-            response.items?.forEach { item ->
-                val game = Game(
-                    id = item.id,
-                    title = item.name?.decodeHtml() ?: "Unknown",
-                    thumbnailUrl = item.thumbnail,
-                    imageUrl = item.image,
-                    yearPublished = item.yearPublished,
-                    isOwned = item.status?.own == "1",
-                    isWishlisted = item.status?.wishlist == "1"
-                )
-                dao.insertGame(game.toEntity())
-                importedCount++
+            val items = response.items ?: emptyList()
+            if (items.isEmpty()) return emptyList()
+
+            val chunkedItems = items.chunked(20)
+
+            chunkedItems.forEach { batch ->
+                val ids = batch.joinToString(",") { it.id }
+                try {
+                    val detailsResponse = api.getGameDetails(ids)
+                    val detailsMap = detailsResponse.items?.associateBy { it.id } ?: emptyMap()
+
+                    batch.forEach { item ->
+                        val details = detailsMap[item.id]
+                        
+                        val game = Game(
+                            id = item.id,
+                            title = item.name?.decodeHtml() ?: details?.names?.find { it.type == "primary" }?.value ?: "Unknown",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            description = details?.description?.decodeHtml(),
+                            yearPublished = item.yearPublished,
+                            minPlayers = item.stats?.minplayers ?: details?.minPlayers?.value,
+                            maxPlayers = item.stats?.maxplayers ?: details?.maxPlayers?.value,
+                            playingTime = item.stats?.playingtime ?: details?.playingTime?.value,
+                            notes = item.comment,
+                            isOwned = item.status?.own == "1",
+                            isWishlisted = item.status?.wishlist == "1",
+                            categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
+                            ownerId = username,
+                            websiteUrl = details?.links?.find { it.type == "boardgamewebsite" }?.value
+                        )
+                        importedGames.add(game)
+                    }
+                } catch (e: Exception) {
+                    batch.forEach { item ->
+                        val game = Game(
+                            id = item.id,
+                            title = item.name?.decodeHtml() ?: "Unknown",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            yearPublished = item.yearPublished,
+                            minPlayers = item.stats?.minplayers,
+                            maxPlayers = item.stats?.maxplayers,
+                            playingTime = item.stats?.playingtime,
+                            notes = item.comment,
+                            isOwned = item.status?.own == "1",
+                            isWishlisted = item.status?.wishlist == "1",
+                            ownerId = username
+                        )
+                        importedGames.add(game)
+                    }
+                }
             }
         } catch (e: HttpException) {
-            firebaseManager.logError(e, "BGG Import Error (${e.code()}): $username")
+            firebaseManager.logError(e, "BGG Fetch Error (${e.code()}): $username")
             throw e
         } catch (e: Exception) {
-            firebaseManager.logError(e, "BGG Import Exception: $username")
+            firebaseManager.logError(e, "BGG Fetch Exception: $username")
             throw e
         }
-        return importedCount
+        return importedGames
+    }
+
+    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean): Int {
+        var count = 0
+        games.forEach { game ->
+            val existing = dao.getGameById(game.id)
+            if (existing == null || overwriteExisting) {
+                dao.insertGame(game.toEntity())
+                count++
+            }
+        }
+        return count
+    }
+
+    override suspend fun fetchBggUserProfile(username: String): String? {
+        ensureSession()
+        return try {
+            val response = api.getUser(username)
+            response.avatarLink?.value?.takeIf { it.isNotBlank() && it != "N/A" }
+        } catch (e: Exception) {
+            firebaseManager.logError(e, "BGG User Fetch Error: $username")
+            null
+        }
+    }
+
+    override suspend fun exportCollectionToJson(): String {
+        return withContext(Dispatchers.IO) {
+            val entities = dao.getAllGamesSync()
+            val games = entities.map { it.toDomainModel() }
+            val mapper = jacksonObjectMapper()
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(games)
+        }
+    }
+
+    override suspend fun exportCollectionToCsv(): String {
+        return withContext(Dispatchers.IO) {
+            val entities = dao.getAllGamesSync()
+            val games = entities.map { it.toDomainModel() }
+            
+            val sb = StringBuilder()
+            // Header
+            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image\n")
+            
+            games.forEach { g ->
+                val row = listOf(
+                    g.id,
+                    escapeCsv(g.title),
+                    g.yearPublished ?: "",
+                    g.minPlayers ?: "",
+                    g.maxPlayers ?: "",
+                    g.playingTime ?: "",
+                    g.isOwned,
+                    g.isWishlisted,
+                    g.isFavorite,
+                    escapeCsv(g.notes ?: ""),
+                    escapeCsv(g.categories.joinToString("|")),
+                    g.websiteUrl ?: "",
+                    g.thumbnailUrl ?: "",
+                    g.imageUrl ?: ""
+                )
+                sb.append(row.joinToString(",")).append("\n")
+            }
+            sb.toString()
+        }
+    }
+
+    override suspend fun parseCsv(csv: String): List<Game> {
+        return withContext(Dispatchers.IO) {
+            val lines = csv.lines()
+            if (lines.size <= 1) return@withContext emptyList()
+            
+            val games = mutableListOf<Game>()
+            // Skip header
+            lines.drop(1).filter { it.isNotBlank() }.forEach { line ->
+                try {
+                    val parts = parseCsvLine(line)
+                    if (parts.size >= 9) {
+                        val game = Game(
+                            id = parts[0],
+                            title = parts[1],
+                            yearPublished = parts[2].takeIf { it.isNotBlank() },
+                            minPlayers = parts[3].takeIf { it.isNotBlank() },
+                            maxPlayers = parts[4].takeIf { it.isNotBlank() },
+                            playingTime = parts[5].takeIf { it.isNotBlank() },
+                            isOwned = parts[6].toBoolean(),
+                            isWishlisted = parts[7].toBoolean(),
+                            isFavorite = parts[8].toBoolean(),
+                            notes = parts.getOrNull(9)?.takeIf { it.isNotBlank() },
+                            categories = parts.getOrNull(10)?.split("|")?.filter { it.isNotBlank() } ?: emptyList(),
+                            websiteUrl = parts.getOrNull(11)?.takeIf { it.isNotBlank() },
+                            thumbnailUrl = parts.getOrNull(12)?.takeIf { it.isNotBlank() },
+                            imageUrl = parts.getOrNull(13)?.takeIf { it.isNotBlank() }
+                        )
+                        games.add(game)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            games
+        }
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        var cur = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < line.length) {
+            val c = line[i]
+            if (c == '\"') {
+                if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
+                    cur.append('\"')
+                    i++
+                } else {
+                    inQuotes = !inQuotes
+                }
+            } else if (c == ',' && !inQuotes) {
+                result.add(cur.toString())
+                cur = StringBuilder()
+            } else {
+                cur.append(c)
+            }
+            i++
+        }
+        result.add(cur.toString())
+        return result
+    }
+
+    private fun escapeCsv(value: String): String {
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"${value.replace("\"", "\"\"")}\""
+        }
+        return value
     }
 }

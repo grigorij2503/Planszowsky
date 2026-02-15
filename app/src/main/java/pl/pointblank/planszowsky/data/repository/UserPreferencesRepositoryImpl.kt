@@ -32,6 +32,8 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val AI_USAGE_COUNT = intPreferencesKey("ai_usage_count")
         val LAST_AI_USAGE_TIMESTAMP = longPreferencesKey("last_ai_usage_timestamp")
         val APP_LOCALE = stringPreferencesKey("app_locale")
+        val BGG_AVATAR_URL = stringPreferencesKey("bgg_avatar_url")
+        val BGG_USERNAME = stringPreferencesKey("bgg_username")
     }
 
     override val appTheme: Flow<AppTheme> = context.dataStore.data
@@ -63,6 +65,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val appLocale: Flow<String> = context.dataStore.data
         .map { preferences -> preferences[PreferencesKeys.APP_LOCALE] ?: "system" }
 
+    override val bggAvatarUrl: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.BGG_AVATAR_URL] }
+
+    override val bggUsername: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.BGG_USERNAME] }
+
     override suspend fun setAppTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_THEME] = theme.name
@@ -78,6 +86,26 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setAppLocale(locale: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_LOCALE] = locale
+        }
+    }
+
+    override suspend fun setBggAvatarUrl(url: String?) {
+        context.dataStore.edit { preferences ->
+            if (url != null) {
+                preferences[PreferencesKeys.BGG_AVATAR_URL] = url
+            } else {
+                preferences.remove(PreferencesKeys.BGG_AVATAR_URL)
+            }
+        }
+    }
+
+    override suspend fun setBggUsername(username: String?) {
+        context.dataStore.edit { preferences ->
+            if (username != null) {
+                preferences[PreferencesKeys.BGG_USERNAME] = username
+            } else {
+                preferences.remove(PreferencesKeys.BGG_USERNAME)
+            }
         }
     }
 

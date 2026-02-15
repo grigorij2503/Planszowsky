@@ -31,7 +31,7 @@ object AppModule {
             AppDatabase::class.java,
             "planszowsky_db"
         )
-        .addMigrations(AppDatabase.MIGRATION_5_6)
+        .addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8)
         .build()
     }
 

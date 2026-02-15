@@ -18,5 +18,10 @@ interface GameRepository {
     suspend fun searchByBarcode(barcode: String): List<Game>
     suspend fun getRemoteGameDetails(id: String, preferredTitle: String? = null): Game?
     suspend fun updateNotes(gameId: String, notes: String)
-    suspend fun importCollection(username: String): Int
+    suspend fun fetchCollection(username: String): List<Game>
+    suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean): Int
+    suspend fun fetchBggUserProfile(username: String): String?
+    suspend fun exportCollectionToJson(): String
+    suspend fun exportCollectionToCsv(): String
+    suspend fun parseCsv(csv: String): List<Game>
 }

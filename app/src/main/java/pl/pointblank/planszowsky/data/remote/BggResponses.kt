@@ -134,7 +134,25 @@ data class BggCollectionItem(
     var yearPublished: String? = null,
 
     @field:JacksonXmlProperty(localName = "status")
-    var status: BggStatus? = null
+    var status: BggStatus? = null,
+
+    @field:JacksonXmlProperty(localName = "stats")
+    var stats: BggCollectionStats? = null,
+    
+    @field:JacksonXmlProperty(localName = "comment")
+    var comment: String? = null
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BggCollectionStats(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var minplayers: String? = null,
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var maxplayers: String? = null,
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var playingtime: String? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -144,4 +162,26 @@ data class BggStatus(
     
     @field:JacksonXmlProperty(isAttribute = true)
     var wishlist: String = "0"
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JacksonXmlRootElement(localName = "user")
+data class BggUserResponse(
+    @field:JacksonXmlProperty(isAttribute = true)
+    var id: String = "",
+    
+    @field:JacksonXmlProperty(isAttribute = true)
+    var name: String = "",
+    
+    @field:JacksonXmlProperty(localName = "firstname")
+    var firstName: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "lastname")
+    var lastName: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "avatarlink")
+    var avatarLink: BggValue? = null,
+    
+    @field:JacksonXmlProperty(localName = "yearregistered")
+    var yearRegistered: BggValue? = null
 )
