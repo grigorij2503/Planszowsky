@@ -7,6 +7,9 @@ import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanner
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.min
@@ -16,6 +19,7 @@ class GameScannerAnalyzer(
 ) : ImageAnalysis.Analyzer {
 
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    private val barcodeScanner = BarcodeScanning.getClient()
 
     // --- STABILIZACJA ---
     private val recentDetections = mutableListOf<String>()
@@ -29,46 +33,50 @@ class GameScannerAnalyzer(
             val rotation = imageProxy.imageInfo.rotationDegrees
             val image = InputImage.fromMediaImage(mediaImage, rotation)
 
-            // Pobieramy wymiary uwzględniając rotację
             val imageWidth = if (rotation == 90 || rotation == 270) image.height.toFloat() else image.width.toFloat()
             val imageHeight = if (rotation == 90 || rotation == 270) image.width.toFloat() else image.height.toFloat()
             val imageCenterX = imageWidth / 2f
             val imageCenterY = imageHeight / 2f
 
-            textRecognizer.process(image)
-                .addOnSuccessListener { visionText ->
-                    // Szukamy najlepszego bloku tekstu
-                    val bestCandidate = visionText.textBlocks.mapNotNull { block ->
-                        val rect = block.boundingBox ?: return@mapNotNull null
-                        val text = block.text.cleanOcrText()
+            barcodeScanner.process(image)
+                .addOnSuccessListener { barcodes: List<Barcode> ->
+                    val qrCode = barcodes.find { it.format == Barcode.FORMAT_QR_CODE }
+                    val url = qrCode?.url?.url ?: qrCode?.displayValue
+                    
+                    if (url != null && url.startsWith("http")) {
+                        onResultDetected(url)
+                        imageProxy.close()
+                    } else {
+                        textRecognizer.process(image)
+                            .addOnSuccessListener { visionText ->
+                                val bestCandidate = visionText.textBlocks.mapNotNull { block ->
+                                    val rect = block.boundingBox ?: return@mapNotNull null
+                                    val text = block.text.cleanOcrText()
 
-                        // 1. Odrzucamy oczywiste śmieci
-                        if (text.length < 3) return@mapNotNull null
-                        if (text.isLikelyGameMetadata()) return@mapNotNull null
-                        
-                        // 2. Musi być odpowiednio duży (min 5% wysokości ekranu)
-                        if (rect.height() < imageHeight * 0.05f) return@mapNotNull null
+                                    if (text.length < 3) return@mapNotNull null
+                                    if (text.isLikelyGameMetadata()) return@mapNotNull null
+                                    if (rect.height() < imageHeight * 0.05f) return@mapNotNull null
 
-                        // 3. Punktacja
-                        // A. Powierzchnia (im większy, tym lepiej)
-                        val areaScore = (rect.width() * rect.height()).toFloat() / (imageWidth * imageHeight)
-                        
-                        // B. Centralność (im bliżej środka, tym lepiej)
-                        val distX = abs(rect.centerX() - imageCenterX) / imageWidth
-                        val distY = abs(rect.centerY() - imageCenterY) / imageHeight
-                        val centralityScore = 1.0f - (distX + distY)
+                                    val areaScore = (rect.width() * rect.height()).toFloat() / (imageWidth * imageHeight)
+                                    val distX = abs(rect.centerX() - imageCenterX) / imageWidth
+                                    val distY = abs(rect.centerY() - imageCenterY) / imageHeight
+                                    val centralityScore = 1.0f - (distX + distY)
+                                    val totalScore = areaScore * 2.0f + centralityScore
 
-                        val totalScore = areaScore * 2.0f + centralityScore
+                                    Candidate(text, totalScore)
+                                }.maxByOrNull { it.score }
 
-                        Candidate(text, totalScore)
-                    }.maxByOrNull { it.score }
-
-                    if (bestCandidate != null && bestCandidate.score > 0.8f) { // Wyższy próg pewności
-                        processStabilityFuzzy(bestCandidate.text)
+                                if (bestCandidate != null && bestCandidate.score > 0.8f) {
+                                    processStabilityFuzzy(bestCandidate.text)
+                                }
+                            }
+                            .addOnCompleteListener {
+                                imageProxy.close()
+                            }
+                            .addOnFailureListener {
+                                imageProxy.close()
+                            }
                     }
-                }
-                .addOnCompleteListener {
-                    imageProxy.close()
                 }
                 .addOnFailureListener {
                     imageProxy.close()
@@ -84,7 +92,6 @@ class GameScannerAnalyzer(
             recentDetections.removeAt(0)
         }
 
-        // Sprawdzamy, czy w historii jest wystarczająco dużo tekstów podobnych do ostatniego
         val similarCount = recentDetections.count { historyItem ->
             calculateSimilarity(newText, historyItem) > 0.8
         }
@@ -97,7 +104,6 @@ class GameScannerAnalyzer(
                 .maxByOrNull { it.value }?.key ?: newText
 
             onResultDetected(bestVersion)
-            // Nie czyścimy historii natychmiast, żeby nie migało przy ciągłym patrzeniu na to samo pudełko
         }
     }
 
@@ -135,9 +141,9 @@ class GameScannerAnalyzer(
 
     private fun String.cleanOcrText(): String {
         return this.replace("\n", " ")
-            .replace(Regex("[^a-zA-Z0-9 ]"), "") // Usuwamy znaki specjalne
+            .replace(Regex("[^a-zA-Z0-9 ]"), "")
             .trim()
-            .replace(Regex(" +"), " ") // Usuwamy podwójne spacje
+            .replace(Regex(" +"), " ")
     }
 
     private fun String.isLikelyGameMetadata(): Boolean {

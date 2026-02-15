@@ -100,7 +100,11 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
             composable(Screen.Collection.route) {
                 CollectionScreen(
                     onAddGameClick = { navController.navigate("search") },
-                    onGameClick = { gameId -> navController.navigate("details/$gameId") },
+                    onGameClick = { gameId, collectionId -> 
+                        val encodedId = android.net.Uri.encode(gameId)
+                        val encodedColl = android.net.Uri.encode(collectionId)
+                        navController.navigate("details/$encodedId/$encodedColl") 
+                    },
                     onRandomizerClick = { navController.navigate("randomizer") },
                     onScanClick = { navController.navigate("scan") }
                 )
@@ -149,8 +153,11 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
             }
             
             composable(
-                route = "details/{gameId}",
-                arguments = listOf(navArgument("gameId") { type = NavType.StringType })
+                route = "details/{gameId}/{collectionId}",
+                arguments = listOf(
+                    navArgument("gameId") { type = NavType.StringType },
+                    navArgument("collectionId") { type = NavType.StringType; defaultValue = "main" }
+                )
             ) {
                 DetailsScreen(onBackClick = { navController.popBackStack() })
             }

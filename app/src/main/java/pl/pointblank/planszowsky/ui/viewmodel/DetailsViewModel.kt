@@ -33,6 +33,7 @@ class DetailsViewModel @Inject constructor(
     val isExpertChatEnabled: StateFlow<Boolean> = firebaseManager.isExpertChatEnabled
 
     private val gameId: String = checkNotNull(savedStateHandle["gameId"])
+    private val collectionId: String = savedStateHandle["collectionId"] ?: "main"
 
     private val _game = MutableStateFlow<Game?>(null)
     val game: StateFlow<Game?> = _game.asStateFlow()
@@ -45,7 +46,7 @@ class DetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _game.value = repository.getGame(gameId)
+            _game.value = repository.getGame(gameId, collectionId)
         }
     }
 
@@ -80,7 +81,7 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _game.value?.let { currentNewGame ->
                 repository.toggleWishlist(currentNewGame)
-                _game.value = repository.getGame(gameId)
+                _game.value = repository.getGame(gameId, collectionId)
             }
         }
     }
@@ -89,7 +90,7 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             _game.value?.let { current ->
                 repository.toggleFavorite(current)
-                _game.value = repository.getGame(gameId)
+                _game.value = repository.getGame(gameId, collectionId)
             }
         }
     }
@@ -109,15 +110,28 @@ class DetailsViewModel @Inject constructor(
                     borrowedFrom = borrowedFrom
                 )
                 repository.updateGame(updated)
-                _game.value = repository.getGame(gameId)
+                _game.value = repository.getGame(gameId, collectionId)
             }
         }
     }
 
     fun updateNotes(notes: String) {
         viewModelScope.launch {
-            repository.updateNotes(gameId, notes)
-            _game.value = repository.getGame(gameId)
+            repository.updateNotes(gameId, collectionId, notes)
+            _game.value = repository.getGame(gameId, collectionId)
+        }
+    }
+
+    fun toggleExpansion(expansionId: String) {
+        viewModelScope.launch {
+            _game.value?.let { current ->
+                val updatedExpansions = current.expansions.map {
+                    if (it.id == expansionId) it.copy(isOwned = !it.isOwned) else it
+                }
+                val updatedGame = current.copy(expansions = updatedExpansions)
+                repository.updateGame(updatedGame)
+                _game.value = repository.getGame(gameId, collectionId)
+            }
         }
     }
 }

@@ -133,5 +133,14 @@
     <string name="stats_category">"Your Style"</string>
     <string name="stats_favorites">"Favs"</string>
     <string name="stats_wishlist">"Wish"</string>
-    <string name="stats_lent">"Lent"</string>
-</resources>
+        <string name="stats_lent">"Lent"</string>
+        <string name="cancel">Cancel</string>
+        <string name="import_remote_title">External Collection</string>
+        <string name="import_remote_desc">Do you want to add this collection? Data will be fetched from the provided URL.</string>
+        <string name="collection_name_label">Collection Name</string>
+        <string name="collections_title">Your Collections</string>
+        <string name="readonly_notice">Read Only</string>
+        <string name="refresh_collection">Refresh</string>
+        <string name="delete_collection_confirm">Delete this collection?</string>
+    </resources>
+    

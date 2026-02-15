@@ -138,4 +138,12 @@
     <string name="stats_favorites">"Ulubione"</string>
     <string name="stats_wishlist">"Chcę"</string>
     <string name="stats_lent">"Pożyczone"</string>
+    <string name="cancel">Anuluj</string>
+    <string name="import_remote_title">Kolekcja zewnętrzna</string>
+    <string name="import_remote_desc">Czy chcesz dodać tę kolekcję? Dane będą pobierane z podanego adresu URL.</string>
+    <string name="collection_name_label">Nazwa kolekcji</string>
+    <string name="collections_title">Twoje Kolekcje</string>
+    <string name="readonly_notice">Tylko do odczytu</string>
+    <string name="refresh_collection">Odśwież</string>
+    <string name="delete_collection_confirm">Usunąć tę kolekcję?</string>
 </resources>

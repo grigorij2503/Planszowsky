@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -38,6 +39,10 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Lock
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -55,6 +60,8 @@ fun ProfileScreen(
     val isImporting by viewModel.isImporting.collectAsState()
     val importResult by viewModel.importResult.collectAsState(initial = null)
     val stats by viewModel.stats.collectAsState()
+    val collections by viewModel.collections.collectAsState()
+    val activeCollectionId by viewModel.activeCollectionId.collectAsState()
     val bggAvatarUrl by viewModel.bggAvatarUrl.collectAsState()
     val persistedUsername by viewModel.persistedUsername.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
@@ -307,6 +314,18 @@ fun ProfileScreen(
             fontWeight = FontWeight.Bold
         )
         
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Collections Section
+        CollectionsSection(
+            collections = collections,
+            activeCollectionId = activeCollectionId,
+            isRetro = isRetro,
+            onCollectionSelect = { viewModel.setActiveCollection(it) },
+            onRefresh = { viewModel.refreshCollection(it) },
+            onDelete = { viewModel.deleteCollection(it) }
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
 
         // Collection Stats Section
@@ -708,6 +727,142 @@ fun ProfileScreen(
         )
         
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+fun CollectionsSection(
+    collections: List<pl.pointblank.planszowsky.data.local.CollectionEntity>,
+    activeCollectionId: String,
+    isRetro: Boolean,
+    onCollectionSelect: (String) -> Unit,
+    onRefresh: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.collections_title).let { if(isRetro) it.uppercase() else it },
+            style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText)
+                    else MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        androidx.compose.foundation.lazy.LazyRow(
+            contentPadding = PaddingValues(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(collections.size) { index ->
+                val collection = collections[index]
+                CollectionItem(
+                    collection = collection,
+                    isSelected = collection.id == activeCollectionId,
+                    isRetro = isRetro,
+                    onSelect = { onCollectionSelect(collection.id) },
+                    onRefresh = { onRefresh(collection.id) },
+                    onDelete = { onDelete(collection.id) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CollectionItem(
+    collection: pl.pointblank.planszowsky.data.local.CollectionEntity,
+    isSelected: Boolean,
+    isRetro: Boolean,
+    onSelect: () -> Unit,
+    onRefresh: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text(stringResource(R.string.delete_collection_confirm)) },
+            confirmButton = {
+                TextButton(onClick = { 
+                    onDelete()
+                    showDeleteConfirm = false
+                }) {
+                    Text(stringResource(R.string.delete_button), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(100.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .then(
+                    if (isRetro) {
+                        Modifier
+                            .background(if (isSelected) RetroGold else RetroElementBackground)
+                            .clickable { onSelect() }
+                            .drawBehind { drawRect(RetroBlack, style = Stroke(4.dp.toPx())) }
+                    } else {
+                        Modifier
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(20.dp)
+                            )
+                            .clickable { onSelect() }
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = if (collection.id == "main") Icons.Default.Person else Icons.Default.Group,
+                contentDescription = null,
+                tint = if (isRetro) (if (isSelected) RetroBlack else RetroText) else (if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant),
+                modifier = Modifier.size(32.dp)
+            )
+
+            if (collection.isReadOnly) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = if (isRetro) RetroRed else MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(16.dp).align(Alignment.TopEnd).padding(4.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = collection.name.let { if (isRetro) it.uppercase() else it },
+            style = if (isRetro) MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    else MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            textAlign = TextAlign.Center,
+            color = if (isRetro) RetroText else MaterialTheme.colorScheme.onSurface
+        )
+
+        if (collection.sourceUrl != null) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = onRefresh, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp), tint = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
+                }
+                IconButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Delete, null, modifier = Modifier.size(16.dp), tint = if(isRetro) RetroRed else MaterialTheme.colorScheme.error)
+                }
+            }
+        }
     }
 }
 

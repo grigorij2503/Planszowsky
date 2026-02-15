@@ -14,13 +14,13 @@ android {
     namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
-    val baseVersion = "0.8"
+    val baseVersion = "0.9"
 
     defaultConfig {
         applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
+        versionCode = 9
         versionName = baseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -119,6 +119,7 @@ dependencies {
 
     // ML Kit
     implementation(libs.mlkit.text.recognition)
+    implementation(libs.mlkit.barcode.scanning)
     implementation(libs.mlkit.translate)
     
     // Firebase

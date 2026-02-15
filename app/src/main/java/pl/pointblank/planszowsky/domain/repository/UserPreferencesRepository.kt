@@ -12,12 +12,14 @@ interface UserPreferencesRepository {
     val appLocale: Flow<String>
     val bggAvatarUrl: Flow<String?>
     val bggUsername: Flow<String?>
+    val activeCollectionId: Flow<String>
 
     suspend fun setAppTheme(theme: AppTheme)
     suspend fun setCollectionViewMode(mode: CollectionViewMode)
     suspend fun setAppLocale(locale: String)
     suspend fun setBggAvatarUrl(url: String?)
     suspend fun setBggUsername(username: String?)
+    suspend fun setActiveCollectionId(id: String)
     suspend fun incrementAiUsage(resetIfNewDay: Boolean)
     suspend fun resetAiUsageIfNewDay()
 }

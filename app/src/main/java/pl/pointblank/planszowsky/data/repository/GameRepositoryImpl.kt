@@ -5,6 +5,7 @@ import pl.pointblank.planszowsky.data.local.toDomainModel
 import pl.pointblank.planszowsky.data.local.toEntity
 import pl.pointblank.planszowsky.data.remote.BggApi
 import pl.pointblank.planszowsky.domain.model.Game
+import pl.pointblank.planszowsky.domain.model.Expansion
 import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.util.FirebaseManager
 import pl.pointblank.planszowsky.util.decodeHtml
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.combine
 import pl.pointblank.planszowsky.domain.model.CollectionStats
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
@@ -32,13 +34,15 @@ class GameRepositoryImpl @Inject constructor(
     private val firebaseManager: FirebaseManager
 ) : GameRepository {
 
-    override fun getCollectionStats(): Flow<CollectionStats> {
+    private val mapper = jacksonObjectMapper()
+
+    override fun getCollectionStats(collectionId: String): Flow<CollectionStats> {
         return combine(
-            dao.getOwnedCount(),
-            dao.getWishlistCount(),
-            dao.getFavoriteCount(),
-            dao.getLentCount(),
-            dao.getAllOwnedCategories()
+            dao.getOwnedCount(collectionId),
+            dao.getWishlistCount(collectionId),
+            dao.getFavoriteCount(collectionId),
+            dao.getLentCount(collectionId),
+            dao.getAllOwnedCategories(collectionId)
         ) { owned, wishlist, favorite, lent, categoriesRaw ->
             val categoryMap = mapOf(
                 "Card Game" to "Karciarz",
@@ -103,20 +107,24 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getSavedGames(): Flow<List<Game>> {
-        return dao.getAllGames().map { entities ->
-            entities.map { it.toDomainModel() }
+    override fun getSavedGames(collectionId: String): Flow<List<Game>> {
+        return combine(dao.getAllGames(collectionId), dao.getAllCollections()) { entities, collections ->
+            val isReadOnly = collections.find { it.id == collectionId }?.isReadOnly ?: false
+            entities.map { it.toDomainModel().copy(isReadOnly = isReadOnly) }
         }
     }
 
-    override fun getWishlistedGames(): Flow<List<Game>> {
-        return dao.getWishlistedGames().map { entities ->
-            entities.map { it.toDomainModel() }
+    override fun getWishlistedGames(collectionId: String): Flow<List<Game>> {
+        return combine(dao.getWishlistedGames(collectionId), dao.getAllCollections()) { entities, collections ->
+            val isReadOnly = collections.find { it.id == collectionId }?.isReadOnly ?: false
+            entities.map { it.toDomainModel().copy(isReadOnly = isReadOnly) }
         }
     }
 
-    override suspend fun getGame(id: String): Game? {
-        return dao.getGameById(id)?.toDomainModel()
+    override suspend fun getGame(id: String, collectionId: String): Game? {
+        val game = dao.getGameById(id, collectionId)?.toDomainModel()
+        val collection = dao.getCollectionById(collectionId)
+        return game?.copy(isReadOnly = collection?.isReadOnly ?: false)
     }
 
     override suspend fun saveGame(game: Game) {
@@ -129,8 +137,6 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun toggleWishlist(game: Game) {
         val nextWishlistState = !game.isWishlisted
-        // If moving TO wishlist, it's NOT in collection (isOwned = false)
-        // If moving FROM wishlist, it's back in collection (isOwned = true)
         dao.insertGame(game.copy(
             isWishlisted = nextWishlistState,
             isOwned = !nextWishlistState
@@ -221,6 +227,11 @@ class GameRepositoryImpl @Inject constructor(
                 ?: "Unknown"
 
             val categories = item.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList()
+            
+            val expansions = item.links
+                ?.filter { it.type == "boardgameexpansion" && it.inbound != "true" }
+                ?.map { Expansion(id = it.id, title = it.value, isOwned = false) }
+                ?: emptyList()
 
             Game(
                 id = item.id,
@@ -234,6 +245,7 @@ class GameRepositoryImpl @Inject constructor(
                 playingTime = item.playingTime?.value,
                 isOwned = false,
                 categories = categories,
+                expansions = expansions,
                 websiteUrl = item.links?.find { it.type == "boardgamewebsite" }?.value
             )
         } catch (e: HttpException) {
@@ -246,8 +258,8 @@ class GameRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun updateNotes(gameId: String, notes: String) {
-        val game = getGame(gameId)
+    override suspend fun updateNotes(gameId: String, collectionId: String, notes: String) {
+        val game = getGame(gameId, collectionId)
         game?.let {
             dao.insertGame(it.copy(notes = notes).toEntity())
         }
@@ -255,15 +267,13 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun fetchCollection(username: String): List<Game> {
         ensureSession()
-        val importedGames = mutableListOf<Game>()
+        val allGames = mutableListOf<Game>()
         try {
             val response = api.getCollection(username)
             val items = response.items ?: emptyList()
             if (items.isEmpty()) return emptyList()
 
-            val chunkedItems = items.chunked(20)
-
-            chunkedItems.forEach { batch ->
+            items.chunked(20).forEach { batch ->
                 val ids = batch.joinToString(",") { it.id }
                 try {
                     val detailsResponse = api.getGameDetails(ids)
@@ -271,7 +281,6 @@ class GameRepositoryImpl @Inject constructor(
 
                     batch.forEach { item ->
                         val details = detailsMap[item.id]
-                        
                         val game = Game(
                             id = item.id,
                             title = item.name?.decodeHtml() ?: details?.names?.find { it.type == "primary" }?.value ?: "Unknown",
@@ -286,48 +295,131 @@ class GameRepositoryImpl @Inject constructor(
                             isOwned = item.status?.own == "1",
                             isWishlisted = item.status?.wishlist == "1",
                             categories = details?.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
-                            ownerId = username,
+                            collectionId = "main",
                             websiteUrl = details?.links?.find { it.type == "boardgamewebsite" }?.value
                         )
-                        importedGames.add(game)
+                        allGames.add(game)
                     }
                 } catch (e: Exception) {
                     batch.forEach { item ->
-                        val game = Game(
-                            id = item.id,
-                            title = item.name?.decodeHtml() ?: "Unknown",
-                            thumbnailUrl = item.thumbnail,
-                            imageUrl = item.image,
-                            yearPublished = item.yearPublished,
-                            minPlayers = item.stats?.minplayers,
-                            maxPlayers = item.stats?.maxplayers,
-                            playingTime = item.stats?.playingtime,
-                            notes = item.comment,
-                            isOwned = item.status?.own == "1",
-                            isWishlisted = item.status?.wishlist == "1",
-                            ownerId = username
-                        )
-                        importedGames.add(game)
+                        allGames.add(Game(id = item.id, title = item.name?.decodeHtml() ?: "Unknown", isOwned = item.status?.own == "1", collectionId = "main"))
                     }
                 }
             }
-        } catch (e: HttpException) {
-            firebaseManager.logError(e, "BGG Fetch Error (${e.code()}): $username")
-            throw e
+
+            return mergeExpansionsIntelligently(allGames)
+
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Fetch Exception: $username")
             throw e
         }
-        return importedGames
     }
 
-    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean): Int {
+    private suspend fun mergeExpansionsIntelligently(games: List<Game>): List<Game> {
+        val gameMap = games.associateBy { it.id }.toMutableMap()
+        val handledAsExpansion = mutableSetOf<String>()
+        val childToParent = mutableMapOf<String, String>()
+
+        try {
+            games.chunked(20).forEach { batch ->
+                val details = api.getGameDetails(batch.joinToString(",") { it.id })
+                details.items?.forEach { item ->
+                    val currentGame = gameMap[item.id] ?: return@forEach
+                    
+                    val allKnown = item.links
+                        ?.filter { it.type == "boardgameexpansion" && it.inbound != "true" }
+                        ?.map { Expansion(id = it.id, title = it.value, isOwned = false) }
+                        ?: emptyList()
+                    
+                    gameMap[item.id] = currentGame.copy(expansions = allKnown)
+
+                    item.links?.find { it.type == "boardgameexpansion" && it.inbound == "true" }?.id?.let { parentId ->
+                        childToParent[item.id] = parentId
+                    }
+                }
+            }
+
+            gameMap.values.forEach { game ->
+                val parentId = childToParent[game.id]
+                if (parentId != null && gameMap.containsKey(parentId)) {
+                    val parent = gameMap[parentId]!!
+                    val updatedExp = parent.expansions.map { 
+                        if (it.id == game.id) it.copy(isOwned = true) else it
+                    }.toMutableList()
+                    if (updatedExp.none { it.id == game.id }) {
+                        updatedExp.add(Expansion(id = game.id, title = game.title, isOwned = true))
+                    }
+                    gameMap[parentId] = parent.copy(expansions = updatedExp)
+                    handledAsExpansion.add(game.id)
+                }
+            }
+
+            return gameMap.filter { !handledAsExpansion.contains(it.key) }.values.toList()
+        } catch (e: Exception) {
+            return games
+        }
+    }
+
+    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String): Int {
         var count = 0
+        val incompleteGames = games.filter { it.imageUrl.isNullOrBlank() || it.description.isNullOrBlank() }
+        val enrichedData = mutableMapOf<String, Game>()
+        
+        if (incompleteGames.isNotEmpty()) {
+            incompleteGames.chunked(20).forEach { batch ->
+                try {
+                    val ids = batch.joinToString(",") { it.id }
+                    val detailsResponse = api.getGameDetails(ids)
+                    detailsResponse.items?.forEach { item ->
+                        enrichedData[item.id] = Game(
+                            id = item.id,
+                            title = item.names?.find { it.type == "primary" }?.value ?: "",
+                            thumbnailUrl = item.thumbnail,
+                            imageUrl = item.image,
+                            description = item.description?.decodeHtml(),
+                            yearPublished = item.yearPublished?.value,
+                            minPlayers = item.minPlayers?.value,
+                            maxPlayers = item.maxPlayers?.value,
+                            playingTime = item.playingTime?.value,
+                            categories = item.links?.filter { it.type == "boardgamecategory" }?.map { it.value } ?: emptyList(),
+                            expansions = item.links?.filter { it.type == "boardgameexpansion" && it.inbound != "true" }?.map { Expansion(id = it.id, title = it.value, isOwned = false) } ?: emptyList()
+                        )
+                    }
+                } catch (e: Exception) {
+                    firebaseManager.logError(e, "Enrichment Error during import")
+                }
+            }
+        }
+
         games.forEach { game ->
-            val existing = dao.getGameById(game.id)
-            if (existing == null || overwriteExisting) {
-                dao.insertGame(game.toEntity())
-                count++
+            try {
+                val existing = dao.getGameById(game.id, collectionId)
+                if (existing == null || overwriteExisting) {
+                    val enriched = enrichedData[game.id]
+                    val gameToSave = game.copy(
+                        collectionId = collectionId,
+                        thumbnailUrl = game.thumbnailUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.thumbnailUrl,
+                        imageUrl = game.imageUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.imageUrl,
+                        description = game.description.takeIf { !it.isNullOrBlank() } ?: enriched?.description,
+                        yearPublished = game.yearPublished ?: enriched?.yearPublished,
+                        minPlayers = game.minPlayers ?: enriched?.minPlayers,
+                        maxPlayers = game.maxPlayers ?: enriched?.maxPlayers,
+                        playingTime = game.playingTime ?: enriched?.playingTime,
+                        categories = game.categories.takeIf { it.isNotEmpty() } ?: enriched?.categories ?: emptyList(),
+                        expansions = if (game.expansions.isNotEmpty()) {
+                            val known = enriched?.expansions ?: emptyList()
+                            if (known.isEmpty()) game.expansions else {
+                                known.map { k -> 
+                                    if (game.expansions.any { it.id == k.id && it.isOwned }) k.copy(isOwned = true) else k
+                                }
+                            }
+                        } else enriched?.expansions ?: emptyList()
+                    )
+                    dao.insertGame(gameToSave.toEntity())
+                    count++
+                }
+            } catch (e: Exception) {
+                firebaseManager.logError(e, "Failed to insert game: ${game.title}")
             }
         }
         return count
@@ -344,23 +436,22 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun exportCollectionToJson(): String {
+    override suspend fun exportCollectionToJson(collectionId: String): String {
         return withContext(Dispatchers.IO) {
-            val entities = dao.getAllGamesSync()
+            val entities = dao.getAllGamesSync(collectionId)
             val games = entities.map { it.toDomainModel() }
             val mapper = jacksonObjectMapper()
             mapper.writerWithDefaultPrettyPrinter().writeValueAsString(games)
         }
     }
 
-    override suspend fun exportCollectionToCsv(): String {
+    override suspend fun exportCollectionToCsv(collectionId: String): String {
         return withContext(Dispatchers.IO) {
-            val entities = dao.getAllGamesSync()
+            val entities = dao.getAllGamesSync(collectionId)
             val games = entities.map { it.toDomainModel() }
             
             val sb = StringBuilder()
-            // Header
-            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image\n")
+            sb.append("ID,Title,Year,MinPlayers,MaxPlayers,Time,Owned,Wishlist,Favorite,Notes,Categories,Website,Thumbnail,Image,Description,Expansions\n")
             
             games.forEach { g ->
                 val row = listOf(
@@ -377,7 +468,9 @@ class GameRepositoryImpl @Inject constructor(
                     escapeCsv(g.categories.joinToString("|")),
                     g.websiteUrl ?: "",
                     g.thumbnailUrl ?: "",
-                    g.imageUrl ?: ""
+                    g.imageUrl ?: "",
+                    escapeCsv(g.description ?: ""),
+                    escapeCsv(mapper.writeValueAsString(g.expansions))
                 )
                 sb.append(row.joinToString(",")).append("\n")
             }
@@ -387,44 +480,192 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun parseCsv(csv: String): List<Game> {
         return withContext(Dispatchers.IO) {
-            val lines = csv.lines()
-            if (lines.size <= 1) return@withContext emptyList()
+            val rows = mutableListOf<List<String>>()
+            val curRow = mutableListOf<String>()
+            val curField = StringBuilder()
+            var inQuotes = false
+            var i = 0
             
+            // Proper CSV parsing according to RFC 4180
+            while (i < csv.length) {
+                val c = csv[i]
+                when {
+                    c == '\"' -> {
+                        if (inQuotes && i + 1 < csv.length && csv[i + 1] == '\"') {
+                            curField.append('\"')
+                            i++
+                        } else {
+                            inQuotes = !inQuotes
+                        }
+                    }
+                    c == ',' && !inQuotes -> {
+                        curRow.add(curField.toString())
+                        curField.setLength(0)
+                    }
+                    (c == '\n' || c == '\r') && !inQuotes -> {
+                        if (c == '\r' && i + 1 < csv.length && csv[i + 1] == '\n') i++
+                        curRow.add(curField.toString())
+                        curField.setLength(0)
+                        if (curRow.isNotEmpty()) {
+                            rows.add(curRow.toList())
+                            curRow.clear()
+                        }
+                    }
+                    else -> curField.append(c)
+                }
+                i++
+            }
+            // Add last field/row if exists
+            if (curField.isNotEmpty() || curRow.isNotEmpty()) {
+                curRow.add(curField.toString())
+                rows.add(curRow)
+            }
+
+            if (rows.size <= 1) return@withContext emptyList()
+            
+            val header = rows[0]
+            val colMap = header.mapIndexed { index, s -> s.trim().lowercase() to index }.toMap()
+            
+            fun getVal(row: List<String>, key: String): String? {
+                val idx = colMap[key.lowercase()] ?: return null
+                return row.getOrNull(idx)?.takeIf { it.isNotBlank() }
+            }
+
             val games = mutableListOf<Game>()
-            // Skip header
-            lines.drop(1).filter { it.isNotBlank() }.forEach { line ->
+            rows.drop(1).forEach { parts ->
                 try {
-                    val parts = parseCsvLine(line)
-                    if (parts.size >= 9) {
+                    val id = getVal(parts, "ID")
+                    if (id != null && id.all { it.isDigit() }) {
                         val game = Game(
-                            id = parts[0],
-                            title = parts[1],
-                            yearPublished = parts[2].takeIf { it.isNotBlank() },
-                            minPlayers = parts[3].takeIf { it.isNotBlank() },
-                            maxPlayers = parts[4].takeIf { it.isNotBlank() },
-                            playingTime = parts[5].takeIf { it.isNotBlank() },
-                            isOwned = parts[6].toBoolean(),
-                            isWishlisted = parts[7].toBoolean(),
-                            isFavorite = parts[8].toBoolean(),
-                            notes = parts.getOrNull(9)?.takeIf { it.isNotBlank() },
-                            categories = parts.getOrNull(10)?.split("|")?.filter { it.isNotBlank() } ?: emptyList(),
-                            websiteUrl = parts.getOrNull(11)?.takeIf { it.isNotBlank() },
-                            thumbnailUrl = parts.getOrNull(12)?.takeIf { it.isNotBlank() },
-                            imageUrl = parts.getOrNull(13)?.takeIf { it.isNotBlank() }
+                            id = id,
+                            title = getVal(parts, "Title") ?: "Unknown",
+                            yearPublished = getVal(parts, "Year"),
+                            minPlayers = getVal(parts, "MinPlayers"),
+                            maxPlayers = getVal(parts, "MaxPlayers"),
+                            playingTime = getVal(parts, "Time"),
+                            isOwned = getVal(parts, "Owned")?.toBoolean() ?: true,
+                            isWishlisted = getVal(parts, "Wishlist")?.toBoolean() ?: false,
+                            isFavorite = getVal(parts, "Favorite")?.toBoolean() ?: false,
+                            notes = getVal(parts, "Notes"),
+                            categories = getVal(parts, "Categories")?.split("|")?.filter { it.isNotBlank() } ?: emptyList(),
+                            websiteUrl = getVal(parts, "Website"),
+                            thumbnailUrl = getVal(parts, "Thumbnail"),
+                            imageUrl = getVal(parts, "Image"),
+                            description = getVal(parts, "Description"),
+                            expansions = try {
+                                val expJson = getVal(parts, "Expansions")
+                                if (!expJson.isNullOrBlank()) mapper.readValue(expJson) else emptyList()
+                            } catch (e: Exception) { emptyList() }
                         )
                         games.add(game)
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (e: Exception) { }
+            }
+            mergeExpansionsIntelligently(games)
+        }
+    }
+
+    override suspend fun importRemoteCollection(url: String, name: String): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            var downloadUrl = transformGoogleDriveUrl(url)
+            android.util.Log.d("PLANSZOWSKY_DEBUG", "Starting import from: $downloadUrl")
+
+            var request = Request.Builder().url(downloadUrl).build()
+            var response = okHttpClient.newCall(request).execute()
+            
+            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to download: ${response.code}"))
+            
+            var content = response.body?.string() ?: ""
+            
+            // Check if we got Google Drive virus scan warning (HTML) instead of CSV
+            if (content.contains("google.com/uc") && content.contains("confirm=")) {
+                android.util.Log.d("PLANSZOWSKY_DEBUG", "Detected Google Drive large file warning. Retrying with confirm token...")
+                val confirmToken = Regex("confirm=([^&\"\\s]+)").find(content)?.groupValues?.get(1)
+                if (confirmToken != null) {
+                    downloadUrl = if (downloadUrl.contains("confirm=")) {
+                        downloadUrl.replace(Regex("confirm=[^&]+"), "confirm=$confirmToken")
+                    } else {
+                        "$downloadUrl&confirm=$confirmToken"
+                    }
+                    android.util.Log.d("PLANSZOWSKY_DEBUG", "New download URL: $downloadUrl")
+                    request = Request.Builder().url(downloadUrl).build()
+                    response = okHttpClient.newCall(request).execute()
+                    if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed after confirm: ${response.code}"))
+                    content = response.body?.string() ?: ""
                 }
             }
-            games
+
+            android.util.Log.d("PLANSZOWSKY_DEBUG", "Final content length: ${content.length}")
+            if (content.isEmpty()) return@withContext Result.failure(Exception("Empty body from server"))
+
+            val games = parseCsv(content)
+            android.util.Log.d("PLANSZOWSKY_DEBUG", "Games parsed: ${games.size}")
+            
+            val collectionId = java.util.UUID.randomUUID().toString()
+            val collection = pl.pointblank.planszowsky.data.local.CollectionEntity(
+                id = collectionId,
+                name = name,
+                sourceUrl = url,
+                isReadOnly = true,
+                lastUpdated = System.currentTimeMillis()
+            )
+            
+            dao.insertCollection(collection)
+            val count = saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            Result.success(count)
+        } catch (e: Exception) {
+            android.util.Log.e("PLANSZOWSKY_DEBUG", "Import Error", e)
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun refreshCollection(collectionId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val collection = dao.getCollectionById(collectionId) ?: return@withContext Result.failure(Exception("Not found"))
+            val url = collection.sourceUrl ?: return@withContext Result.failure(Exception("No URL"))
+            
+            val downloadUrl = transformGoogleDriveUrl(url)
+            val request = Request.Builder().url(downloadUrl).build()
+            val response = okHttpClient.newCall(request).execute()
+            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed: ${response.code}"))
+            
+            val csvContent = response.body?.string() ?: return@withContext Result.failure(Exception("Empty"))
+            val games = parseCsv(csvContent)
+            
+            dao.deleteGamesByCollection(collectionId)
+            saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            
+            dao.insertCollection(collection.copy(lastUpdated = System.currentTimeMillis()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun transformGoogleDriveUrl(url: String): String {
+        return if (url.contains("drive.google.com")) {
+            val fileId = Regex("/d/([^/]+)").find(url)?.groupValues?.get(1)
+            if (fileId != null) {
+                // Add confirm=t to bypass some of Google's virus scan warnings for "large" files
+                "https://drive.google.com/uc?export=download&id=$fileId&confirm=t"
+            } else url
+        } else url
+    }
+
+    override fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>> = dao.getAllCollections()
+
+    override suspend fun deleteCollection(collectionId: String) {
+        if (collectionId == "main") return
+        val collection = dao.getCollectionById(collectionId)
+        if (collection != null) {
+            dao.deleteGamesByCollection(collectionId)
+            dao.deleteCollection(collection)
         }
     }
 
     private fun parseCsvLine(line: String): List<String> {
         val result = mutableListOf<String>()
-        var cur = StringBuilder()
+        val cur = StringBuilder()
         var inQuotes = false
         var i = 0
         while (i < line.length) {
@@ -433,15 +674,11 @@ class GameRepositoryImpl @Inject constructor(
                 if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
                     cur.append('\"')
                     i++
-                } else {
-                    inQuotes = !inQuotes
-                }
+                } else inQuotes = !inQuotes
             } else if (c == ',' && !inQuotes) {
                 result.add(cur.toString())
-                cur = StringBuilder()
-            } else {
-                cur.append(c)
-            }
+                cur.setLength(0)
+            } else cur.append(c)
             i++
         }
         result.add(cur.toString())
@@ -449,9 +686,7 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     private fun escapeCsv(value: String): String {
-        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
-            return "\"${value.replace("\"", "\"\"")}\""
-        }
-        return value
+        if (!value.contains(",") && !value.contains("\"") && !value.contains("\n")) return value
+        return "\"" + value.replace("\"", "\"\"") + "\""
     }
 }

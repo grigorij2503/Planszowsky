@@ -8,6 +8,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,12 +26,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
+import pl.pointblank.planszowsky.ui.viewmodel.ScanViewModel
 import pl.pointblank.planszowsky.util.GameScannerAnalyzer
 import java.util.concurrent.Executors
 
@@ -39,13 +42,28 @@ import java.util.concurrent.Executors
 fun ScanScreen(
     appTheme: AppTheme = AppTheme.MODERN,
     onTextScanned: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: ScanViewModel = hiltViewModel()
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val isRetro = appTheme == AppTheme.PIXEL_ART
+    val importState by viewModel.importState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(importState) {
+        if (importState is ScanViewModel.ImportState.Success) {
+            val count = (importState as ScanViewModel.ImportState.Success).count
+            android.widget.Toast.makeText(
+                context, 
+                context.getString(R.string.import_file_success, count), 
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+            onBackClick()
+        }
+    }
 
     if (cameraPermissionState.status.isGranted) {
-        CameraPreview(isRetro, onTextScanned, onBackClick)
+        CameraPreview(isRetro, onTextScanned, onBackClick, viewModel)
     } else {
         Column(
             modifier = Modifier
@@ -80,18 +98,71 @@ fun ScanScreen(
 fun CameraPreview(
     isRetro: Boolean,
     onResultScanned: (String) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: ScanViewModel
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     var detectedValue by remember { mutableStateOf("") }
+    var showImportDialog by remember { mutableStateOf(false) }
+    var collectionName by remember { mutableStateOf("") }
+    
+    val importState by viewModel.importState.collectAsState()
+
+    val isUrl = detectedValue.startsWith("http://") || detectedValue.startsWith("https://")
 
     LaunchedEffect(detectedValue) {
         if (detectedValue.isNotBlank()) {
-            kotlinx.coroutines.delay(5000)
-            detectedValue = ""
+            if (isUrl) {
+                showImportDialog = true
+            } else {
+                kotlinx.coroutines.delay(5000)
+                detectedValue = ""
+            }
         }
+    }
+
+    if (showImportDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showImportDialog = false
+                detectedValue = ""
+            },
+            title = { Text(stringResource(R.string.import_remote_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.import_remote_desc))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = collectionName,
+                        onValueChange = { collectionName = it },
+                        label = { Text(stringResource(R.string.collection_name_label)) },
+                        placeholder = { Text("np. Klub Planszówek") },
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.importCollection(detectedValue, collectionName.ifBlank { "Zdalna Kolekcja" })
+                        showImportDialog = false
+                    },
+                    enabled = importState !is ScanViewModel.ImportState.Loading
+                ) {
+                    Text(stringResource(R.string.import_button_label))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showImportDialog = false
+                    detectedValue = ""
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -157,7 +228,7 @@ fun CameraPreview(
             
             Spacer(modifier = Modifier.weight(1f))
             
-            if (detectedValue.isNotBlank()) {
+            if (detectedValue.isNotBlank() && !isUrl) {
                 if (isRetro) {
                     RetroChunkyBox(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -204,6 +275,26 @@ fun CameraPreview(
             }
             
             Spacer(modifier = Modifier.height(100.dp))
+        }
+
+        if (importState is ScanViewModel.ImportState.Loading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(0.7f))
+                    .clickable(enabled = false) { }, // Block clicks
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = if (isRetro) RetroGold else MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.loading).let { if (isRetro) it.uppercase() else it },
+                        color = Color.White,
+                        style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
         }
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 fun Modifier.pixelFrame(
     borderColor: Color = RetroBlack,
@@ -283,4 +284,33 @@ fun DrawScope.drawDitheredShadow(size: Size) {
         topLeft = Offset(shadowOffset, shadowOffset),
         size = size
     )
+}
+
+@Composable
+fun RetroFilterChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .height(38.dp)
+            .clickable(onClick = onClick)
+            .pixelButtonFrame(isSelected = isSelected, thickness = 2.dp)
+            .padding(2.dp)
+            .background(if (isSelected) RetroGold else RetroElementBackground)
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.material3.Text(
+            text = text.uppercase(),
+            style = androidx.compose.material3.MaterialTheme.typography.labelLarge.copy(
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.ExtraBold,
+                color = if (isSelected) RetroBlack else RetroText,
+                fontSize = 11.sp
+            )
+        )
+    }
 }
