@@ -24,7 +24,7 @@ import pl.pointblank.planszowsky.ui.viewmodel.WishlistViewModel
 fun WishlistScreen(
     appTheme: AppTheme = AppTheme.MODERN,
     viewModel: WishlistViewModel = hiltViewModel(),
-    onGameClick: (String) -> Unit
+    onGameClick: (String, String) -> Unit
 ) {
     val games by viewModel.wishlistedGames.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
@@ -59,7 +59,7 @@ fun WishlistScreen(
                 verticalItemSpacing = 12.dp
             ) {
                 items(games) { game ->
-                    GameCard(game, isRetro = isRetro, onClick = { onGameClick(game.id) })
+                    GameCard(game, isRetro = isRetro, onClick = { onGameClick(game.id, game.collectionId) })
                 }
             }
         }

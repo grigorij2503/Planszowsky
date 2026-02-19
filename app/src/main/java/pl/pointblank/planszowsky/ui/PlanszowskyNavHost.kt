@@ -115,7 +115,11 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
             composable(Screen.Wishlist.route) { 
                 WishlistScreen(
                     appTheme = appTheme,
-                    onGameClick = { gameId -> navController.navigate("details/$gameId") }
+                    onGameClick = { gameId, collectionId -> 
+                        val encodedId = android.net.Uri.encode(gameId)
+                        val encodedColl = android.net.Uri.encode(collectionId)
+                        navController.navigate("details/$encodedId/$encodedColl") 
+                    }
                 )
             }
             composable(Screen.Profile.route) { ProfileScreen(appTheme) }
