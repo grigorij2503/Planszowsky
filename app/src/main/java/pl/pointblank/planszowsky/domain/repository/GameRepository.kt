@@ -18,6 +18,7 @@ interface GameRepository {
     suspend fun searchByBarcode(barcode: String): List<Game>
     suspend fun getRemoteGameDetails(id: String, preferredTitle: String? = null): Game?
     suspend fun updateNotes(gameId: String, collectionId: String = "main", notes: String)
+    suspend fun updateLocalImage(gameId: String, collectionId: String = "main", imagePath: String?)
     suspend fun fetchCollection(username: String): List<Game>
     suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String = "main"): Int
     suspend fun fetchBggUserProfile(username: String): String?

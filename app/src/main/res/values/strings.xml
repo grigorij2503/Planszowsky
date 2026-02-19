@@ -139,6 +139,10 @@
     <string name="collection_name_placeholder">"np. Klub Planszówek"</string>
     <string name="remote_collection_default_name">"Zdalna Kolekcja"</string>
     <string name="add_to_wishlist">"Dodaj do listy życzeń"</string>
+    <string name="change_cover">"Zmień okładkę"</string>
+    <string name="source_camera">"Zrób zdjęcie"</string>
+    <string name="source_gallery">"Wybierz z galerii"</string>
+    <string name="select_source_title">"Wybierz źródło zdjęcia"</string>
     <string name="profile_stats_title">"Twoje Statystyki"</string>
     <string name="stats_games">"Gry"</string>
     <string name="stats_category">"Twój Styl"</string>

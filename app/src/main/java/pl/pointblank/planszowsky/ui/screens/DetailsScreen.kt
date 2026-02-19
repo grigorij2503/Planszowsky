@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -37,8 +38,12 @@ import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.DetailsViewModel
 import pl.pointblank.planszowsky.util.decodeHtml
 import androidx.compose.ui.platform.LocalUriHandler
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun DetailsScreen(
     viewModel: DetailsViewModel = hiltViewModel(),
@@ -51,8 +56,91 @@ fun DetailsScreen(
     val translatedDescription by viewModel.translatedDescription.collectAsState()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
     
+    // Image Source Selection State
+    var showSourcePicker by rememberSaveable { mutableStateOf(false) }
+    var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val cameraPermissionState = com.google.accompanist.permissions.rememberPermissionState(
+        android.Manifest.permission.CAMERA
+    )
+
+    val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        uri?.let { viewModel.updateLocalImage(context, it) }
+    }
+
+    val cameraLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            tempUri?.let { viewModel.updateLocalImage(context, it) }
+        }
+    }
+
+    fun createTempUri(): android.net.Uri {
+        val file = java.io.File(context.cacheDir, "temp_image_${System.currentTimeMillis()}.jpg")
+        return androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            file
+        )
+    }
+
     var showChat by remember { mutableStateOf(false) }
+
+    if (showSourcePicker) {
+        AlertDialog(
+            onDismissRequest = { showSourcePicker = false },
+            shape = if (isRetro) RectangleShape else RoundedCornerShape(28.dp),
+            containerColor = if (isRetro) RetroBackground else MaterialTheme.colorScheme.surface,
+            title = { 
+                Text(
+                    text = stringResource(R.string.select_source_title).let { if(isRetro) it.uppercase() else it },
+                    style = if(isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleLarge
+                ) 
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SourceOption(
+                        label = stringResource(R.string.source_camera),
+                        icon = Icons.Default.PhotoCamera,
+                        isRetro = isRetro,
+                        onClick = {
+                            showSourcePicker = false
+                            if (cameraPermissionState.status.isGranted) {
+                                val uri = createTempUri()
+                                tempUri = uri
+                                cameraLauncher.launch(uri)
+                            } else {
+                                cameraPermissionState.launchPermissionRequest()
+                            }
+                        }
+                    )
+                    SourceOption(
+                        label = stringResource(R.string.source_gallery),
+                        icon = Icons.Default.Image,
+                        isRetro = isRetro,
+                        onClick = {
+                            showSourcePicker = false
+                            photoPickerLauncher.launch("image/*")
+                        }
+                    )
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showSourcePicker = false }) {
+                    Text(
+                        text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
+                        color = if(isRetro) RetroText else MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        )
+    }
 
     fun openGameWebsite(game: Game) {
         val url = game.websiteUrl ?: "https://www.google.com/search?q=${android.net.Uri.encode(game.title + " board game")}"
@@ -140,14 +228,29 @@ fun DetailsScreen(
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(g.imageUrl)
-                                .size(512, 512)
+                                .data(g.localImageUri ?: g.imageUrl)
+                                .size(1024, 1024)
                                 .build(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             filterQuality = if (isRetro) FilterQuality.None else FilterQuality.Low
                         )
+                        
+                        if (!g.isReadOnly) {
+                            FilledIconButton(
+                                onClick = { showSourcePicker = true },
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(16.dp),
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = if(isRetro) RetroGold else MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = if(isRetro) RetroBlack else MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            ) {
+                                Icon(Icons.Default.PhotoCamera, contentDescription = stringResource(R.string.change_cover))
+                            }
+                        }
                     }
                     
                     Surface(
@@ -922,6 +1025,38 @@ fun ExpansionItem(
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.weight(1f),
                 color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun SourceOption(
+    label: String,
+    icon: ImageVector,
+    isRetro: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
+        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth().then(if(isRetro) Modifier.drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) } else Modifier)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isRetro) RetroGold else MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = if (isRetro) label.uppercase() else label,
+                style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge
             )
         }
     }

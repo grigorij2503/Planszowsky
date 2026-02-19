@@ -135,6 +135,10 @@
     <string name="collection_name_placeholder">"z.B. Brettspiel-Club"</string>
     <string name="remote_collection_default_name">"Remote-Sammlung"</string>
     <string name="add_to_wishlist">"Auf die Wunschliste"</string>
+    <string name="change_cover">"Cover ändern"</string>
+    <string name="source_camera">"Foto aufnehmen"</string>
+    <string name="source_gallery">"Aus Galerie wählen"</string>
+    <string name="select_source_title">"Bildquelle auswählen"</string>
     <string name="profile_stats_title">"Deine Statistiken"</string>
     <string name="stats_games">"Spiele"</string>
     <string name="stats_category">"Genre"</string>

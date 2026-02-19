@@ -51,9 +51,10 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun ProfileScreen(
     appTheme: AppTheme = AppTheme.MODERN,

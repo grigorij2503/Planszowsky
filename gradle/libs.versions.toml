@@ -93,6 +93,7 @@ mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref 
 
 # Stax (Required for Jackson XML on Android)
 stax-api = { group = "javax.xml.stream", name = "stax-api", version = "1.0-2" }
+exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version = "1.4.2" }
 
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }

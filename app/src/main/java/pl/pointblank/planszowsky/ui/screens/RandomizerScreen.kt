@@ -288,7 +288,7 @@ fun ModernSlotMachine(isSpinning: Boolean, selectedGame: pl.pointblank.planszows
         } else if (selectedGame != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 AsyncImage(
-                    model = selectedGame.imageUrl ?: selectedGame.thumbnailUrl,
+                    model = selectedGame.localImageUri ?: selectedGame.imageUrl ?: selectedGame.thumbnailUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(180.dp)
@@ -349,7 +349,7 @@ fun RetroSlotMachine(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
+                            .data(displayGame?.localImageUri ?: displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier

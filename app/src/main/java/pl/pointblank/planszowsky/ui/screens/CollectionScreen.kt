@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.domain.model.CollectionViewMode
@@ -52,7 +53,7 @@ import pl.pointblank.planszowsky.ui.theme.*
 import pl.pointblank.planszowsky.ui.viewmodel.CollectionViewModel
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
 @Composable
 fun CollectionScreen(
     viewModel: CollectionViewModel = hiltViewModel(),
@@ -419,7 +420,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
     if (isRetro) {
         Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(4.dp).rpgGameFrame(frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground, thickness = 4.dp).background(RetroBlack)) {
             Box {
-                AsyncImage(model = game.imageUrl ?: game.thumbnailUrl, contentDescription = game.title, modifier = Modifier.fillMaxWidth().aspectRatio(0.85f), contentScale = ContentScale.Crop, filterQuality = FilterQuality.None)
+                AsyncImage(model = game.localImageUri ?: game.imageUrl ?: game.thumbnailUrl, contentDescription = game.title, modifier = Modifier.fillMaxWidth().aspectRatio(0.85f), contentScale = ContentScale.Crop, filterQuality = FilterQuality.None)
                 if (game.isBorrowed) {
                     Surface(color = RetroOrange, shape = RectangleShape, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) }) {
                         Text(text = stringResource(R.string.borrowed_badge), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, fontSize = 8.sp), modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp), color = Color.White)
@@ -431,7 +432,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
     } else {
         Card(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).clickable(onClick = onClick), shape = RoundedCornerShape(24.dp), elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
             Box(modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp).background(Color.DarkGray)) {
-                AsyncImage(model = game.imageUrl ?: game.thumbnailUrl, contentDescription = game.title, modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.FillWidth)
+                AsyncImage(model = game.localImageUri ?: game.imageUrl ?: game.thumbnailUrl, contentDescription = game.title, modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.FillWidth)
                 Box(modifier = Modifier.matchParentSize().background(brush = Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(0.7f)), startY = 100f)))
                 Text(text = game.title, style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.BottomStart).padding(12.dp))
             }
@@ -443,7 +444,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
 fun GameListRow(game: Game, isRetro: Boolean, onClick: () -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick), shape = if(isRetro) RectangleShape else RoundedCornerShape(16.dp), color = if(isRetro) RetroElementBackground else MaterialTheme.colorScheme.surface) {
         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            AsyncImage(model = game.thumbnailUrl, contentDescription = null, modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop, filterQuality = if(isRetro) FilterQuality.None else FilterQuality.Low)
+            AsyncImage(model = game.localImageUri ?: game.thumbnailUrl, contentDescription = null, modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop, filterQuality = if(isRetro) FilterQuality.None else FilterQuality.Low)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = if(isRetro) game.title.uppercase() else game.title, style = if(isRetro) MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -456,7 +457,7 @@ fun GameListRow(game: Game, isRetro: Boolean, onClick: () -> Unit) {
 @Composable
 fun GameCompactCard(game: Game, isRetro: Boolean, onClick: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth().aspectRatio(0.8f).clickable(onClick = onClick), shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp)) {
-        AsyncImage(model = game.thumbnailUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop, filterQuality = if(isRetro) FilterQuality.None else FilterQuality.Low)
+        AsyncImage(model = game.localImageUri ?: game.thumbnailUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop, filterQuality = if(isRetro) FilterQuality.None else FilterQuality.Low)
     }
 }
 

@@ -33,7 +33,8 @@ data class GameEntity(
     val notes: String? = null,
     val categories: List<String> = emptyList(),
     val expansions: List<Expansion> = emptyList(),
-    val websiteUrl: String? = null
+    val websiteUrl: String? = null,
+    val localImageUri: String? = null
 )
 
 class Converters {
@@ -87,7 +88,8 @@ fun GameEntity.toDomainModel(): Game {
         notes = notes,
         categories = categories,
         expansions = expansions,
-        websiteUrl = websiteUrl
+        websiteUrl = websiteUrl,
+        localImageUri = localImageUri
     )
 }
 
@@ -113,6 +115,7 @@ fun Game.toEntity(): GameEntity {
         notes = notes,
         categories = categories,
         expansions = expansions,
-        websiteUrl = websiteUrl
+        websiteUrl = websiteUrl,
+        localImageUri = localImageUri
     )
 }

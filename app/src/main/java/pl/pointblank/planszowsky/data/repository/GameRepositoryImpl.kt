@@ -10,7 +10,6 @@ import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.util.FirebaseManager
 import pl.pointblank.planszowsky.util.decodeHtml
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -148,6 +147,7 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteGame(game: Game) {
+        pl.pointblank.planszowsky.util.ImageManager.deleteImage(game.localImageUri)
         dao.deleteGame(game.toEntity())
     }
 
@@ -262,6 +262,17 @@ class GameRepositoryImpl @Inject constructor(
         val game = getGame(gameId, collectionId)
         game?.let {
             dao.insertGame(it.copy(notes = notes).toEntity())
+        }
+    }
+
+    override suspend fun updateLocalImage(gameId: String, collectionId: String, imagePath: String?) {
+        val game = getGame(gameId, collectionId)
+        game?.let {
+            // Delete old image if exists
+            if (it.localImageUri != imagePath) {
+                pl.pointblank.planszowsky.util.ImageManager.deleteImage(it.localImageUri)
+            }
+            dao.insertGame(it.copy(localImageUri = imagePath).toEntity())
         }
     }
 
@@ -575,7 +586,7 @@ class GameRepositoryImpl @Inject constructor(
             
             if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to download: ${response.code}"))
             
-            var content = response.body.string() ?: ""
+            var content = response.body.string()
             
             // Check if we got Google Drive virus scan warning (HTML) instead of CSV
             if (content.contains("google.com/uc") && content.contains("confirm=")) {
@@ -591,7 +602,7 @@ class GameRepositoryImpl @Inject constructor(
                     request = Request.Builder().url(downloadUrl).build()
                     response = okHttpClient.newCall(request).execute()
                     if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed after confirm: ${response.code}"))
-                    content = response.body.string() ?: ""
+                    content = response.body.string()
                 }
             }
 
@@ -658,6 +669,10 @@ class GameRepositoryImpl @Inject constructor(
         if (collectionId == "main") return
         val collection = dao.getCollectionById(collectionId)
         if (collection != null) {
+            val gamesInCollection = dao.getAllGamesSync(collectionId)
+            gamesInCollection.forEach { 
+                pl.pointblank.planszowsky.util.ImageManager.deleteImage(it.localImageUri)
+            }
             dao.deleteGamesByCollection(collectionId)
             dao.deleteCollection(collection)
         }

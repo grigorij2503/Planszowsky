@@ -135,6 +135,10 @@
     <string name="collection_name_placeholder">"e.g. Board Game Club"</string>
     <string name="remote_collection_default_name">"Remote Collection"</string>
     <string name="add_to_wishlist">"Add to Wishlist"</string>
+    <string name="change_cover">"Change Cover"</string>
+    <string name="source_camera">"Take Photo"</string>
+    <string name="source_gallery">"Choose from Gallery"</string>
+    <string name="select_source_title">"Select Image Source"</string>
     <string name="profile_stats_title">"Your Statistics"</string>
     <string name="stats_games">"Games"</string>
     <string name="stats_category">"Your Style"</string>
