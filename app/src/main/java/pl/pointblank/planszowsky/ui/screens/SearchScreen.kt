@@ -71,7 +71,9 @@ fun SearchScreen(
     }
 
     Scaffold(
-        modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
+        modifier = Modifier
+            .statusBarsPadding()
+            .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             if (isRetro) {
@@ -322,7 +324,7 @@ fun SearchResultCard(
                 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(onClick = onAddToWishlist) {
-                        Icon(Icons.Default.FavoriteBorder, contentDescription = "Add to Wishlist")
+                        Icon(Icons.Default.FavoriteBorder, contentDescription = stringResource(R.string.add_to_wishlist))
                     }
                     IconButton(onClick = onAddToCollection) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_button))

@@ -102,6 +102,12 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    fun renameCollection(id: String, newName: String) {
+        viewModelScope.launch {
+            repository.renameCollection(id, newName)
+        }
+    }
+
     fun setLocale(locale: String) {
         viewModelScope.launch {
             userPreferencesRepository.setAppLocale(locale)
@@ -120,6 +126,9 @@ class ProfileViewModel @Inject constructor(
                 val avatarUrl = repository.fetchBggUserProfile(username)
                 userPreferencesRepository.setBggAvatarUrl(avatarUrl)
                 userPreferencesRepository.setBggUsername(username)
+                
+                // Rename local main collection to BGG username
+                repository.renameCollection("main", username)
                 
                 // 2. Fetch Collection
                 val fetchedGames = repository.fetchCollection(username)

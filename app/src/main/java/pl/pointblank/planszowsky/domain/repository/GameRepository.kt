@@ -18,6 +18,7 @@ interface GameRepository {
     suspend fun searchByBarcode(barcode: String): List<Game>
     suspend fun getRemoteGameDetails(id: String, preferredTitle: String? = null): Game?
     suspend fun updateNotes(gameId: String, collectionId: String = "main", notes: String)
+    suspend fun updateLocalImage(gameId: String, collectionId: String = "main", imagePath: String?)
     suspend fun fetchCollection(username: String): List<Game>
     suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String = "main"): Int
     suspend fun fetchBggUserProfile(username: String): String?
@@ -30,4 +31,5 @@ interface GameRepository {
     suspend fun refreshCollection(collectionId: String): Result<Unit>
     fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>>
     suspend fun deleteCollection(collectionId: String)
+    suspend fun renameCollection(collectionId: String, newName: String)
 }

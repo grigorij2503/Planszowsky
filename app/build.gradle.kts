@@ -14,13 +14,13 @@ android {
     namespace = "pl.pointblank.planszowsky"
     compileSdk = 36
 
-    val baseVersion = "0.9"
+    val baseVersion = "0.10"
 
     defaultConfig {
         applicationId = "pl.pointblank.planszowsky"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
+        versionCode = 10
         versionName = baseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -35,6 +35,8 @@ android {
         }
         val bggKey = properties.getProperty("BGG_API_KEY") ?: System.getenv("BGG_API_KEY") ?: ""
         buildConfigField("String", "BGG_API_KEY", "\"$bggKey\"")
+        val geminiKey = properties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -84,6 +86,7 @@ dependencies {
     implementation(libs.androidx.material.icons.core)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.android.play.integrity)
+    implementation(libs.exifinterface)
     
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -128,7 +131,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.config)
     implementation(libs.firebase.installations)
-    implementation(libs.firebase.ai)
+    implementation(libs.generativeai)
 
     // Accompanist Permissions
     implementation(libs.accompanist.permissions)
