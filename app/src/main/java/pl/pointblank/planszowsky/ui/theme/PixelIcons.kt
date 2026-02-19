@@ -55,7 +55,7 @@ fun PixelArtIcon(
 }
 
 @Composable
-fun PixelStar24(isSelected: Boolean) {
+fun PixelStar24(isSelected: Boolean, color: Color? = null) {
     // Perfectly symmetrical 24x24 Star
     val map = if (isSelected) {
         listOf(
@@ -110,8 +110,29 @@ fun PixelStar24(isSelected: Boolean) {
             "........................"
         )
     }
+    
+    val starColor = color ?: if(isSelected) RetroGold else RetroGrey
     val starMap = map.map { it.replace('#', if(isSelected) 'Y' else 'X').replace('E', if(isSelected) 'Y' else 'E') }
-    PixelArtIcon(starMap, Modifier.fillMaxSize())
+    
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val rows = starMap.size
+        val cols = starMap[0].length
+        val pW = size.width / cols
+        val pH = size.height / rows
+        starMap.forEachIndexed { r, row ->
+            row.forEachIndexed { c, char ->
+                val drawColor = when(char) {
+                    'Y' -> starColor
+                    'X' -> RetroBlack
+                    'E' -> RetroGrey
+                    else -> Color.Transparent
+                }
+                if(drawColor != Color.Transparent) {
+                    drawRect(drawColor, Offset(c * pW, r * pH), Size(pW + 0.5f, pH + 0.5f))
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -190,7 +211,7 @@ fun PixelDelete24(color: Color = RetroBlack) {
 }
 
 @Composable
-fun PixelShinyHeart24(isSelected: Boolean) {
+fun PixelShinyHeart24(isSelected: Boolean, color: Color? = null) {
     val map = if (isSelected) {
         listOf(
             "........................",
@@ -242,7 +263,29 @@ fun PixelShinyHeart24(isSelected: Boolean) {
             "........................"
         )
     }
-    PixelArtIcon(map, Modifier.fillMaxSize())
+    
+    val heartColor = color ?: if(isSelected) RetroRed else RetroGrey
+    
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val rows = map.size
+        val cols = map[0].length
+        val pW = size.width / cols
+        val pH = size.height / rows
+        map.forEachIndexed { r, row ->
+            row.forEachIndexed { c, char ->
+                val drawColor = when(char) {
+                    '#' -> RetroBlack
+                    'R' -> heartColor
+                    'E' -> RetroGrey
+                    'L' -> Color.White
+                    else -> Color.Transparent
+                }
+                if(drawColor != Color.Transparent) {
+                    drawRect(drawColor, Offset(c * pW, r * pH), Size(pW + 0.5f, pH + 0.5f))
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -278,7 +321,7 @@ fun PixelShinyHeartIcon(isSelected: Boolean) {
 }
 
 @Composable
-fun PixelCollectionIcon(isSelected: Boolean) {
+fun PixelCollectionIcon(isSelected: Boolean, color: Color? = null) {
     val map = listOf(
         "............",
         "..########..",
@@ -293,7 +336,30 @@ fun PixelCollectionIcon(isSelected: Boolean) {
         ".#........#.",
         "............"
     )
-    PixelArtIcon(map, Modifier.fillMaxSize())
+    
+    if (color == null) {
+        PixelArtIcon(map, Modifier.fillMaxSize())
+    } else {
+        // Draw with a single dominant color but keep frame
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val rows = map.size
+            val cols = map[0].length
+            val pW = size.width / cols
+            val pH = size.height / rows
+            map.forEachIndexed { r, row ->
+                row.forEachIndexed { c, char ->
+                    val drawColor = when(char) {
+                        '#' -> RetroBlack
+                        'R', 'G', 'B', 'W' -> color
+                        else -> Color.Transparent
+                    }
+                    if(drawColor != Color.Transparent) {
+                        drawRect(drawColor, Offset(c * pW, r * pH), Size(pW + 0.5f, pH + 0.5f))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -493,6 +559,37 @@ fun PixelHeart24(color: Color = RetroBlack) {
         "...........##...........",
         "........................",
         "........................",
+        "........................"
+    )
+    DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())
+}
+
+@Composable
+fun PixelSwap24(color: Color = RetroBlack) {
+    val map = listOf(
+        "........................",
+        "........................",
+        ".......#................",
+        "......##................",
+        ".....###................",
+        "....####................",
+        "...#################....",
+        "...#################....",
+        "....####................",
+        ".....###................",
+        "......##................",
+        ".......#................",
+        "........................",
+        "................#.......",
+        "................##......",
+        "................###.....",
+        "................####....",
+        "....#################...",
+        "....#################...",
+        "................####....",
+        "................###.....",
+        "................##......",
+        "................#.......",
         "........................"
     )
     DrawSingleColorPixelIcon(map, color, Modifier.fillMaxSize())

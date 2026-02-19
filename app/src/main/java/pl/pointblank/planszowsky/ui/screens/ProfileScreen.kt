@@ -886,39 +886,67 @@ fun StatsSection(
                 backgroundColor = RetroElementBackground,
                 accentColor = RetroGold
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(4.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     // Player Style highlighted
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(modifier = Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
                             PixelStar24(isSelected = true)
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = stringResource(R.string.stats_category).uppercase(),
-                                style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.6f), fontSize = 8.sp)
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Monospace, 
+                                    color = RetroText.copy(alpha = 0.6f), 
+                                    fontSize = 10.sp
+                                )
                             )
                             Text(
                                 text = stats.topCategory?.uppercase() ?: "---",
-                                style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = RetroGold, fontWeight = FontWeight.ExtraBold)
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = FontFamily.Monospace, 
+                                    color = RetroGold, 
+                                    fontWeight = FontWeight.ExtraBold
+                                )
                             )
                         }
                     }
                     
                     Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(RetroBlack))
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceAround
                     ) {
-                        MiniStat(stringResource(R.string.stats_games), stats.totalOwned.toString(), isRetro, RetroBlue)
-                        MiniStat(stringResource(R.string.stats_favorites), stats.favoriteCount.toString(), isRetro, RetroRed)
-                        MiniStat(stringResource(R.string.stats_wishlist), stats.wishlistCount.toString(), isRetro, RetroGrey)
-                        MiniStat(stringResource(R.string.stats_lent), stats.lentCount.toString(), isRetro, RetroOrange)
+                        MiniStat(
+                            label = stringResource(R.string.stats_games),
+                            value = stats.totalOwned.toString(),
+                            icon = { PixelCollectionIcon(true, color = RetroBlue) },
+                            color = RetroBlue
+                        )
+                        MiniStat(
+                            label = stringResource(R.string.stats_favorites),
+                            value = stats.favoriteCount.toString(),
+                            icon = { PixelStar24(isSelected = true, color = RetroRed) },
+                            color = RetroRed
+                        )
+                        MiniStat(
+                            label = stringResource(R.string.stats_wishlist),
+                            value = stats.wishlistCount.toString(),
+                            icon = { PixelShinyHeart24(isSelected = true, color = RetroGold) },
+                            color = RetroGold
+                        )
+                        MiniStat(
+                            label = stringResource(R.string.stats_lent),
+                            value = stats.lentCount.toString(),
+                            icon = { PixelSwap24(color = RetroOrange) },
+                            color = RetroOrange
+                        )
                     }
                 }
             }
@@ -968,15 +996,29 @@ fun StatsSection(
 }
 
 @Composable
-fun MiniStat(label: String, value: String, isRetro: Boolean, color: Color) {
+fun MiniStat(label: String, value: String, icon: @Composable () -> Unit, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+            icon()
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, color = color, fontWeight = FontWeight.ExtraBold)
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = FontFamily.Monospace, 
+                color = color, 
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 16.sp
+            )
         )
         Text(
             text = label.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, color = RetroText, fontSize = 8.sp)
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = FontFamily.Monospace, 
+                color = RetroText, 
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Bold
+            )
         )
     }
 }
