@@ -430,30 +430,25 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        FlagButton(
-                            flag = "⚙\uFE0F", // Gear emoji for System
-                            isSelected = currentLocale == "system",
-                            isRetro = true,
-                            modifier = Modifier.weight(1f),
-                            onClick = { viewModel.setLocale("system") }
-                        )
+                        val systemLanguage = java.util.Locale.getDefault().language
+                        
                         FlagButton(
                             flag = "\uD83C\uDDF5\uD83C\uDDF1", // PL Flag
-                            isSelected = currentLocale == "pl",
+                            isSelected = currentLocale == "pl" || (currentLocale == "system" && systemLanguage == "pl"),
                             isRetro = true,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("pl") }
                         )
                         FlagButton(
                             flag = "\uD83C\uDDEC\uD83C\uDDE7", // GB Flag
-                            isSelected = currentLocale == "en",
+                            isSelected = currentLocale == "en" || (currentLocale == "system" && systemLanguage == "en"),
                             isRetro = true,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("en") }
                         )
                         FlagButton(
                             flag = "\uD83C\uDDE9\uD83C\uDDEA", // DE Flag
-                            isSelected = currentLocale == "de",
+                            isSelected = currentLocale == "de" || (currentLocale == "system" && systemLanguage == "de"),
                             isRetro = true,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("de") }
@@ -480,30 +475,25 @@ fun ProfileScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        FlagButton(
-                            flag = "⚙\uFE0F",
-                            isSelected = currentLocale == "system",
-                            isRetro = false,
-                            modifier = Modifier.weight(1f),
-                            onClick = { viewModel.setLocale("system") }
-                        )
+                        val systemLanguage = java.util.Locale.getDefault().language
+
                         FlagButton(
                             flag = "\uD83C\uDDF5\uD83C\uDDF1",
-                            isSelected = currentLocale == "pl",
+                            isSelected = currentLocale == "pl" || (currentLocale == "system" && systemLanguage == "pl"),
                             isRetro = false,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("pl") }
                         )
                         FlagButton(
                             flag = "\uD83C\uDDEC\uD83C\uDDE7",
-                            isSelected = currentLocale == "en",
+                            isSelected = currentLocale == "en" || (currentLocale == "system" && systemLanguage == "en"),
                             isRetro = false,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("en") }
                         )
                         FlagButton(
                             flag = "\uD83C\uDDE9\uD83C\uDDEA",
-                            isSelected = currentLocale == "de",
+                            isSelected = currentLocale == "de" || (currentLocale == "system" && systemLanguage == "de"),
                             isRetro = false,
                             modifier = Modifier.weight(1f),
                             onClick = { viewModel.setLocale("de") }
