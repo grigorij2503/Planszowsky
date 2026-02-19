@@ -38,7 +38,7 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 firebase-installations = { group = "com.google.firebase", name = "firebase-installations" }
 firebase-config = { group = "com.google.firebase", name = "firebase-config" }
-firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+generativeai = { group = "com.google.ai.client.generativeai", name = "generativeai", version.ref = "generativeai" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 android-play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -97,7 +97,6 @@ exifinterface = { group = "androidx.exifinterface", name = "exifinterface", vers
 
 # Accompanist
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
-
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -35,6 +35,8 @@ android {
         }
         val bggKey = properties.getProperty("BGG_API_KEY") ?: System.getenv("BGG_API_KEY") ?: ""
         buildConfigField("String", "BGG_API_KEY", "\"$bggKey\"")
+        val geminiKey = properties.getProperty("GEMINI_API_KEY") ?: System.getenv("GEMINI_API_KEY") ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
     }
 
     buildTypes {
@@ -129,7 +131,7 @@ dependencies {
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.config)
     implementation(libs.firebase.installations)
-    implementation(libs.firebase.ai)
+    implementation(libs.generativeai)
 
     // Accompanist Permissions
     implementation(libs.accompanist.permissions)
