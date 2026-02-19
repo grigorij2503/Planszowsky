@@ -575,7 +575,7 @@ class GameRepositoryImpl @Inject constructor(
             
             if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to download: ${response.code}"))
             
-            var content = response.body?.string() ?: ""
+            var content = response.body.string() ?: ""
             
             // Check if we got Google Drive virus scan warning (HTML) instead of CSV
             if (content.contains("google.com/uc") && content.contains("confirm=")) {
@@ -591,7 +591,7 @@ class GameRepositoryImpl @Inject constructor(
                     request = Request.Builder().url(downloadUrl).build()
                     response = okHttpClient.newCall(request).execute()
                     if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed after confirm: ${response.code}"))
-                    content = response.body?.string() ?: ""
+                    content = response.body.string() ?: ""
                 }
             }
 
@@ -629,7 +629,7 @@ class GameRepositoryImpl @Inject constructor(
             val response = okHttpClient.newCall(request).execute()
             if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed: ${response.code}"))
             
-            val csvContent = response.body?.string() ?: return@withContext Result.failure(Exception("Empty"))
+            val csvContent = response.body.string()
             val games = parseCsv(csvContent)
             
             dao.deleteGamesByCollection(collectionId)
@@ -661,6 +661,10 @@ class GameRepositoryImpl @Inject constructor(
             dao.deleteGamesByCollection(collectionId)
             dao.deleteCollection(collection)
         }
+    }
+
+    override suspend fun renameCollection(collectionId: String, newName: String) {
+        dao.updateCollectionName(collectionId, newName)
     }
 
     private fun parseCsvLine(line: String): List<String> {

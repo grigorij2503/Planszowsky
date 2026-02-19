@@ -30,4 +30,5 @@ interface GameRepository {
     suspend fun refreshCollection(collectionId: String): Result<Unit>
     fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>>
     suspend fun deleteCollection(collectionId: String)
+    suspend fun renameCollection(collectionId: String, newName: String)
 }
