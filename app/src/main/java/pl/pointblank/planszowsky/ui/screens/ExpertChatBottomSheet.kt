@@ -96,7 +96,10 @@ fun ExpertChatBottomSheet(
                     style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
                             else MaterialTheme.typography.titleLarge,
                     color = if (isRetro) RetroText else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
                 
                 Text(

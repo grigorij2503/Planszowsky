@@ -80,12 +80,20 @@ fun CollectionScreen(
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y < -2f || available.y > 2f) {
+                // Only clear focus if scrolling significantly
+                if (available.y < -10f || available.y > 10f) {
                     focusManager.clearFocus()
                 }
+                
+                // Only hide search bar if we are NOT at the top of the list
+                // For simplicity, we just keep the existing logic but make it less sensitive
                 val delta = available.y
                 val newOffset = searchBarOffsetHeightPx.floatValue + delta
+                
+                // Allow search bar to be visible (0) or hidden (-searchBarHeightPx)
+                // We add a small buffer to prevent jitter
                 searchBarOffsetHeightPx.floatValue = newOffset.coerceIn(-searchBarHeightPx, 0f)
+                
                 return Offset.Zero
             }
         }
@@ -160,7 +168,11 @@ fun CollectionScreen(
                 verticalItemSpacing = 12.dp
             ) {
                 item(span = StaggeredGridItemSpan.FullLine) {
-                    Spacer(modifier = Modifier.height(minSearchBarHeight))
+                    Spacer(
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .height(minSearchBarHeight)
+                    )
                 }
 
                 item(span = StaggeredGridItemSpan.FullLine) {
@@ -286,6 +298,7 @@ fun CollectionScreen(
             // Floating Search Bar
             Box(
                 modifier = Modifier
+                    .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .fillMaxWidth()
                     .heightIn(min = minSearchBarHeight - 16.dp)

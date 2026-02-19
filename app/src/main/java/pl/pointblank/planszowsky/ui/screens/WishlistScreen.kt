@@ -32,6 +32,7 @@ fun WishlistScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
             .padding(16.dp)
     ) {

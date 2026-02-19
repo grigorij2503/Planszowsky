@@ -95,7 +95,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
         NavHost(
             navController = navController, 
             startDestination = Screen.Collection.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(Screen.Collection.route) {
                 CollectionScreen(

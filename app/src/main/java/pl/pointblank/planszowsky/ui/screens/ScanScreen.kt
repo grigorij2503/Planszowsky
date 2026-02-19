@@ -68,6 +68,7 @@ fun ScanScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center,
@@ -211,6 +212,7 @@ fun CameraPreview(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(24.dp)
         ) {
             if (isRetro) {

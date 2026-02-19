@@ -54,7 +54,9 @@ fun RandomizerScreen(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
+        modifier = Modifier
+            .statusBarsPadding()
+            .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             if (isRetro) {
