@@ -120,6 +120,7 @@
     <string name="duration_long">Lang (&gt;90m)</string>
     <string name="no_games_matching">Keine Spiele entsprechen den Filtern!</string>
     <string name="notes_label">"Persönliche Notizen"</string>
+    <string name="expansions_label">"Erweiterungen"</string>
     <string name="notes_hint">"Schreibe etwas über dieses Spiel…"</string>
     <string name="notes_dialog_title">"Spielnotizen"</string>
     <string name="item_management">"VERWALTUNG"</string>
@@ -128,6 +129,12 @@
     <string name="action_fav">"FAV"</string>
     <string name="action_wish">"WUNSCH"</string>
     <string name="action_del">"LÖSCH"</string>
+    <string name="action_www">"WWW"</string>
+    <string name="ready_label">"BEREIT?"</string>
+    <string name="send_label">"Senden"</string>
+    <string name="collection_name_placeholder">"z.B. Brettspiel-Club"</string>
+    <string name="remote_collection_default_name">"Remote-Sammlung"</string>
+    <string name="add_to_wishlist">"Auf die Wunschliste"</string>
     <string name="profile_stats_title">"Deine Statistiken"</string>
     <string name="stats_games">"Spiele"</string>
     <string name="stats_category">"Genre"</string>

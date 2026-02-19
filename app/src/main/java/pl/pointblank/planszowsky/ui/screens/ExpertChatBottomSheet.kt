@@ -255,7 +255,7 @@ fun ExpertChatBottomSheet(
                             disabledContainerColor = Color.Gray
                         )
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Wyślij")
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.send_label))
                     }
                 }
             }

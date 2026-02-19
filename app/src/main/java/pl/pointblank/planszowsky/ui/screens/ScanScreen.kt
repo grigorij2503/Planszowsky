@@ -138,7 +138,7 @@ fun CameraPreview(
                         value = collectionName,
                         onValueChange = { collectionName = it },
                         label = { Text(stringResource(R.string.collection_name_label)) },
-                        placeholder = { Text("np. Klub Planszówek") },
+                        placeholder = { Text(stringResource(R.string.collection_name_placeholder)) },
                         singleLine = true
                     )
                 }
@@ -146,7 +146,7 @@ fun CameraPreview(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.importCollection(detectedValue, collectionName.ifBlank { "Zdalna Kolekcja" })
+                        viewModel.importCollection(detectedValue, collectionName.ifBlank { context.getString(R.string.remote_collection_default_name) })
                         showImportDialog = false
                     },
                     enabled = importState !is ScanViewModel.ImportState.Loading

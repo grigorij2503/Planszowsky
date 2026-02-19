@@ -403,7 +403,7 @@ fun GameManagementPanel(
                     )
                     PixelActionButton(
                         icon = { PixelWeb24(color = RetroText) },
-                        label = "WWW",
+                        label = stringResource(R.string.action_www),
                         isActive = false,
                         activeColor = RetroBlue,
                         onClick = onWebsiteClick
@@ -504,7 +504,7 @@ fun GameManagementPanel(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "NOTES:",
+                    text = stringResource(R.string.notes_label).uppercase() + ":",
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = FontFamily.Monospace,
                         color = RetroText,
@@ -556,21 +556,21 @@ fun GameManagementPanel(
                 ) {
                     ManagementIconButton(
                         icon = if (game.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                        label = "FAV",
+                        label = stringResource(R.string.action_fav),
                         isActive = game.isFavorite,
                         activeColor = RetroGold,
                         onClick = onToggleFavorite
                     )
                     ManagementIconButton(
                         icon = if (game.isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        label = "WISH",
+                        label = stringResource(R.string.action_wish),
                         isActive = game.isWishlisted,
                         activeColor = Color.Red,
                         onClick = onToggleWishlist
                     )
                     ManagementIconButton(
                         icon = Icons.Default.Public,
-                        label = "WWW",
+                        label = stringResource(R.string.action_www),
                         isActive = false,
                         activeColor = MaterialTheme.colorScheme.primary,
                         onClick = onWebsiteClick
@@ -578,7 +578,7 @@ fun GameManagementPanel(
                     if (!game.isReadOnly) {
                         ManagementIconButton(
                             icon = Icons.Default.Delete,
-                            label = "DEL",
+                            label = stringResource(R.string.action_del),
                             isActive = false,
                             activeColor = MaterialTheme.colorScheme.error,
                             onClick = onDelete
@@ -649,9 +649,9 @@ fun GameManagementPanel(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Notes", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.notes_label), style = MaterialTheme.typography.labelMedium)
                         Text(
-                            text = if(game.notes?.isNotBlank() == true) game.notes  else "Tap to add notes...",
+                            text = if(game.notes?.isNotBlank() == true) game.notes  else stringResource(R.string.tap_to_scribble),
                             style = MaterialTheme.typography.bodyMedium,
                             color = if(game.notes?.isNotBlank() == true) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -852,7 +852,7 @@ fun ExpansionsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "DODATKI".let { if (isRetro) it.uppercase() else it },
+            text = stringResource(R.string.expansions_label).let { if (isRetro) it.uppercase() else it },
             style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroText)
                     else MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold

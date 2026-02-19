@@ -120,6 +120,7 @@
     <string name="duration_long">Long (&gt;90m)</string>
     <string name="no_games_matching">No games matching the selected filters!</string>
     <string name="notes_label">"Personal Notes"</string>
+    <string name="expansions_label">"Expansions"</string>
     <string name="notes_hint">"Write something about this game…"</string>
     <string name="notes_dialog_title">"Game Notes"</string>
     <string name="item_management">"ITEM MANAGEMENT"</string>
@@ -128,6 +129,12 @@
     <string name="action_fav">"FAV"</string>
     <string name="action_wish">"WISH"</string>
     <string name="action_del">"DEL"</string>
+    <string name="action_www">"WWW"</string>
+    <string name="ready_label">"READY?"</string>
+    <string name="send_label">"Send"</string>
+    <string name="collection_name_placeholder">"e.g. Board Game Club"</string>
+    <string name="remote_collection_default_name">"Remote Collection"</string>
+    <string name="add_to_wishlist">"Add to Wishlist"</string>
     <string name="profile_stats_title">"Your Statistics"</string>
     <string name="stats_games">"Games"</string>
     <string name="stats_category">"Your Style"</string>

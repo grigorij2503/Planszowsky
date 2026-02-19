@@ -124,6 +124,7 @@
     <string name="show_original">"Oryginał"</string>
     <string name="translating">"Tłumaczenie…"</string>
     <string name="notes_label">"Własne notatki"</string>
+    <string name="expansions_label">"Dodatki"</string>
     <string name="notes_hint">"Napisz coś o tej grze…"</string>
     <string name="notes_dialog_title">"Notatki do gry"</string>
     <string name="item_management">"ZARZĄDZANIE"</string>
@@ -132,6 +133,12 @@
     <string name="action_fav">"ULUB"</string>
     <string name="action_wish">"CHCĘ"</string>
     <string name="action_del">"USUŃ"</string>
+    <string name="action_www">"WWW"</string>
+    <string name="ready_label">"GOTÓW?"</string>
+    <string name="send_label">"Wyślij"</string>
+    <string name="collection_name_placeholder">"np. Klub Planszówek"</string>
+    <string name="remote_collection_default_name">"Zdalna Kolekcja"</string>
+    <string name="add_to_wishlist">"Dodaj do listy życzeń"</string>
     <string name="profile_stats_title">"Twoje Statystyki"</string>
     <string name="stats_games">"Gry"</string>
     <string name="stats_category">"Twój Styl"</string>

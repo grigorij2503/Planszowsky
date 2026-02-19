@@ -377,7 +377,7 @@ fun RetroSlotMachine(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "READY?",
+                        text = stringResource(R.string.ready_label),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = FontFamily.Monospace,
                             color = RetroGold

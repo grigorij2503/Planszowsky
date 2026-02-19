@@ -409,7 +409,7 @@ fun GameCard(game: Game, isRetro: Boolean = false, onClick: () -> Unit) {
                 AsyncImage(model = game.imageUrl ?: game.thumbnailUrl, contentDescription = game.title, modifier = Modifier.fillMaxWidth().aspectRatio(0.85f), contentScale = ContentScale.Crop, filterQuality = FilterQuality.None)
                 if (game.isBorrowed) {
                     Surface(color = RetroOrange, shape = RectangleShape, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) }) {
-                        Text(text = "LENT", style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, fontSize = 8.sp), modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp), color = Color.White)
+                        Text(text = stringResource(R.string.borrowed_badge), style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, fontSize = 8.sp), modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp), color = Color.White)
                     }
                 }
             }
