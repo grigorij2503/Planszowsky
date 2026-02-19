@@ -95,7 +95,10 @@ data class BggLink(
     var id: String = "",
     
     @field:JacksonXmlProperty(isAttribute = true)
-    var value: String = ""
+    var value: String = "",
+
+    @field:JacksonXmlProperty(isAttribute = true)
+    var inbound: String? = null
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -34,6 +34,7 @@ class UserPreferencesRepositoryImpl @Inject constructor(
         val APP_LOCALE = stringPreferencesKey("app_locale")
         val BGG_AVATAR_URL = stringPreferencesKey("bgg_avatar_url")
         val BGG_USERNAME = stringPreferencesKey("bgg_username")
+        val ACTIVE_COLLECTION_ID = stringPreferencesKey("active_collection_id")
     }
 
     override val appTheme: Flow<AppTheme> = context.dataStore.data
@@ -71,6 +72,9 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     override val bggUsername: Flow<String?> = context.dataStore.data
         .map { preferences -> preferences[PreferencesKeys.BGG_USERNAME] }
 
+    override val activeCollectionId: Flow<String> = context.dataStore.data
+        .map { preferences -> preferences[PreferencesKeys.ACTIVE_COLLECTION_ID] ?: "main" }
+
     override suspend fun setAppTheme(theme: AppTheme) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_THEME] = theme.name
@@ -106,6 +110,12 @@ class UserPreferencesRepositoryImpl @Inject constructor(
             } else {
                 preferences.remove(PreferencesKeys.BGG_USERNAME)
             }
+        }
+    }
+
+    override suspend fun setActiveCollectionId(id: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACTIVE_COLLECTION_ID] = id
         }
     }
 

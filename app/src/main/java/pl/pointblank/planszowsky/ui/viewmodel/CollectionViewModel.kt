@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,14 +31,24 @@ class CollectionViewModel @Inject constructor(
     val collectionViewMode: StateFlow<CollectionViewMode> = userPreferencesRepository.collectionViewMode
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionViewMode.GRID)
 
+    val activeCollectionId: StateFlow<String> = userPreferencesRepository.activeCollectionId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "main")
+
+    @ExperimentalCoroutinesApi
+    val activeCollection: StateFlow<pl.pointblank.planszowsky.data.local.CollectionEntity?> = activeCollectionId
+        .flatMapLatest { id ->
+            repository.getAllCollections().map { list -> list.find { it.id == id } }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    @ExperimentalCoroutinesApi
     val games: StateFlow<List<Game>> = combine(
-        repository.getSavedGames(),
+        activeCollectionId.flatMapLatest { id -> repository.getSavedGames(id) },
         _selectedCategory,
         _searchQuery
     ) { games, selected, query ->
@@ -47,7 +59,9 @@ class CollectionViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val categories: StateFlow<List<String>> = repository.getSavedGames()
+    @ExperimentalCoroutinesApi
+    val categories: StateFlow<List<String>> = activeCollectionId
+        .flatMapLatest { id -> repository.getSavedGames(id) }
         .map { games ->
             games.flatMap { it.categories }
                 .groupingBy { it }

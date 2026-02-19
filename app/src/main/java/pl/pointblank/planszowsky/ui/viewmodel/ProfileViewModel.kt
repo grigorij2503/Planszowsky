@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,7 +41,15 @@ class ProfileViewModel @Inject constructor(
     val persistedUsername: StateFlow<String?> = userPreferencesRepository.bggUsername
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val stats: StateFlow<CollectionStats> = repository.getCollectionStats()
+    val activeCollectionId: StateFlow<String> = userPreferencesRepository.activeCollectionId
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "main")
+
+    val collections: StateFlow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>> = repository.getAllCollections()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    @ExperimentalCoroutinesApi
+    val stats: StateFlow<CollectionStats> = activeCollectionId
+        .flatMapLatest { id -> repository.getCollectionStats(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CollectionStats())
 
     private val _bggUsername = MutableStateFlow("")
@@ -69,6 +79,29 @@ class ProfileViewModel @Inject constructor(
         }
     }
     
+    fun setActiveCollection(id: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setActiveCollectionId(id)
+        }
+    }
+
+    fun refreshCollection(id: String) {
+        viewModelScope.launch {
+            _isImporting.value = true
+            repository.refreshCollection(id)
+            _isImporting.value = false
+        }
+    }
+
+    fun deleteCollection(id: String) {
+        viewModelScope.launch {
+            repository.deleteCollection(id)
+            if (activeCollectionId.value == id) {
+                setActiveCollection("main")
+            }
+        }
+    }
+
     fun setLocale(locale: String) {
         viewModelScope.launch {
             userPreferencesRepository.setAppLocale(locale)
@@ -139,11 +172,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     suspend fun exportCollection(): String {
-        return repository.exportCollectionToJson()
+        return repository.exportCollectionToJson(activeCollectionId.value)
     }
 
     suspend fun exportCollectionCsv(): String {
-        return repository.exportCollectionToCsv()
+        return repository.exportCollectionToCsv(activeCollectionId.value)
     }
 
     fun startCsvImport(csv: String) {
