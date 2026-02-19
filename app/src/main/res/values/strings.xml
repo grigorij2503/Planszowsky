@@ -34,7 +34,7 @@
     <string name="barcode_detected">"Wykryto kod kreskowy:"</string>
     <string name="title_detected">"Wykryto tytuł:"</string>
     <string name="search_this_game">"Szukaj tej gry"</string>
-    <string name="randomizer_title">"Co zagramy?"</string>
+    <string name="randomizer_title">"W co zagramy?"</string>
     <string name="cant_decide">"Nie wiesz co wybrać?"</string>
     <string name="spinning">"Losowanie…"</string>
     <string name="spin_button">"Wylosuj grę!"</string>
@@ -130,7 +130,7 @@
     <string name="item_management">"ZARZĄDZANIE"</string>
     <string name="tap_to_scribble">"Dotknij, aby zapisać..."</string>
     <string name="ask_expert_ellipsis">"ZAPYTAJ EKSPERTA..."</string>
-    <string name="action_fav">"ULUB"</string>
+    <string name="action_fav">"TOP"</string>
     <string name="action_wish">"CHCĘ"</string>
     <string name="action_del">"USUŃ"</string>
     <string name="action_www">"WWW"</string>
