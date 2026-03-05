@@ -69,6 +69,7 @@ fun DiceScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()
             .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
             .verticalScroll(scrollState)
             .padding(16.dp),

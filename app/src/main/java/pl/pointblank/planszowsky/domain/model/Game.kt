@@ -22,5 +22,6 @@ data class Game(
     val expansions: List<Expansion> = emptyList(),
     val collectionId: String = "main",
     val isReadOnly: Boolean = false,
-    val websiteUrl: String? = null
+    val websiteUrl: String? = null,
+    val localImageUri: String? = null
 )

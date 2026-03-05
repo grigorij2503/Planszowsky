@@ -54,7 +54,9 @@ fun RandomizerScreen(
     val scrollState = rememberScrollState()
 
     Scaffold(
-        modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
+        modifier = Modifier
+            .statusBarsPadding()
+            .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             if (isRetro) {
@@ -286,7 +288,7 @@ fun ModernSlotMachine(isSpinning: Boolean, selectedGame: pl.pointblank.planszows
         } else if (selectedGame != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 AsyncImage(
-                    model = selectedGame.imageUrl ?: selectedGame.thumbnailUrl,
+                    model = selectedGame.localImageUri ?: selectedGame.imageUrl ?: selectedGame.thumbnailUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(180.dp)
@@ -347,7 +349,7 @@ fun RetroSlotMachine(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
+                            .data(displayGame?.localImageUri ?: displayGame?.imageUrl ?: displayGame?.thumbnailUrl)
                             .build(),
                         contentDescription = null,
                         modifier = Modifier
@@ -377,7 +379,7 @@ fun RetroSlotMachine(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "READY?",
+                        text = stringResource(R.string.ready_label),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = FontFamily.Monospace,
                             color = RetroGold

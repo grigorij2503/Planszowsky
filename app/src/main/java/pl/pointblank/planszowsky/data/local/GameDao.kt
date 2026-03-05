@@ -56,6 +56,9 @@ interface GameDao {
     @Query("SELECT * FROM collections WHERE id = :id")
     suspend fun getCollectionById(id: String): CollectionEntity?
 
+    @Query("UPDATE collections SET name = :newName WHERE id = :id")
+    suspend fun updateCollectionName(id: String, newName: String)
+
     @Delete
     suspend fun deleteCollection(collection: CollectionEntity)
 }

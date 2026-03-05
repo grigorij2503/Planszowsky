@@ -134,4 +134,18 @@ class DetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateLocalImage(context: android.content.Context, uri: android.net.Uri?) {
+        viewModelScope.launch {
+            if (uri == null) {
+                repository.updateLocalImage(gameId, collectionId, null)
+            } else {
+                val localPath = pl.pointblank.planszowsky.util.ImageManager.saveImage(context, uri, gameId)
+                if (localPath != null) {
+                    repository.updateLocalImage(gameId, collectionId, localPath)
+                }
+            }
+            _game.value = repository.getGame(gameId, collectionId)
+        }
+    }
 }
