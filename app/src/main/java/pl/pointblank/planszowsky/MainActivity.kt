@@ -13,6 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -41,7 +44,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
         
         // Apply saved language preference using EntryPoint to avoid injection timing issues
         runBlocking {
@@ -62,22 +65,26 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            // We can still use the entry point here or inject a ViewModel that holds it.
-            // But for the theme, we need the repo again. 
-            // Since we removed the field, let's get it from the entry point again or let Hilt inject into the ViewModel.
-            // For the theme flow, we need the repo instance.
-            
             val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
             val userPreferencesRepository = entryPoint.userPreferencesRepository()
-            
             val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
-            
-            PlanszowskyTheme(appTheme = appTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PlanszowskyMainContainer(appTheme = appTheme)
+
+            var showCustomSplash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+
+            if (showCustomSplash) {
+                pl.pointblank.planszowsky.ui.screens.PointBlankSplashScreen(
+                    onAnimationFinished = {
+                        showCustomSplash = false
+                    }
+                )
+            } else {
+                PlanszowskyTheme(appTheme = appTheme) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        PlanszowskyMainContainer(appTheme = appTheme)
+                    }
                 }
             }
         }

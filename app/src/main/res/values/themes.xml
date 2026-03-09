@@ -7,11 +7,12 @@
 
     <!-- Splash Screen theme -->
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenBackground">@color/black</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="postSplashScreenTheme">@style/Theme.Planszowsky</item>
     </style>
 
     <color name="white">#FFFFFF</color>
-    <color name="dark_background">#FFFFFF</color>
+    <color name="black">#050505</color>
+    <color name="dark_background">#050505</color>
 </resources>

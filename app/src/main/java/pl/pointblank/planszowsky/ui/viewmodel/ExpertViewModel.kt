@@ -101,7 +101,7 @@ class ExpertViewModel @Inject constructor(
             }
 
             val generativeModel = GenerativeModel(
-                modelName = "gemini-3-flash-preview",
+                modelName = "gemini-3.1-flash-lite-preview",
                 apiKey = BuildConfig.GEMINI_API_KEY,
                 systemInstruction = content {
                     text(app.getString(R.string.expert_system_instruction, gameTitle))
@@ -123,11 +123,11 @@ class ExpertViewModel @Inject constructor(
 
     fun sendMessage(userMessage: String) {
         if (userMessage.isBlank()) return
-        
+
         val app = getApplication<Application>()
         val currentCount = aiUsageCount.value
         val currentLimit = aiDailyLimit.value
-        
+
         if (currentCount >= currentLimit) {
             _messages.value += ChatMessage(
                 text = app.getString(R.string.expert_limit_reached),
