@@ -47,7 +47,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
         Screen.DiceRoller.route,
         Screen.Wishlist.route,
         Screen.Profile.route
-    )
+    ) && currentDestination?.route != "session_dice"
 
     Scaffold(
         bottomBar = {
@@ -163,7 +163,24 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                     navArgument("collectionId") { type = NavType.StringType; defaultValue = "main" }
                 )
             ) {
-                DetailsScreen(onBackClick = { navController.popBackStack() })
+                DetailsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onStartSession = { navController.navigate("session") }
+                )
+            }
+
+            composable("session") {
+                SessionScreen(
+                    onDiceClick = { navController.navigate("session_dice") },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("session_dice") {
+                DiceScreen(
+                    appTheme = appTheme,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }

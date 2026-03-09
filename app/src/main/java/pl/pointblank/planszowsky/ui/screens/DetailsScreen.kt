@@ -47,7 +47,9 @@ import com.google.accompanist.permissions.isGranted
 @Composable
 fun DetailsScreen(
     viewModel: DetailsViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    sessionViewModel: pl.pointblank.planszowsky.ui.viewmodel.SessionViewModel = hiltViewModel(),
+    onBackClick: () -> Unit,
+    onStartSession: () -> Unit
 ) {
     val game by viewModel.game.collectAsState()
     val appTheme by viewModel.appTheme.collectAsState()
@@ -61,6 +63,7 @@ fun DetailsScreen(
     // Image Source Selection State
     var showSourcePicker by rememberSaveable { mutableStateOf(false) }
     var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showSessionDialog by remember { mutableStateOf(false) }
 
     val cameraPermissionState = com.google.accompanist.permissions.rememberPermissionState(
         android.Manifest.permission.CAMERA
@@ -90,6 +93,18 @@ fun DetailsScreen(
     }
 
     var showChat by remember { mutableStateOf(false) }
+
+    if (showSessionDialog && game != null) {
+        StartSessionDialog(
+            isRetro = isRetro,
+            onDismiss = { showSessionDialog = false },
+            onConfirm = { players ->
+                sessionViewModel.startSession(game!!.id, game!!.title, players)
+                showSessionDialog = false
+                onStartSession()
+            }
+        )
+    }
 
     if (showSourcePicker) {
         AlertDialog(
@@ -318,6 +333,28 @@ fun DetailsScreen(
                                 onUpdateNotes = { viewModel.updateNotes(it) },
                                 onWebsiteClick = { openGameWebsite(g) }
                             )
+
+                            if (!g.isWishlisted) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                if (isRetro) {
+                                    RetroSquareButton(
+                                        text = stringResource(R.string.start_session).uppercase(),
+                                        onClick = { showSessionDialog = true },
+                                        color = RetroGold,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                } else {
+                                    Button(
+                                        onClick = { showSessionDialog = true },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(stringResource(R.string.start_session))
+                                    }
+                                }
+                            }
 
                             if (g.expansions.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(32.dp))
@@ -1113,4 +1150,80 @@ fun CategoryChip(category: String, isRetro: Boolean) {
             fontWeight = FontWeight.Medium
         )
     }
+}
+
+@Composable
+fun StartSessionDialog(
+    isRetro: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (List<String>) -> Unit
+) {
+    var playerNames by remember { mutableStateOf(listOf("")) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(28.dp),
+        containerColor = if (isRetro) RetroBackground else MaterialTheme.colorScheme.surface,
+        title = { 
+            Text(
+                text = stringResource(R.string.start_session).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleLarge
+            ) 
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                playerNames.forEachIndexed { index, name ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { newName ->
+                                playerNames = playerNames.toMutableList().apply { set(index, newName) }
+                            },
+                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.player_name_hint) + " ${index + 1}") },
+                            shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp),
+                            textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
+                            colors = if(isRetro) OutlinedTextFieldDefaults.colors(focusedBorderColor = RetroGold, unfocusedBorderColor = RetroText) else OutlinedTextFieldDefaults.colors()
+                        )
+                        if (playerNames.size > 1) {
+                            IconButton(onClick = { playerNames = playerNames.toMutableList().apply { removeAt(index) } }) {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = if(isRetro) RetroRed else MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    }
+                }
+                
+                TextButton(
+                    onClick = { playerNames = playerNames + "" },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.add_player).let { if(isRetro) it.uppercase() else it })
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(playerNames.filter { it.isNotBlank() }.ifEmpty { listOf("Gracz 1") }) }
+            ) {
+                Text(
+                    text = stringResource(R.string.start_game).let { if(isRetro) it.uppercase() else it },
+                    color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
+                    color = if(isRetro) RetroText else MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    )
 }

@@ -61,4 +61,21 @@ interface GameDao {
 
     @Delete
     suspend fun deleteCollection(collection: CollectionEntity)
+
+    // --- Active Sessions ---
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun saveSession(session: SessionEntity)
+
+    @Query("SELECT * FROM active_sessions WHERE gameId = :gameId")
+    suspend fun getSessionByGameId(gameId: String): SessionEntity?
+
+    @Query("SELECT * FROM active_sessions WHERE isActive = 1 LIMIT 1")
+    fun getActiveSession(): Flow<SessionEntity?>
+
+    @Query("DELETE FROM active_sessions WHERE gameId = :gameId")
+    suspend fun deleteSession(gameId: String)
+
+    @Query("UPDATE active_sessions SET isActive = 0")
+    suspend fun clearActiveSessions()
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -50,10 +51,12 @@ import pl.pointblank.planszowsky.ui.viewmodel.DieState
 import kotlin.math.cos
 import kotlin.math.sin
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiceScreen(
     appTheme: AppTheme = AppTheme.MODERN,
-    viewModel: DiceViewModel = hiltViewModel()
+    viewModel: DiceViewModel = hiltViewModel(),
+    onBackClick: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val haptic = LocalHapticFeedback.current
@@ -66,46 +69,75 @@ fun DiceScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
-            .verticalScroll(scrollState)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val totalText = if (uiState.isRolling) "..." else uiState.totalSum.toString()
-        Text(
-            text = stringResource(R.string.dice_total, totalText),
-            style = if (isRetro) 
-                MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = RetroGold, fontFamily = FontFamily.Monospace)
-                else MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
-            modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 24.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            DiceArena(
-                dice = uiState.dice,
-                isRolling = uiState.isRolling,
-                appTheme = appTheme
-            )
+    Scaffold(
+        modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
+        containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
+        topBar = {
+            if (onBackClick != null) {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            text = stringResource(R.string.menu_dice).let { if(isRetro) it.uppercase() else it },
+                            style = if(isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            if (isRetro) {
+                                PixelBackIcon(color = RetroText)
+                            } else {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = if(isRetro) RetroText else MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            }
         }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val totalText = if (uiState.isRolling) "..." else uiState.totalSum.toString()
+            Text(
+                text = stringResource(R.string.dice_total, totalText),
+                style = if (isRetro) 
+                    MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = RetroGold, fontFamily = FontFamily.Monospace)
+                    else MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
+                modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
+            )
 
-        DiceControls(
-            uiState = uiState,
-            appTheme = appTheme,
-            onModeSelect = viewModel::onModeSelected,
-            onCustomConfigChange = viewModel::onCustomDiceConfigChanged,
-            onRoll = viewModel::rollDice
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                DiceArena(
+                    dice = uiState.dice,
+                    isRolling = uiState.isRolling,
+                    appTheme = appTheme
+                )
+            }
+
+            DiceControls(
+                uiState = uiState,
+                appTheme = appTheme,
+                onModeSelect = viewModel::onModeSelected,
+                onCustomConfigChange = viewModel::onCustomDiceConfigChanged,
+                onRoll = viewModel::rollDice
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+        }
     }
 }
 

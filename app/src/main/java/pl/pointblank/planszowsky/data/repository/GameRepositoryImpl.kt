@@ -682,6 +682,25 @@ class GameRepositoryImpl @Inject constructor(
         dao.updateCollectionName(collectionId, newName)
     }
 
+    // Sessions
+    override fun getActiveSession(): Flow<pl.pointblank.planszowsky.data.local.SessionEntity?> = dao.getActiveSession()
+
+    override suspend fun saveSession(session: pl.pointblank.planszowsky.data.local.SessionEntity) {
+        dao.saveSession(session)
+    }
+
+    override suspend fun getSessionByGameId(gameId: String): pl.pointblank.planszowsky.data.local.SessionEntity? {
+        return dao.getSessionByGameId(gameId)
+    }
+
+    override suspend fun deleteSession(gameId: String) {
+        dao.deleteSession(gameId)
+    }
+
+    override suspend fun clearActiveSessions() {
+        dao.clearActiveSessions()
+    }
+
     private fun parseCsvLine(line: String): List<String> {
         val result = mutableListOf<String>()
         val cur = StringBuilder()

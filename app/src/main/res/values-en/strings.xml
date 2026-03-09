@@ -153,5 +153,14 @@
         <string name="readonly_notice">Read Only</string>
         <string name="refresh_collection">Refresh</string>
         <string name="delete_collection_confirm">Delete this collection?</string>
-    </resources>
-    
+
+        <!-- Active Session -->
+        <string name="active_session">Active Session</string>
+        <string name="no_active_session">No active session.</string>
+        <string name="players_label">Players</string>
+        <string name="end_session">End Session</string>
+        <string name="start_session">Start Session</string>
+        <string name="add_player">Add Player</string>
+        <string name="player_name_hint">Player name</string>
+        <string name="start_game">Play!</string>
+        </resources>    

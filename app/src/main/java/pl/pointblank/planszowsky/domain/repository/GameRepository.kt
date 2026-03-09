@@ -32,4 +32,11 @@ interface GameRepository {
     fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>>
     suspend fun deleteCollection(collectionId: String)
     suspend fun renameCollection(collectionId: String, newName: String)
+
+    // Sessions
+    fun getActiveSession(): Flow<pl.pointblank.planszowsky.data.local.SessionEntity?>
+    suspend fun saveSession(session: pl.pointblank.planszowsky.data.local.SessionEntity)
+    suspend fun getSessionByGameId(gameId: String): pl.pointblank.planszowsky.data.local.SessionEntity?
+    suspend fun deleteSession(gameId: String)
+    suspend fun clearActiveSessions()
 }

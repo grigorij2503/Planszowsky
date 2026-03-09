@@ -6,12 +6,27 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [GameEntity::class, CollectionEntity::class], version = 11, exportSchema = false)
-@TypeConverters(Converters::class)
+@Database(entities = [GameEntity::class, CollectionEntity::class, SessionEntity::class], version = 12, exportSchema = false)
+@TypeConverters(Converters::class, SessionConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
 
     companion object {
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS active_sessions (
+                        gameId TEXT NOT NULL PRIMARY KEY,
+                        gameTitle TEXT NOT NULL,
+                        startTime INTEGER NOT NULL,
+                        players TEXT NOT NULL,
+                        notes TEXT NOT NULL,
+                        isActive INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE games ADD COLUMN localImageUri TEXT")
