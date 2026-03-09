@@ -21,6 +21,14 @@ val OrbitronFont = FontFamily(
     Font(googleFont = GoogleFont("Orbitron"), fontProvider = provider)
 )
 
+val PressStart2PFont = FontFamily(
+    Font(googleFont = GoogleFont("Press Start 2P"), fontProvider = provider)
+)
+
+val PixelifySansFont = FontFamily(
+    Font(googleFont = GoogleFont("Pixelify Sans"), fontProvider = provider)
+)
+
 val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -57,34 +65,40 @@ val Typography = Typography(
 
 val PixelTypography = Typography(
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = PixelifySansFont,
         fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = PixelifySansFont,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.SemiBold,
         fontSize = 20.sp,
         lineHeight = 28.sp
     ),
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Monospace,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
+    titleLarge = TextStyle(
+        fontFamily = PixelifySansFont,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp,
         lineHeight = 24.sp
     ),
+    bodyLarge = TextStyle(
+        fontFamily = PressStart2PFont,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp, // Press Start is naturally large/chunky
+        lineHeight = 20.sp
+    ),
     labelSmall = TextStyle(
-        fontFamily = FontFamily.Monospace,
+        fontFamily = PressStart2PFont,
         fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
+        fontSize = 8.sp,
+        lineHeight = 12.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = PressStart2PFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 10.sp,
         lineHeight = 16.sp
     )
 )

@@ -263,7 +263,7 @@ fun DetailsScreen(
                         Column(modifier = Modifier.padding(24.dp)) {
                             Text(
                                 text = if (isRetro) g.title.decodeHtml().uppercase() else g.title.decodeHtml(),
-                                style = if (isRetro) MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
+                                style = if (isRetro) MaterialTheme.typography.headlineLarge.copy(color = RetroText)
                                         else MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold
                             )

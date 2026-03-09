@@ -268,7 +268,6 @@ fun RetroSquareButton(
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge.copy(
-                fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 color = if (color == RetroGold) RetroBlack else Color.White
             )
@@ -303,10 +302,9 @@ fun RetroFilterChip(
             .padding(horizontal = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.material3.Text(
+        Text(
             text = text.uppercase(),
-            style = androidx.compose.material3.MaterialTheme.typography.labelLarge.copy(
-                fontFamily = FontFamily.Monospace,
+            style = MaterialTheme.typography.labelLarge.copy(
                 fontWeight = FontWeight.ExtraBold,
                 color = if (isSelected) RetroBlack else RetroText,
                 fontSize = 11.sp
