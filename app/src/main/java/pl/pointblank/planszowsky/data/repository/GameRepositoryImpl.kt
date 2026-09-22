@@ -1,6 +1,8 @@
 package pl.pointblank.planszowsky.data.repository
 
 import pl.pointblank.planszowsky.data.local.GameDao
+import pl.pointblank.planszowsky.data.local.AppDatabase
+import pl.pointblank.planszowsky.data.local.GameEntity
 import pl.pointblank.planszowsky.data.local.toDomainModel
 import pl.pointblank.planszowsky.data.local.toEntity
 import pl.pointblank.planszowsky.data.remote.BggApi
@@ -16,9 +18,14 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import pl.pointblank.planszowsky.util.similarity
 import retrofit2.HttpException
 import javax.inject.Inject
+import androidx.room.withTransaction
+import pl.pointblank.planszowsky.di.BggHttpClient
+import pl.pointblank.planszowsky.di.RemoteImportHttpClient
+import java.io.IOException
 
 import kotlinx.coroutines.flow.combine
 import pl.pointblank.planszowsky.domain.model.CollectionStats
@@ -28,8 +35,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 
 class GameRepositoryImpl @Inject constructor(
     private val dao: GameDao,
+    private val database: AppDatabase,
     private val api: BggApi,
-    private val okHttpClient: OkHttpClient,
+    @param:BggHttpClient private val bggHttpClient: OkHttpClient,
+    @param:RemoteImportHttpClient private val remoteImportHttpClient: OkHttpClient,
     private val firebaseManager: FirebaseManager
 ) : GameRepository {
 
@@ -94,7 +103,7 @@ class GameRepositoryImpl @Inject constructor(
                         .url("https://boardgamegeek.com/")
                         .build()
                     
-                    okHttpClient.newCall(request).execute().use { response ->
+                    bggHttpClient.newCall(request).execute().use { response ->
                         if (response.isSuccessful) {
                             isSessionInitialized = true
                         }
@@ -147,8 +156,8 @@ class GameRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteGame(game: Game) {
-        pl.pointblank.planszowsky.util.ImageManager.deleteImage(game.localImageUri)
         dao.deleteGame(game.toEntity())
+        pl.pointblank.planszowsky.util.ImageManager.deleteImage(game.localImageUri)
     }
 
     override suspend fun searchRemoteGames(query: String): List<Game> {
@@ -268,11 +277,10 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun updateLocalImage(gameId: String, collectionId: String, imagePath: String?) {
         val game = getGame(gameId, collectionId)
         game?.let {
-            // Delete old image if exists
+            dao.insertGame(it.copy(localImageUri = imagePath).toEntity())
             if (it.localImageUri != imagePath) {
                 pl.pointblank.planszowsky.util.ImageManager.deleteImage(it.localImageUri)
             }
-            dao.insertGame(it.copy(localImageUri = imagePath).toEntity())
         }
     }
 
@@ -371,11 +379,14 @@ class GameRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun saveImportedGames(games: List<Game>, overwriteExisting: Boolean, collectionId: String): Int {
-        var count = 0
+    private suspend fun prepareImportedGames(
+        games: List<Game>,
+        overwriteExisting: Boolean,
+        collectionId: String
+    ): List<GameEntity> {
         val incompleteGames = games.filter { it.imageUrl.isNullOrBlank() || it.description.isNullOrBlank() }
         val enrichedData = mutableMapOf<String, Game>()
-        
+
         if (incompleteGames.isNotEmpty()) {
             incompleteGames.chunked(20).forEach { batch ->
                 try {
@@ -402,38 +413,60 @@ class GameRepositoryImpl @Inject constructor(
             }
         }
 
-        games.forEach { game ->
-            try {
-                val existing = dao.getGameById(game.id, collectionId)
-                if (existing == null || overwriteExisting) {
-                    val enriched = enrichedData[game.id]
-                    val gameToSave = game.copy(
-                        collectionId = collectionId,
-                        thumbnailUrl = game.thumbnailUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.thumbnailUrl,
-                        imageUrl = game.imageUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.imageUrl,
-                        description = game.description.takeIf { !it.isNullOrBlank() } ?: enriched?.description,
-                        yearPublished = game.yearPublished ?: enriched?.yearPublished,
-                        minPlayers = game.minPlayers ?: enriched?.minPlayers,
-                        maxPlayers = game.maxPlayers ?: enriched?.maxPlayers,
-                        playingTime = game.playingTime ?: enriched?.playingTime,
-                        categories = game.categories.takeIf { it.isNotEmpty() } ?: enriched?.categories ?: emptyList(),
-                        expansions = if (game.expansions.isNotEmpty()) {
-                            val known = enriched?.expansions ?: emptyList()
-                            if (known.isEmpty()) game.expansions else {
-                                known.map { k -> 
-                                    if (game.expansions.any { it.id == k.id && it.isOwned }) k.copy(isOwned = true) else k
+        val existingGames = dao.getAllGamesSync(collectionId).associateBy { it.id }
+
+        return games
+            .asSequence()
+            .filter { overwriteExisting || it.id !in existingGames }
+            .map { game ->
+                val enriched = enrichedData[game.id]
+                val existing = existingGames[game.id]
+                game.copy(
+                    collectionId = collectionId,
+                    thumbnailUrl = game.thumbnailUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.thumbnailUrl,
+                    imageUrl = game.imageUrl.takeIf { !it.isNullOrBlank() } ?: enriched?.imageUrl,
+                    description = game.description.takeIf { !it.isNullOrBlank() } ?: enriched?.description,
+                    yearPublished = game.yearPublished ?: enriched?.yearPublished,
+                    minPlayers = game.minPlayers ?: enriched?.minPlayers,
+                    maxPlayers = game.maxPlayers ?: enriched?.maxPlayers,
+                    playingTime = game.playingTime ?: enriched?.playingTime,
+                    categories = game.categories.takeIf { it.isNotEmpty() } ?: enriched?.categories ?: emptyList(),
+                    expansions = if (game.expansions.isNotEmpty()) {
+                        val known = enriched?.expansions ?: emptyList()
+                        if (known.isEmpty()) {
+                            game.expansions
+                        } else {
+                            known.map { knownExpansion ->
+                                if (game.expansions.any { it.id == knownExpansion.id && it.isOwned }) {
+                                    knownExpansion.copy(isOwned = true)
+                                } else {
+                                    knownExpansion
                                 }
                             }
-                        } else enriched?.expansions ?: emptyList()
-                    )
-                    dao.insertGame(gameToSave.toEntity())
-                    count++
-                }
-            } catch (e: Exception) {
-                firebaseManager.logError(e, "Failed to insert game: ${game.title}")
+                        }
+                    } else {
+                        enriched?.expansions ?: emptyList()
+                    },
+                    localImageUri = game.localImageUri ?: existing?.localImageUri,
+                    isBorrowed = existing?.isBorrowed ?: game.isBorrowed,
+                    borrowedTo = existing?.borrowedTo ?: game.borrowedTo,
+                    isBorrowedFrom = existing?.isBorrowedFrom ?: game.isBorrowedFrom,
+                    borrowedFrom = existing?.borrowedFrom ?: game.borrowedFrom
+                ).toEntity()
             }
+            .toList()
+    }
+
+    override suspend fun saveImportedGames(
+        games: List<Game>,
+        overwriteExisting: Boolean,
+        collectionId: String
+    ): Int = withContext(Dispatchers.IO) {
+        val entities = prepareImportedGames(games, overwriteExisting, collectionId)
+        database.withTransaction {
+            dao.insertGames(entities)
         }
-        return count
+        entities.size
     }
 
     override suspend fun fetchBggUserProfile(username: String): String? {
@@ -579,18 +612,10 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun importRemoteCollection(url: String, name: String): Result<Int> = withContext(Dispatchers.IO) {
         try {
             var downloadUrl = transformGoogleDriveUrl(url)
-            android.util.Log.d("PLANSZOWSKY_DEBUG", "Starting import from: $downloadUrl")
+            var content = downloadRemoteText(downloadUrl)
 
-            var request = Request.Builder().url(downloadUrl).build()
-            var response = okHttpClient.newCall(request).execute()
-            
-            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed to download: ${response.code}"))
-            
-            var content = response.body.string()
-            
             // Check if we got Google Drive virus scan warning (HTML) instead of CSV
             if (content.contains("google.com/uc") && content.contains("confirm=")) {
-                android.util.Log.d("PLANSZOWSKY_DEBUG", "Detected Google Drive large file warning. Retrying with confirm token...")
                 val confirmToken = Regex("confirm=([^&\"\\s]+)").find(content)?.groupValues?.get(1)
                 if (confirmToken != null) {
                     downloadUrl = if (downloadUrl.contains("confirm=")) {
@@ -598,20 +623,15 @@ class GameRepositoryImpl @Inject constructor(
                     } else {
                         "$downloadUrl&confirm=$confirmToken"
                     }
-                    android.util.Log.d("PLANSZOWSKY_DEBUG", "New download URL: $downloadUrl")
-                    request = Request.Builder().url(downloadUrl).build()
-                    response = okHttpClient.newCall(request).execute()
-                    if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed after confirm: ${response.code}"))
-                    content = response.body.string()
+                    content = downloadRemoteText(downloadUrl)
                 }
             }
 
-            android.util.Log.d("PLANSZOWSKY_DEBUG", "Final content length: ${content.length}")
-            if (content.isEmpty()) return@withContext Result.failure(Exception("Empty body from server"))
+            if (content.isBlank()) return@withContext Result.failure(Exception("Empty body from server"))
 
             val games = parseCsv(content)
-            android.util.Log.d("PLANSZOWSKY_DEBUG", "Games parsed: ${games.size}")
-            
+            if (games.isEmpty()) return@withContext Result.failure(Exception("No valid games found in CSV"))
+
             val collectionId = java.util.UUID.randomUUID().toString()
             val collection = pl.pointblank.planszowsky.data.local.CollectionEntity(
                 id = collectionId,
@@ -620,12 +640,15 @@ class GameRepositoryImpl @Inject constructor(
                 isReadOnly = true,
                 lastUpdated = System.currentTimeMillis()
             )
-            
-            dao.insertCollection(collection)
-            val count = saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
-            Result.success(count)
+
+            val entities = prepareImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            database.withTransaction {
+                dao.insertCollection(collection)
+                dao.insertGames(entities)
+            }
+            Result.success(entities.size)
         } catch (e: Exception) {
-            android.util.Log.e("PLANSZOWSKY_DEBUG", "Import Error", e)
+            firebaseManager.logError(e, "Remote collection import failed")
             Result.failure(e)
         }
     }
@@ -635,21 +658,75 @@ class GameRepositoryImpl @Inject constructor(
             val collection = dao.getCollectionById(collectionId) ?: return@withContext Result.failure(Exception("Not found"))
             val url = collection.sourceUrl ?: return@withContext Result.failure(Exception("No URL"))
             
-            val downloadUrl = transformGoogleDriveUrl(url)
-            val request = Request.Builder().url(downloadUrl).build()
-            val response = okHttpClient.newCall(request).execute()
-            if (!response.isSuccessful) return@withContext Result.failure(Exception("Failed: ${response.code}"))
-            
-            val csvContent = response.body.string()
+            val csvContent = downloadRemoteText(transformGoogleDriveUrl(url))
             val games = parseCsv(csvContent)
-            
-            dao.deleteGamesByCollection(collectionId)
-            saveImportedGames(games, overwriteExisting = true, collectionId = collectionId)
-            
-            dao.insertCollection(collection.copy(lastUpdated = System.currentTimeMillis()))
+            if (games.isEmpty()) return@withContext Result.failure(Exception("No valid games found in CSV"))
+
+            val entities = prepareImportedGames(games, overwriteExisting = true, collectionId = collectionId)
+            database.withTransaction {
+                dao.deleteGamesByCollection(collectionId)
+                dao.insertGames(entities)
+                dao.insertCollection(collection.copy(lastUpdated = System.currentTimeMillis()))
+            }
             Result.success(Unit)
         } catch (e: Exception) {
+            firebaseManager.logError(e, "Remote collection refresh failed")
             Result.failure(e)
+        }
+    }
+
+    private fun downloadRemoteText(url: String): String {
+        val validatedUrl = validateRemoteImportUrl(url)
+        val request = Request.Builder().url(validatedUrl).build()
+        return remoteImportHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw IOException("Failed to download remote collection: ${response.code}")
+            }
+            response.readTextWithLimit(MAX_REMOTE_IMPORT_CHARS)
+        }
+    }
+
+    private fun validateRemoteImportUrl(url: String): String {
+        val parsed = runCatching { java.net.URI(url) }
+            .getOrElse { throw IllegalArgumentException("Invalid collection URL", it) }
+        val scheme = parsed.scheme?.lowercase()
+        require(scheme == "http" || scheme == "https") { "Only HTTP and HTTPS collection URLs are supported" }
+
+        val host = parsed.host?.lowercase() ?: throw IllegalArgumentException("Collection URL has no host")
+        require(!isLocalAddress(host)) { "Local network collection URLs are not supported" }
+        return url
+    }
+
+    private fun isLocalAddress(host: String): Boolean {
+        if (host == "localhost" || host == "::1" || host.endsWith(".local")) return true
+        val octets = host.split('.').mapNotNull { it.toIntOrNull() }
+        if (octets.size != 4 || octets.any { it !in 0..255 }) return false
+        return octets[0] == 10 ||
+            octets[0] == 127 ||
+            (octets[0] == 169 && octets[1] == 254) ||
+            (octets[0] == 172 && octets[1] in 16..31) ||
+            (octets[0] == 192 && octets[1] == 168)
+    }
+
+    private fun Response.readTextWithLimit(maxChars: Int): String {
+        val responseBody = body
+        val contentLength = responseBody.contentLength()
+        if (contentLength > maxChars * MAX_UTF8_BYTES_PER_CHAR) {
+            throw IOException("Remote collection file is too large")
+        }
+
+        return responseBody.charStream().use { reader ->
+            val result = StringBuilder(minOf(contentLength.coerceAtLeast(0).toInt(), maxChars))
+            val buffer = CharArray(8_192)
+            while (true) {
+                val read = reader.read(buffer)
+                if (read < 0) break
+                if (result.length + read > maxChars) {
+                    throw IOException("Remote collection file is too large")
+                }
+                result.append(buffer, 0, read)
+            }
+            result.toString()
         }
     }
 
@@ -663,6 +740,11 @@ class GameRepositoryImpl @Inject constructor(
         } else url
     }
 
+    private companion object {
+        const val MAX_REMOTE_IMPORT_CHARS = 5_000_000
+        const val MAX_UTF8_BYTES_PER_CHAR = 4
+    }
+
     override fun getAllCollections(): Flow<List<pl.pointblank.planszowsky.data.local.CollectionEntity>> = dao.getAllCollections()
 
     override suspend fun deleteCollection(collectionId: String) {
@@ -670,11 +752,13 @@ class GameRepositoryImpl @Inject constructor(
         val collection = dao.getCollectionById(collectionId)
         if (collection != null) {
             val gamesInCollection = dao.getAllGamesSync(collectionId)
-            gamesInCollection.forEach { 
+            database.withTransaction {
+                dao.deleteGamesByCollection(collectionId)
+                dao.deleteCollection(collection)
+            }
+            gamesInCollection.forEach {
                 pl.pointblank.planszowsky.util.ImageManager.deleteImage(it.localImageUri)
             }
-            dao.deleteGamesByCollection(collectionId)
-            dao.deleteCollection(collection)
         }
     }
 

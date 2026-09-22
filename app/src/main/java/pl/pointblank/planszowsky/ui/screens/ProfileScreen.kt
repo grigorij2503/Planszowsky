@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -60,16 +62,17 @@ fun ProfileScreen(
     appTheme: AppTheme = AppTheme.MODERN,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val username by viewModel.bggUsername.collectAsState()
-    val isImporting by viewModel.isImporting.collectAsState()
-    val importResult by viewModel.importResult.collectAsState(initial = null)
-    val stats by viewModel.stats.collectAsState()
-    val collections by viewModel.collections.collectAsState()
-    val activeCollectionId by viewModel.activeCollectionId.collectAsState()
-    val bggAvatarUrl by viewModel.bggAvatarUrl.collectAsState()
-    val persistedUsername by viewModel.persistedUsername.collectAsState()
+    val username by viewModel.bggUsername.collectAsStateWithLifecycle()
+    val isImporting by viewModel.isImporting.collectAsStateWithLifecycle()
+    val importResult by viewModel.importResult.collectAsStateWithLifecycle(initialValue = null)
+    val stats by viewModel.stats.collectAsStateWithLifecycle()
+    val collections by viewModel.collections.collectAsStateWithLifecycle()
+    val activeCollectionId by viewModel.activeCollectionId.collectAsStateWithLifecycle()
+    val bggAvatarUrl by viewModel.bggAvatarUrl.collectAsStateWithLifecycle()
+    val persistedUsername by viewModel.persistedUsername.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
+    val profilesScrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     
     var showConflictDialog by remember { mutableStateOf(false) }
@@ -110,8 +113,8 @@ fun ProfileScreen(
                         val csv = inputStream.bufferedReader().readText()
                         viewModel.startCsvImport(csv)
                     }
-                } catch (e: Exception) {
-                    android.widget.Toast.makeText(context, "Import error: ${e.localizedMessage}", android.widget.Toast.LENGTH_LONG).show()
+                } catch (_: Exception) {
+                    android.widget.Toast.makeText(context, R.string.import_error, android.widget.Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -229,7 +232,7 @@ fun ProfileScreen(
                                 showConflictDialog = false
                                 viewModel.confirmImport(overwriteExisting = true)
                             },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                             shape = RoundedCornerShape(16.dp)
                         ) {
                             Text(stringResource(R.string.import_conflict_overwrite), fontWeight = FontWeight.Bold)
@@ -242,7 +245,7 @@ fun ProfileScreen(
                                 showConflictDialog = false
                                 viewModel.confirmImport(overwriteExisting = false)
                             },
-                            modifier = Modifier.fillMaxWidth().height(56.dp)
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
                         ) {
                             Text(stringResource(R.string.import_conflict_skip), color = MaterialTheme.colorScheme.primary)
                         }
@@ -320,7 +323,9 @@ fun ProfileScreen(
         
         // Profiles Row
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(profilesScrollState),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -460,18 +465,23 @@ fun ProfileScreen(
                         IconButton(onClick = { 
                             newNameValue = collection.name
                             renamingCollectionId = collection.id 
-                        }, modifier = Modifier.size(16.dp)) {
-                            Icon(Icons.Default.Edit, null, modifier = Modifier.size(10.dp), tint = if(isRetro) RetroText.copy(alpha = 0.5f) else Color.Gray)
+                        }, modifier = Modifier.size(40.dp)) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.edit_collection),
+                                modifier = Modifier.size(18.dp),
+                                tint = if(isRetro) RetroText.copy(alpha = 0.7f) else Color.Gray
+                            )
                         }
                     }
                     
                     if (collection.sourceUrl != null) {
                         Row(modifier = Modifier.padding(top = 4.dp)) {
-                            IconButton(onClick = { viewModel.refreshCollection(collection.id) }, modifier = Modifier.size(20.dp)) {
-                                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(12.dp), tint = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
+                            IconButton(onClick = { viewModel.refreshCollection(collection.id) }, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Default.Refresh, stringResource(R.string.refresh_collection), modifier = Modifier.size(18.dp), tint = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
                             }
-                            IconButton(onClick = { collectionToDeleteId = collection.id }, modifier = Modifier.size(20.dp)) {
-                                Icon(Icons.Default.Delete, null, modifier = Modifier.size(12.dp), tint = if(isRetro) RetroRed else MaterialTheme.colorScheme.error)
+                            IconButton(onClick = { collectionToDeleteId = collection.id }, modifier = Modifier.size(40.dp)) {
+                                Icon(Icons.Default.Delete, stringResource(R.string.delete_button), modifier = Modifier.size(18.dp), tint = if(isRetro) RetroRed else MaterialTheme.colorScheme.error)
                             }
                         }
                     }
@@ -563,7 +573,7 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Language Selection Card
-        val currentLocale by viewModel.appLocale.collectAsState()
+        val currentLocale by viewModel.appLocale.collectAsStateWithLifecycle()
         
         if (isRetro) {
             RetroChunkyBox(
@@ -827,7 +837,7 @@ fun ProfileScreen(
                     
                     Button(
                         onClick = { viewModel.importFromBgg() },
-                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         shape = RoundedCornerShape(16.dp),
                         enabled = !isImporting && username.isNotBlank()
                     ) {
@@ -1060,7 +1070,7 @@ fun ThemeButton(
     if (isRetro) {
         Box(
             modifier = modifier
-                .height(48.dp)
+                .heightIn(min = 48.dp)
                 .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
                 .background(if (isSelected) RetroGold else RetroBackground)
                 .clickable(onClick = onClick)
@@ -1086,7 +1096,7 @@ fun ThemeButton(
     } else {
         Button(
             onClick = onClick,
-            modifier = modifier.height(48.dp),
+            modifier = modifier.heightIn(min = 48.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
@@ -1109,7 +1119,7 @@ fun FlagButton(
     if (isRetro) {
         Box(
             modifier = modifier
-                .height(48.dp)
+                .heightIn(min = 48.dp)
                 .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
                 .background(if (isSelected) RetroGold else RetroBackground)
                 .clickable(onClick = onClick)
@@ -1132,7 +1142,7 @@ fun FlagButton(
     } else {
         Button(
             onClick = onClick,
-            modifier = modifier.height(48.dp),
+            modifier = modifier.heightIn(min = 48.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,

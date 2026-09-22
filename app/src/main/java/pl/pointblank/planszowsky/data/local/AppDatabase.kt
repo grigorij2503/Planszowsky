@@ -6,12 +6,18 @@ import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [GameEntity::class, CollectionEntity::class, SessionEntity::class], version = 12, exportSchema = false)
+@Database(entities = [GameEntity::class, CollectionEntity::class, SessionEntity::class], version = 12, exportSchema = true)
 @TypeConverters(Converters::class, SessionConverters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun gameDao(): GameDao
 
     companion object {
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE games ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
@@ -26,7 +27,7 @@ fun WishlistScreen(
     viewModel: WishlistViewModel = hiltViewModel(),
     onGameClick: (String, String) -> Unit
 ) {
-    val games by viewModel.wishlistedGames.collectAsState()
+    val games by viewModel.wishlistedGames.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
 
     Column(

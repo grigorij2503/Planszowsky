@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import pl.pointblank.planszowsky.R
@@ -63,13 +64,13 @@ fun CollectionScreen(
     onRandomizerClick: () -> Unit,
     onScanClick: () -> Unit
 ) {
-    val games by viewModel.games.collectAsState()
-    val categories by viewModel.categories.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
-    val viewMode by viewModel.collectionViewMode.collectAsState()
-    val activeCollection by viewModel.activeCollection.collectAsState()
+    val games by viewModel.games.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val viewMode by viewModel.collectionViewMode.collectAsStateWithLifecycle()
+    val activeCollection by viewModel.activeCollection.collectAsStateWithLifecycle()
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
     var isCategoriesExpanded by remember { mutableStateOf(false) }
@@ -242,7 +243,7 @@ fun CollectionScreen(
                                     }
                                     items(categories.take(2)) { category ->
                                         CategoryChip(
-                                            text = category,
+                                            text = categoryDisplayName(category),
                                             isSelected = selectedCategory == category,
                                             isRetro = isRetro,
                                             onClick = { viewModel.selectCategory(category) }
@@ -385,7 +386,7 @@ fun RetroDiceButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
 fun CategoryChip(text: String, isSelected: Boolean, isRetro: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     if (isRetro) {
         Box(
-            modifier = modifier.height(38.dp).clickable(onClick = onClick).pixelButtonFrame(isSelected = isSelected, thickness = 2.dp).padding(2.dp).background(if (isSelected) RetroGold else RetroElementBackground).padding(horizontal = 12.dp),
+            modifier = modifier.heightIn(min = 38.dp).clickable(onClick = onClick).pixelButtonFrame(isSelected = isSelected, thickness = 2.dp).padding(2.dp).background(if (isSelected) RetroGold else RetroElementBackground).padding(horizontal = 12.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(text = text.uppercase(), style = MaterialTheme.typography.labelLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = if (isSelected) RetroBlack else RetroText, fontSize = 11.sp))
@@ -396,7 +397,7 @@ fun CategoryChip(text: String, isSelected: Boolean, isRetro: Boolean, onClick: (
             shape = RoundedCornerShape(8.dp),
             color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
             contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = modifier.height(36.dp)
+            modifier = modifier.heightIn(min = 36.dp)
         ) {
             Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (isSelected) Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp).padding(end = 4.dp))
@@ -411,7 +412,7 @@ fun CategoryChip(text: String, isSelected: Boolean, isRetro: Boolean, onClick: (
 fun ExpandedCategoriesFlow(categories: List<String>, selectedCategory: String?, isRetro: Boolean, onCategoryClick: (String) -> Unit) {
     FlowRow(modifier = Modifier.fillMaxWidth().padding(8.dp), horizontalArrangement = Arrangement.spacedBy(if (isRetro) 4.dp else 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         categories.forEach { category ->
-            CategoryChip(text = category, isSelected = selectedCategory == category, isRetro = isRetro, onClick = { onCategoryClick(category) })
+            CategoryChip(text = categoryDisplayName(category), isSelected = selectedCategory == category, isRetro = isRetro, onClick = { onCategoryClick(category) })
         }
     }
 }
@@ -546,7 +547,7 @@ fun GameListRow(game: Game, isRetro: Boolean, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = if(isRetro) game.title.uppercase() else game.title, style = if(isRetro) MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(text = game.categories.take(2).joinToString(", "), style = MaterialTheme.typography.bodySmall, color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
+                Text(text = categoryDisplayNames(game.categories.take(2)), style = MaterialTheme.typography.bodySmall, color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
             }
         }
     }

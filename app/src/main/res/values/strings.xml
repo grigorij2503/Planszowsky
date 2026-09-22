@@ -67,6 +67,12 @@
     <string name="expert_limit_reached">"Limit wyczerpany! Możesz zadać 5 pytań dziennie. Mistrz Gry musi odpocząć do jutra."</string>
     <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
     <string name="expert_limit_short">"Limit wyczerpany"</string>
+    <string name="expert_session_inactive">Sesja czatu nie jest aktywna.</string>
+    <string name="expert_empty_response">Model nie zwrócił odpowiedzi.</string>
+    <string name="expert_rate_limit_error">Zbyt wiele zapytań. Spróbuj ponownie za chwilę.</string>
+    <string name="expert_unavailable_error">Usługa AI jest teraz przeciążona. Spróbuj ponownie za moment.</string>
+    <string name="expert_server_error">Błąd usługi AI. Spróbuj ponownie później.</string>
+    <string name="expert_communication_error">Nie udało się połączyć z usługą AI.</string>
     <string name="no_results">Brak wyników wyszukiwania.</string>
     <string name="bgg_api_error">Wystąpił problem z połączeniem do BoardGameGeek. Spróbuj ponownie później.</string>
     <string name="theme_selection_title">Wygląd aplikacji</string>
@@ -156,6 +162,7 @@
     <string name="collections_title">Twoje Kolekcje</string>
     <string name="readonly_notice">Tylko do odczytu</string>
     <string name="refresh_collection">Odśwież</string>
+    <string name="edit_collection">Edytuj nazwę kolekcji</string>
     <string name="delete_collection_confirm">Usunąć tę kolekcję?</string>
     
     <!-- Active Session -->
@@ -167,4 +174,21 @@
     <string name="add_player">Dodaj Gracza</string>
     <string name="player_name_hint">Imię gracza</string>
     <string name="start_game">Graj!</string>
+
+    <!-- Localized display labels for raw BoardGameGeek categories -->
+    <string name="category_card_game">Gra karciana</string>
+    <string name="category_childrens_game">Gra dla dzieci</string>
+    <string name="category_fantasy">Fantasy</string>
+    <string name="category_economic">Ekonomiczna</string>
+    <string name="category_war_game">Gra wojenna</string>
+    <string name="category_adventure">Przygodowa</string>
+    <string name="category_dice">Kościana</string>
+    <string name="category_party_game">Imprezowa</string>
+    <string name="category_abstract_strategy">Strategia abstrakcyjna</string>
+    <string name="category_horror">Horror</string>
+    <string name="category_science_fiction">Science fiction</string>
+    <string name="category_medieval">Średniowieczna</string>
+    <string name="category_civilization">Cywilizacyjna</string>
+    <string name="category_exploration">Eksploracyjna</string>
+    <string name="category_ancient">Starożytność</string>
 </resources>

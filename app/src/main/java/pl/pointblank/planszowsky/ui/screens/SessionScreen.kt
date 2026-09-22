@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.data.local.PlayerScore
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -36,8 +37,8 @@ fun SessionScreen(
     onDiceClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val activeSession by viewModel.activeSession.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
+    val activeSession by viewModel.activeSession.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
 
     var showChat by remember { mutableStateOf(false) }
@@ -46,17 +47,17 @@ fun SessionScreen(
     var elapsedTime by remember { mutableLongStateOf(0L) }
     
     LaunchedEffect(activeSession) {
-        if (activeSession != null) {
+        activeSession?.let { session ->
             while (true) {
-                elapsedTime = System.currentTimeMillis() - activeSession!!.startTime
+                elapsedTime = System.currentTimeMillis() - session.startTime
                 kotlinx.coroutines.delay(1000)
             }
         }
     }
 
-    if (showChat && activeSession != null) {
+    activeSession?.takeIf { showChat }?.let { session ->
         ExpertChatBottomSheet(
-            gameTitle = activeSession!!.gameTitle,
+            gameTitle = session.gameTitle,
             onDismiss = { showChat = false }
         )
     }
@@ -97,7 +98,7 @@ fun SessionScreen(
                 Text(stringResource(R.string.no_active_session), color = if(isRetro) RetroText else Color.Unspecified)
             }
         } else {
-            val session = activeSession!!
+            val session = activeSession ?: return@Scaffold
             Column(
                 modifier = Modifier
                     .fillMaxSize()

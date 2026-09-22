@@ -11,7 +11,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,38 +25,36 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import pl.pointblank.planszowsky.util.LanguageManager
-
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface MainActivityEntryPoint {
-        fun userPreferencesRepository(): UserPreferencesRepository
-    }
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+
+    @Volatile
+    private var isLocaleReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
-        
-        // Apply saved language preference using EntryPoint to avoid injection timing issues
-        runBlocking {
-            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
-            val userPreferencesRepository = entryPoint.userPreferencesRepository()
-            
-            val locale = userPreferencesRepository.appLocale.first()
-            if (locale != "system") {
-                LanguageManager.applyLocale(this@MainActivity, locale)
-            }
-        }
+        splashScreen.setKeepOnScreenCondition { !isLocaleReady }
 
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            try {
+                val locale = userPreferencesRepository.appLocale.first()
+                if (LanguageManager.getCurrentLocale(this@MainActivity) != locale) {
+                    LanguageManager.applyLocale(this@MainActivity, locale)
+                }
+            } finally {
+                isLocaleReady = true
+            }
+        }
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -65,9 +62,7 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
-            val userPreferencesRepository = entryPoint.userPreferencesRepository()
-            val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
+            val appTheme by userPreferencesRepository.appTheme.collectAsStateWithLifecycle(initialValue = AppTheme.MODERN)
 
             var showCustomSplash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
 

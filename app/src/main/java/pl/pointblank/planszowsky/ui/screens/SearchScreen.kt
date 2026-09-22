@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -46,11 +47,11 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val query by viewModel.searchQuery.collectAsState()
-    val results by viewModel.searchResults.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
-    val additionSuccess by viewModel.additionSuccess.collectAsState()
+    val query by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val results by viewModel.searchResults.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    val additionSuccess by viewModel.additionSuccess.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     val focusRequester = remember { FocusRequester() }
@@ -190,7 +191,7 @@ fun RetroSearchTopBar(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
+                .heightIn(min = 48.dp)
                 .background(RetroElementBackground)
                 .drawBehind {
                     val stroke = 3.dp.toPx()

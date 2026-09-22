@@ -30,3 +30,7 @@ val RetroBlue = Color(0xFF002266) // Deep Blue
 val RetroOrange = Color(0xFFF57C00) // RetroOrange
 val RetroGreen = Color(0xFF004D00) // Forest Green
 val RetroBrown = Color(0xFF1A0F0A) // Deepest Brown
+val RetroIron = Color(0xFF211C18)
+val RetroBronze = Color(0xFF8C642F)
+val RetroBronzeLight = Color(0xFFD6A85B)
+val RetroLeatherGrain = Color(0xFF3A2417)

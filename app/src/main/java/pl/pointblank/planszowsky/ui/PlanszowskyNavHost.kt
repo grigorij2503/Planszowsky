@@ -11,6 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -144,7 +150,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                 ScanScreen(
                     appTheme = appTheme,
                     onTextScanned = { text ->
-                        navController.navigate("search?query=$text") {
+                        navController.navigate("search?query=${android.net.Uri.encode(text)}") {
                             popUpTo("scan") { inclusive = true }
                         }
                     },
@@ -189,10 +195,16 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
 @Composable
 fun ModernNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val label = stringResource(screen.labelRes)
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                role = Role.Tab
+                selected = isSelected
+            }
             .clickable(onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 8.dp)
     ) {
@@ -210,7 +222,7 @@ fun ModernNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modi
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(screen.labelRes),
+                text = label,
                 style = MaterialTheme.typography.labelMedium.copy( // Changed from labelSmall
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     color = color
@@ -268,37 +280,62 @@ fun RetroNavigationBar(navController: NavHostController, currentDestination: Nav
 
 @Composable
 fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val label = stringResource(screen.labelRes)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
+            .padding(horizontal = 4.dp)
+            .then(
+                if (isSelected) {
+                    Modifier
+                        .pixelButtonFrame(isSelected = true, thickness = 2.dp)
+                        .background(RetroElementBackground)
+                } else {
+                    Modifier
+                }
+            )
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                role = Role.Tab
+                selected = isSelected
+            }
             .clickable(onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 8.dp)
     ) {
         Box(
-            modifier = Modifier.size(32.dp), // Restored to 32.dp
+            modifier = Modifier
+                .size(32.dp)
+                .alpha(if (isSelected) 1f else 0.55f),
             contentAlignment = Alignment.Center
         ) {
             when (screen) {
-                Screen.Collection -> PixelCollectionIcon(true)
-                Screen.DiceRoller -> PixelDiceIcon(true)
-                Screen.Wishlist -> PixelShinyHeartIcon(true)
-                Screen.Profile -> PixelProfileIcon(true)
+                Screen.Collection -> PixelCollectionIcon(isSelected)
+                Screen.DiceRoller -> PixelDiceIcon(isSelected)
+                Screen.Wishlist -> PixelShinyHeartIcon(isSelected)
+                Screen.Profile -> PixelProfileIcon(isSelected)
             }
         }
         
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            text = stringResource(screen.labelRes).uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp, // Increased from 9.sp
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) RetroGold else RetroText,
-                fontFamily = FontFamily.Monospace
-            ),
-            textAlign = TextAlign.Center,
-            maxLines = 1
-        )
+        Box(
+            modifier = Modifier.heightIn(min = 32.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isSelected) RetroGold else RetroText,
+                    fontFamily = FontFamily.Monospace
+                ),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
     }
 }

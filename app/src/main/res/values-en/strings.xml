@@ -67,6 +67,12 @@
     <string name="expert_limit_reached">"Limit reached! You can ask 5 questions per day. The Game Master needs to rest until tomorrow."</string>
     <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
     <string name="expert_limit_short">"Limit reached"</string>
+    <string name="expert_session_inactive">The chat session is not active.</string>
+    <string name="expert_empty_response">The model returned no response.</string>
+    <string name="expert_rate_limit_error">Too many requests. Try again shortly.</string>
+    <string name="expert_unavailable_error">The AI service is currently busy. Try again shortly.</string>
+    <string name="expert_server_error">AI service error. Try again later.</string>
+    <string name="expert_communication_error">Could not connect to the AI service.</string>
     <string name="no_results">No search results found.</string>
     <string name="theme_selection_title">App Appearance</string>
     <string name="theme_modern">Modern</string>
@@ -152,9 +158,14 @@
         <string name="collections_title">Your Collections</string>
         <string name="readonly_notice">Read Only</string>
         <string name="refresh_collection">Refresh</string>
+        <string name="edit_collection">Edit collection name</string>
         <string name="delete_collection_confirm">Delete this collection?</string>
 
         <!-- Active Session -->
+        <string name="translator_system_instruction">Translate the board game description from English into Polish. Return only the translated text.</string>
+        <string name="translate_button">Translate to Polish</string>
+        <string name="show_original">Show original</string>
+        <string name="translating">Translating…</string>
         <string name="active_session">Active Session</string>
         <string name="no_active_session">No active session.</string>
         <string name="players_label">Players</string>
@@ -163,4 +174,19 @@
         <string name="add_player">Add Player</string>
         <string name="player_name_hint">Player name</string>
         <string name="start_game">Play!</string>
-        </resources>    
+        <string name="category_card_game">Card Game</string>
+        <string name="category_childrens_game">Children\'s Game</string>
+        <string name="category_fantasy">Fantasy</string>
+        <string name="category_economic">Economic</string>
+        <string name="category_war_game">War Game</string>
+        <string name="category_adventure">Adventure</string>
+        <string name="category_dice">Dice</string>
+        <string name="category_party_game">Party Game</string>
+        <string name="category_abstract_strategy">Abstract Strategy</string>
+        <string name="category_horror">Horror</string>
+        <string name="category_science_fiction">Science Fiction</string>
+        <string name="category_medieval">Medieval</string>
+        <string name="category_civilization">Civilization</string>
+        <string name="category_exploration">Exploration</string>
+        <string name="category_ancient">Ancient</string>
+        </resources>

@@ -88,8 +88,15 @@ class ProfileViewModel @Inject constructor(
     fun refreshCollection(id: String) {
         viewModelScope.launch {
             _isImporting.value = true
-            repository.refreshCollection(id)
-            _isImporting.value = false
+            try {
+                repository.refreshCollection(id).onFailure { error ->
+                    _importResult.emit(ImportResult.Error(error.message ?: "Unknown error"))
+                }
+            } catch (e: Exception) {
+                _importResult.emit(ImportResult.Error(e.message ?: "Unknown error"))
+            } finally {
+                _isImporting.value = false
+            }
         }
     }
 

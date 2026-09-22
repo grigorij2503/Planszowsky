@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import pl.pointblank.planszowsky.R
@@ -51,11 +52,11 @@ fun DetailsScreen(
     onBackClick: () -> Unit,
     onStartSession: () -> Unit
 ) {
-    val game by viewModel.game.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
-    val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsState()
-    val isTranslating by viewModel.isTranslating.collectAsState()
-    val translatedDescription by viewModel.translatedDescription.collectAsState()
+    val game by viewModel.game.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsStateWithLifecycle()
+    val isTranslating by viewModel.isTranslating.collectAsStateWithLifecycle()
+    val translatedDescription by viewModel.translatedDescription.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -94,12 +95,12 @@ fun DetailsScreen(
 
     var showChat by remember { mutableStateOf(false) }
 
-    if (showSessionDialog && game != null) {
+    game?.takeIf { showSessionDialog }?.let { currentGame ->
         StartSessionDialog(
             isRetro = isRetro,
             onDismiss = { showSessionDialog = false },
             onConfirm = { players ->
-                sessionViewModel.startSession(game!!.id, game!!.title, players)
+                sessionViewModel.startSession(currentGame.id, currentGame.title, players)
                 showSessionDialog = false
                 onStartSession()
             }
@@ -166,9 +167,9 @@ fun DetailsScreen(
         }
     }
 
-    if (showChat && game != null) {
+    game?.takeIf { showChat }?.let { currentGame ->
         ExpertChatBottomSheet(
-            gameTitle = game!!.title,
+            gameTitle = currentGame.title,
             onDismiss = { showChat = false }
         )
     }
@@ -311,7 +312,7 @@ fun DetailsScreen(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     g.categories.forEach { category ->
-                                        CategoryChip(category, isRetro = isRetro)
+                                        CategoryChip(categoryDisplayName(category), isRetro = isRetro)
                                     }
                                 }
                             }
@@ -598,7 +599,7 @@ fun GameManagementPanel(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp)
+                            .heightIn(min = 44.dp)
                             .pixelButtonFrame(isSelected = game.isBorrowed || game.isBorrowedFrom, thickness = 2.dp)
                             .background(if(game.isBorrowed || game.isBorrowedFrom) borrowColor else Color.Transparent)
                             .clickable { showBorrowDialog = true }

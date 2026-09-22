@@ -18,6 +18,16 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.jackson.JacksonConverterFactory
 import javax.inject.Singleton
+import javax.inject.Qualifier
+import pl.pointblank.planszowsky.BuildConfig
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class BggHttpClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RemoteImportHttpClient
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,6 +42,7 @@ object AppModule {
             "planszowsky_db"
         )
         .addMigrations(
+            AppDatabase.MIGRATION_4_5,
             AppDatabase.MIGRATION_5_6, 
             AppDatabase.MIGRATION_6_7, 
             AppDatabase.MIGRATION_7_8,
@@ -50,31 +61,44 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS
-        }
-        
-        return OkHttpClient.Builder()
+    @BggHttpClient
+    fun provideBggHttpClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
                 val requestBuilder = original.newBuilder()
                     .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36")
-                
-                // Only add BGG API Key to BGG requests
-                if (original.url.host.contains("boardgamegeek.com") && pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY.isNotBlank()) {
-                    requestBuilder.header("Authorization", "Bearer ${pl.pointblank.planszowsky.BuildConfig.BGG_API_KEY}")
+
+                val host = original.url.host.lowercase()
+                val isBggHost = host == "boardgamegeek.com" || host.endsWith(".boardgamegeek.com")
+                if (isBggHost && BuildConfig.BGG_API_KEY.isNotBlank()) {
+                    requestBuilder.header("Authorization", "Bearer ${BuildConfig.BGG_API_KEY}")
                 }
-                
+
                 chain.proceed(requestBuilder.build())
             }
-            .addInterceptor(logging)
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor().apply {
+                redactHeader("Authorization")
+                level = HttpLoggingInterceptor.Level.HEADERS
+            }
+            builder.addInterceptor(logging)
+        }
+
+        return builder.build()
     }
 
     @Provides
     @Singleton
-    fun provideBggApi(okHttpClient: OkHttpClient): BggApi {
+    @RemoteImportHttpClient
+    fun provideRemoteImportHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideBggApi(@BggHttpClient okHttpClient: OkHttpClient): BggApi {
         val xmlMapper = XmlMapper()
             .registerKotlinModule()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

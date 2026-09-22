@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 fun Modifier.pixelFrame(
-    borderColor: Color = RetroBlack,
+    borderColor: Color = RetroIron,
     innerColor: Color = Color.Transparent,
     thickness: Dp = 2.dp
 ) = this.drawWithContent {
@@ -33,58 +33,61 @@ fun Modifier.pixelFrame(
     val w = size.width
     val h = size.height
 
-    // 1. Shadow (Outer offset - drawn first)
-    drawRect(
-        color = Color.Black.copy(alpha = 0.4f),
-        topLeft = Offset(t, t),
-        size = Size(w, h)
-    )
-
-    // 2. Main Outer Black Frame
-    drawRect(color = RetroBlack, size = Size(w, h))
-
-    // 3. Highlight Bevel (Top & Left) - Silver/Stone Light
-    val highlightColor = Color(0xFFC0C0C0) 
-    drawRect(
-        color = highlightColor,
-        topLeft = Offset(t, t),
-        size = Size(w - 2 * t, t)
-    )
-    drawRect(
-        color = highlightColor,
-        topLeft = Offset(t, t),
-        size = Size(t, h - 2 * t)
-    )
-
-    // 4. Lowlight Bevel (Bottom & Right) - Deep Charcoal
-    val lowlightColor = Color(0xFF404040)
-    drawRect(
-        color = lowlightColor,
-        topLeft = Offset(t, h - 2 * t),
-        size = Size(w - 2 * t, t)
-    )
-    drawRect(
-        color = lowlightColor,
-        topLeft = Offset(w - 2 * t, t),
-        size = Size(t, h - 2 * t)
-    )
-
-    // 5. Inner Inset (Thin black line before content)
-    drawRect(
-        color = RetroBlack,
-        topLeft = Offset(2 * t, 2 * t),
-        size = Size(w - 4 * t, h - 4 * t),
-        style = Stroke(width = 1f)
-    )
-
     drawContent()
 
-    // 6. Optional Accent (Gold/Cyan) - Drawn ON TOP of content if needed
+    val borderWidth = t * 2f
+    drawRect(color = borderColor, size = Size(w, borderWidth))
+    drawRect(color = borderColor, topLeft = Offset(0f, h - borderWidth), size = Size(w, borderWidth))
+    drawRect(color = borderColor, size = Size(borderWidth, h))
+    drawRect(color = borderColor, topLeft = Offset(w - borderWidth, 0f), size = Size(borderWidth, h))
+
+    val highlightColor = RetroBronzeLight
+    drawRect(
+        color = highlightColor,
+        topLeft = Offset(borderWidth, borderWidth),
+        size = Size((w - borderWidth * 2).coerceAtLeast(0f), t)
+    )
+    drawRect(
+        color = highlightColor,
+        topLeft = Offset(borderWidth, borderWidth),
+        size = Size(t, (h - borderWidth * 2).coerceAtLeast(0f))
+    )
+
+    val lowlightColor = RetroBrown
+    drawRect(
+        color = lowlightColor,
+        topLeft = Offset(borderWidth, h - borderWidth - t),
+        size = Size((w - borderWidth * 2).coerceAtLeast(0f), t)
+    )
+    drawRect(
+        color = lowlightColor,
+        topLeft = Offset(w - borderWidth - t, borderWidth),
+        size = Size(t, (h - borderWidth * 2).coerceAtLeast(0f))
+    )
+
+    val corner = borderWidth * 1.5f
+    listOf(
+        Offset(0f, 0f),
+        Offset(w - corner, 0f),
+        Offset(0f, h - corner),
+        Offset(w - corner, h - corner)
+    ).forEach { offset ->
+        drawRect(color = RetroBlack, topLeft = offset, size = Size(corner, corner))
+        drawRect(
+            color = RetroBronze,
+            topLeft = offset + Offset(t / 2f, t / 2f),
+            size = Size((corner - t).coerceAtLeast(0f), (corner - t).coerceAtLeast(0f))
+        )
+    }
+
     if (innerColor != Color.Transparent) {
         drawRect(
             color = innerColor,
-            topLeft = Offset(2 * t, 2 * t),
-            size = Size(w - 4 * t, h - 4 * t),
+            topLeft = Offset(borderWidth, borderWidth),
+            size = Size(
+                (w - borderWidth * 2).coerceAtLeast(0f),
+                (h - borderWidth * 2).coerceAtLeast(0f)
+            ),
             style = Stroke(width = 1.5.dp.toPx())
         )
     }
@@ -98,8 +101,9 @@ fun Modifier.pixelButtonFrame(
     val w = size.width
     val h = size.height
 
-    // 1. Clean Black Outer Border (No heavy shadow)
-    drawRect(color = RetroBlack, size = Size(w, h))
+    drawContent()
+
+    drawRect(color = RetroIron, size = Size(w, h), style = Stroke(width = t * 2f))
 
     // 2. Simple Pixel Bevel
     val light = if (isSelected) RetroGold else Color.White.copy(alpha = 0.3f)
@@ -184,8 +188,25 @@ fun Modifier.rpgGameFrame(
 }
 
 fun Modifier.retroBackground(color: Color = RetroBackground) = this.drawBehind {
-    // Fill main background
     drawRect(color)
+
+    val grainStep = 18.dp.toPx()
+    val grainSize = 1.dp.toPx()
+    var row = 0
+    var y = 0f
+    while (y < size.height) {
+        var x = if (row % 2 == 0) 0f else grainStep / 2f
+        while (x < size.width) {
+            drawRect(
+                color = RetroLeatherGrain.copy(alpha = 0.28f),
+                topLeft = Offset(x, y),
+                size = Size(grainSize, grainSize)
+            )
+            x += grainStep
+        }
+        row++
+        y += grainStep
+    }
 }
 
 @Composable
@@ -258,7 +279,7 @@ fun RetroSquareButton(
 ) {
     Box(
         modifier = modifier
-            .height(56.dp)
+            .heightIn(min = 56.dp)
             .pixelButtonFrame(thickness = 2.dp)
             .background(color)
             .clickable(onClick = onClick)
@@ -294,7 +315,7 @@ fun RetroFilterChip(
 ) {
     Box(
         modifier = modifier
-            .height(38.dp)
+            .heightIn(min = 38.dp)
             .clickable(onClick = onClick)
             .pixelButtonFrame(isSelected = isSelected, thickness = 2.dp)
             .padding(2.dp)

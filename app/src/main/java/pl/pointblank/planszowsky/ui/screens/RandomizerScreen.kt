@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import pl.pointblank.planszowsky.R
@@ -43,13 +44,13 @@ fun RandomizerScreen(
     viewModel: RandomizerViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
-    val selectedGame by viewModel.selectedGame.collectAsState()
-    val isSpinning by viewModel.isSpinning.collectAsState()
-    val games by viewModel.games.collectAsState()
-    val filteredGames by viewModel.filteredGames.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
-    val playerFilter by viewModel.playerFilter.collectAsState()
-    val durationFilter by viewModel.durationFilter.collectAsState()
+    val selectedGame by viewModel.selectedGame.collectAsStateWithLifecycle()
+    val isSpinning by viewModel.isSpinning.collectAsStateWithLifecycle()
+    val games by viewModel.games.collectAsStateWithLifecycle()
+    val filteredGames by viewModel.filteredGames.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val playerFilter by viewModel.playerFilter.collectAsStateWithLifecycle()
+    val durationFilter by viewModel.durationFilter.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
 

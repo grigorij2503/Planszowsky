@@ -31,7 +31,7 @@ The application uses several third-party services that may collect information u
 - **Google Play Services:** Used for various system integrations.
 
 ## 3. Data Storage
-Most of your data (your collection, wishlist, borrowing history) is stored locally on your device in a private database. If you uninstall the application, this local data will be deleted.
+Most of your data (your collection, wishlist, borrowing history) is stored locally on your device in a private database. Android backup or device-transfer features may copy the application database and preferences and restore them on a compatible device, depending on your device and Google account settings. Uninstalling removes the active local copy, but an existing platform backup may remain subject to Google's backup retention rules.
 
 ## 4. Children's Privacy
 Our service does not address anyone under the age of 13. We do not knowingly collect personally identifiable information from anyone under the age of 13.

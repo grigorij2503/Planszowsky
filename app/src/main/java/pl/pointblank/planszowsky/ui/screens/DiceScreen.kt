@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
@@ -58,7 +59,7 @@ fun DiceScreen(
     viewModel: DiceViewModel = hiltViewModel(),
     onBackClick: (() -> Unit)? = null
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val scrollState = rememberScrollState()
@@ -492,7 +493,7 @@ fun DiceControls(
                     onClick = onRoll,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .heightIn(min = 56.dp),
                     enabled = !uiState.isRolling
                 ) {
                     Icon(Icons.Default.Casino, contentDescription = null)
@@ -510,7 +511,7 @@ fun ModeChip(text: String, selected: Boolean, isRetro: Boolean, onClick: () -> U
     if (isRetro) {
         Box(
             modifier = Modifier
-                .height(36.dp)
+                .heightIn(min = 36.dp)
                 .then(if (selected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
                 .background(if (selected) RetroGold else RetroBackground)
                 .clickable(onClick = onClick)

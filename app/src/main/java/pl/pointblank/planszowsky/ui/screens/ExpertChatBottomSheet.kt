@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pl.pointblank.planszowsky.R
 import pl.pointblank.planszowsky.domain.model.AppTheme
 import pl.pointblank.planszowsky.ui.theme.*
@@ -48,13 +49,13 @@ fun ExpertChatBottomSheet(
     onDismiss: () -> Unit,
     viewModel: ExpertViewModel = hiltViewModel()
 ) {
-    val messages by viewModel.messages.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
-    val currentSpeakingId by viewModel.currentSpeakingId.collectAsState()
-    val aiUsageCount by viewModel.aiUsageCount.collectAsState()
-    val aiDailyLimit by viewModel.aiDailyLimit.collectAsState()
-    val isLimitReached by viewModel.isLimitReached.collectAsState()
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val currentSpeakingId by viewModel.currentSpeakingId.collectAsStateWithLifecycle()
+    val aiUsageCount by viewModel.aiUsageCount.collectAsStateWithLifecycle()
+    val aiDailyLimit by viewModel.aiDailyLimit.collectAsStateWithLifecycle()
+    val isLimitReached by viewModel.isLimitReached.collectAsStateWithLifecycle()
     
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
@@ -170,7 +171,7 @@ fun ExpertChatBottomSheet(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(56.dp)
+                            .heightIn(min = 56.dp)
                             .background(if (isLimitReached) RetroRed.copy(alpha = 0.2f) else RetroElementBackground)
                             .drawBehind {
                                 drawRect(RetroBlack, style = Stroke(3.dp.toPx()))
