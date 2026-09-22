@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">"Planszowsky"</string>
     <string name="collection_title">"Your Collection"</string>
+    <string name="scan_title">Game scanner</string>
+    <plurals name="collection_game_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
     <string name="search_hint">"Search in your collection…"</string>
     <string name="borrowed_badge">"BORROWED"</string>
     <string name="add_button">"Add"</string>
@@ -90,6 +95,7 @@
     <string name="import_button_label">Import</string>
     <string name="import_success">Imported %d games!</string>
     <string name="import_error">Import error</string>
+    <string name="import_in_progress">Importing collection…</string>
     <string name="import_conflict_title">Import Conflict</string>
     <string name="import_conflict_message">Some games (%d) are already in your collection. Do you want to update their data (descriptions, images, notes) with data from BGG?</string>
     <string name="import_conflict_overwrite">Update all</string>

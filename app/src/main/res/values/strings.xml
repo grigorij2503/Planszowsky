@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">"Planszowsky"</string>
     <string name="collection_title">"Twoja Kolekcja"</string>
+    <string name="scan_title">Skaner gier</string>
+    <plurals name="collection_game_count">
+        <item quantity="one">%1$d gra</item>
+        <item quantity="few">%1$d gry</item>
+        <item quantity="many">%1$d gier</item>
+        <item quantity="other">%1$d gry</item>
+    </plurals>
     <string name="search_hint">"Szukaj w swojej kolekcji…"</string>
     <string name="borrowed_badge">"POŻYCZONA"</string>
     <string name="add_button">"Dodaj"</string>
@@ -91,6 +98,7 @@
     <string name="import_button_label">Importuj</string>
     <string name="import_success">Zaimportowano %d gier!</string>
     <string name="import_error">Błąd podczas importu</string>
+    <string name="import_in_progress">Importowanie kolekcji…</string>
     <string name="import_conflict_title">Konflikt danych</string>
     <string name="import_conflict_message">Niektóre gry (%d) są już w Twojej kolekcji. Czy chcesz zaktualizować ich dane (opisy, zdjęcia, notatki) danymi z BGG?</string>
     <string name="import_conflict_overwrite">Zaktualizuj wszystkie</string>

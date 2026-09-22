@@ -69,28 +69,51 @@ fun ScanScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
                 .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
+                .then(if (isRetro) Modifier.padding(10.dp) else Modifier.statusBarsPadding().padding(24.dp)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = stringResource(R.string.camera_permission_req).let { if(isRetro) it.uppercase() else it },
-                style = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else LocalTextStyle.current,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(24.dp))
             if (isRetro) {
-                RetroSquareButton(
-                    text = stringResource(R.string.grant_permission).uppercase(),
-                    color = RetroGreen,
-                    onClick = { cameraPermissionState.launchPermissionRequest() }
+                RetroScreenTitle(
+                    title = stringResource(R.string.scan_title),
+                    onBackClick = onBackClick
                 )
+                Spacer(modifier = Modifier.weight(1f))
+                RetroPanel(
+                    modifier = Modifier.fillMaxWidth(),
+                    accentColor = RetroBronzeLight,
+                    contentPadding = PaddingValues(22.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(R.string.camera_permission_req).uppercase(),
+                            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, color = RetroText),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        RetroSquareButton(
+                            text = stringResource(R.string.grant_permission).uppercase(),
+                            color = RetroCrimson,
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = { cameraPermissionState.launchPermissionRequest() }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
             } else {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(R.string.camera_permission_req),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = { cameraPermissionState.launchPermissionRequest() }) {
                     Text(stringResource(R.string.grant_permission))
                 }
+                Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
@@ -217,9 +240,10 @@ fun CameraPreview(
                 .padding(24.dp)
         ) {
             if (isRetro) {
-                RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-                    PixelBackIcon(color = RetroText)
-                }
+                RetroScreenTitle(
+                    title = stringResource(R.string.scan_title),
+                    onBackClick = onBackClick
+                )
             } else {
                 IconButton(
                     onClick = onBackClick,
@@ -253,7 +277,7 @@ fun CameraPreview(
                             
                             RetroSquareButton(
                                 text = stringResource(R.string.search_this_game).uppercase(),
-                                color = RetroGreen,
+                                color = RetroCrimson,
                                 onClick = { onResultScanned(detectedValue) }
                             )
                         }

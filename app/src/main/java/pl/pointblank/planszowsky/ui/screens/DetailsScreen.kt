@@ -180,16 +180,15 @@ fun DetailsScreen(
         floatingActionButton = {
             if (game != null && isExpertChatEnabled) {
                 if (isRetro) {
-                    RetroFloatingButton(
+                    RetroOrbButton(
                         onClick = { showChat = true },
                         color = RetroBlue,
                         icon = { 
                             Box(modifier = Modifier.size(32.dp)) {
-                                PixelChat24(color = RetroBlack) 
+                                PixelChat24(color = RetroText)
                             }
                         },
-                        buttonSize = 64.dp,
-                        shape = RoundedCornerShape(12.dp)
+                        buttonSize = 64.dp
                     )
                 } else {
                     FloatingActionButton(
@@ -207,18 +206,11 @@ fun DetailsScreen(
         },
         topBar = {
             if (isRetro) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-                        PixelBackIcon(color = RetroText)
-                    }
-                }
+                RetroScreenTitle(
+                    title = game?.title ?: stringResource(R.string.app_name),
+                    onBackClick = onBackClick,
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp)
+                )
             }
         }
     ) { paddingValues ->
@@ -483,8 +475,14 @@ fun RetroDetailsTopBar(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-            PixelBackIcon(color = RetroText)
+        RetroOrbButton(
+            onClick = onBackClick,
+            color = RetroStone,
+            buttonSize = 44.dp
+        ) {
+            Box(modifier = Modifier.size(24.dp)) {
+                PixelBackIcon(color = RetroText)
+            }
         }
     }
 }
@@ -501,50 +499,68 @@ fun GameManagementPanel(
     onWebsiteClick: () -> Unit
 ) {
     if (isRetro) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .pixelButtonFrame(thickness = 2.dp)
-                .background(RetroElementBackground)
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronze,
+            backgroundColors = listOf(RetroStone, RetroElementBackground, RetroIron),
+            cornerCut = 12.dp,
+            contentPadding = PaddingValues(0.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RetroBlack)
-                    .padding(vertical = 6.dp, horizontal = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.item_management),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontFamily = FontFamily.Monospace,
-                        color = RetroGold,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 10.sp
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(RetroBlack)
+                        .padding(vertical = 8.dp, horizontal = 14.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.item_management),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = RetroBronzeLight,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.6.sp
+                        )
                     )
-                )
-            }
+                }
 
-            Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     PixelActionButton(
-                        icon = { PixelStar24(isSelected = game.isFavorite) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_favorite,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_fav),
                         isActive = game.isFavorite,
                         activeColor = RetroGold,
                         onClick = onToggleFavorite
                     )
                     PixelActionButton(
-                        icon = { PixelShinyHeart24(isSelected = game.isWishlisted) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_wishlist,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_wish),
                         isActive = game.isWishlisted,
                         activeColor = RetroRed,
                         onClick = onToggleWishlist
                     )
                     PixelActionButton(
-                        icon = { PixelWeb24(color = RetroText) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_web,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_www),
                         isActive = false,
                         activeColor = RetroBlue,
@@ -552,7 +568,12 @@ fun GameManagementPanel(
                     )
                     if (!game.isReadOnly) {
                         PixelActionButton(
-                            icon = { PixelDelete24(color = RetroText) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_delete,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             label = stringResource(R.string.action_del),
                             isActive = false,
                             activeColor = RetroBlack,
@@ -682,6 +703,7 @@ fun GameManagementPanel(
                         onDismiss = { showNotesDialog = false },
                         onSave = onUpdateNotes
                     )
+                }
                 }
             }
         }
@@ -897,21 +919,26 @@ fun PixelActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable { onClick() }
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .pixelButtonFrame(isSelected = isActive, thickness = 2.dp)
-                .background(if (isActive) activeColor.copy(alpha = 0.2f) else Color.Transparent)
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+        RetroPanel(
+            modifier = Modifier.size(58.dp),
+            accentColor = if (isActive) activeColor else RetroBronze,
+            backgroundColors = if (isActive) {
+                listOf(activeColor.copy(alpha = 0.8f), activeColor.copy(alpha = 0.45f), RetroIron)
+            } else {
+                listOf(RetroStoneLight, RetroStone, RetroIron)
+            },
+            cornerCut = 8.dp,
+            contentPadding = PaddingValues(5.dp)
         ) {
-            icon()
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                icon()
+            }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label, 
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Monospace,
+                fontFamily = FontFamily.Serif,
                 fontSize = 10.sp,
                 color = RetroText,
                 fontWeight = FontWeight.Bold

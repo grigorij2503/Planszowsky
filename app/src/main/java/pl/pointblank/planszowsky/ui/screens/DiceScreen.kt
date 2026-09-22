@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -27,7 +28,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.nativeCanvas
@@ -74,7 +74,7 @@ fun DiceScreen(
         modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
-            if (onBackClick != null) {
+            if (!isRetro && onBackClick != null) {
                 TopAppBar(
                     title = { 
                         Text(
@@ -108,25 +108,75 @@ fun DiceScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val totalText = if (uiState.isRolling) "..." else uiState.totalSum.toString()
-            Text(
-                text = stringResource(R.string.dice_total, totalText),
-                style = if (isRetro) 
-                    MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = RetroGold, fontFamily = FontFamily.Monospace)
-                    else MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary),
-                modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                DiceArena(
-                    dice = uiState.dice,
-                    isRolling = uiState.isRolling,
-                    appTheme = appTheme
+            if (isRetro) {
+                RetroScreenTitle(
+                    title = stringResource(R.string.menu_dice),
+                    onBackClick = onBackClick
                 )
+                Spacer(modifier = Modifier.height(14.dp))
+                RetroPanel(
+                    modifier = Modifier.fillMaxWidth(),
+                    accentColor = RetroBronzeLight,
+                    backgroundColors = listOf(RetroOxblood, RetroRed.copy(alpha = 0.6f), RetroIron),
+                    cornerCut = 14.dp,
+                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "◆  ${stringResource(R.string.dice_total, totalText).uppercase()}  ◆",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = RetroBronzeLight,
+                                fontFamily = FontFamily.Serif,
+                                letterSpacing = 1.sp
+                            ),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.dice_total, totalText),
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.padding(top = 24.dp, bottom = 16.dp)
+                )
+            }
+
+            if (isRetro) {
+                Spacer(modifier = Modifier.height(14.dp))
+                RetroPanel(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 220.dp),
+                    accentColor = RetroBronze,
+                    backgroundColors = listOf(RetroStone, RetroObsidian, RetroBlack),
+                    cornerCut = 16.dp,
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        DiceArena(
+                            dice = uiState.dice,
+                            isRolling = uiState.isRolling,
+                            appTheme = appTheme
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(14.dp))
+            } else {
+                Box(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    DiceArena(
+                        dice = uiState.dice,
+                        isRolling = uiState.isRolling,
+                        appTheme = appTheme
+                    )
+                }
             }
 
             DiceControls(
@@ -426,14 +476,15 @@ fun DiceControls(
     val isRetro = appTheme == AppTheme.PIXEL_ART
     
     Card(
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        shape = if (isRetro) CutCornerShape(14.dp) else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant
+            containerColor = if (isRetro) RetroStone else MaterialTheme.colorScheme.surfaceVariant
         ),
+        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBronze) else null,
         modifier = Modifier
             .fillMaxWidth()
             .then(if (isRetro) Modifier.drawBehind { 
-                drawRect(RetroBlack, style = Stroke(4.dp.toPx()))
+                drawRect(RetroBlack, style = Stroke(5.dp.toPx()))
             } else Modifier)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -485,7 +536,8 @@ fun DiceControls(
                 Spacer(modifier = Modifier.height(24.dp))
                 RetroSquareButton(
                     text = if (uiState.isRolling) stringResource(R.string.dice_rolling).uppercase() else stringResource(R.string.dice_roll_button).uppercase(),
-                    color = RetroGreen,
+                    color = RetroCrimson,
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = onRoll
                 )
             } else {
@@ -509,27 +561,12 @@ fun DiceControls(
 @Composable
 fun ModeChip(text: String, selected: Boolean, isRetro: Boolean, onClick: () -> Unit) {
     if (isRetro) {
-        Box(
-            modifier = Modifier
-                .heightIn(min = 36.dp)
-                .then(if (selected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
-                .background(if (selected) RetroGold else RetroBackground)
-                .clickable(onClick = onClick)
-                .drawBehind {
-                    drawRect(RetroBlack, style = Stroke(2.dp.toPx()))
-                }
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text.uppercase(),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    color = if (selected) RetroBlack else RetroText
-                )
-            )
-        }
+        RetroFilterChip(
+            text = text,
+            isSelected = selected,
+            onClick = onClick,
+            modifier = Modifier.heightIn(min = 38.dp)
+        )
     } else {
         FilterChip(
             selected = selected,
@@ -578,23 +615,12 @@ fun CustomDiceSettings(count: Int, sides: Int, isRetro: Boolean, onConfigChange:
             commonSides.forEach { s ->
                 Box(modifier = Modifier.padding(horizontal = 4.dp)) {
                     if (isRetro) {
-                        Box(
-                            modifier = Modifier
-                                .size(width = 46.dp, height = 36.dp)
-                                .background(if (sides == s) RetroGold else RetroBackground)
-                                .clickable { onConfigChange(count, s) }
-                                .drawBehind { drawRect(RetroBlack, style = Stroke(2.dp.toPx())) },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "K$s", 
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    fontSize = 10.sp,
-                                    fontFamily = FontFamily.Monospace, 
-                                    color = if(sides == s) RetroBlack else RetroText
-                                )
-                            )
-                        }
+                        RetroFilterChip(
+                            text = "K$s",
+                            isSelected = sides == s,
+                            onClick = { onConfigChange(count, s) },
+                            modifier = Modifier.widthIn(min = 46.dp).heightIn(min = 36.dp)
+                        )
                     } else {
                         SuggestionChip(
                             onClick = { onConfigChange(count, s) },

@@ -16,14 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -73,7 +69,7 @@ fun SearchScreen(
 
     Scaffold(
         modifier = Modifier
-            .statusBarsPadding()
+            .then(if (isRetro) Modifier else Modifier.statusBarsPadding())
             .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
@@ -179,27 +175,27 @@ fun RetroSearchTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .statusBarsPadding()
+            .padding(if (query.isEmpty()) 10.dp else 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-            PixelBackIcon(color = RetroText)
+        RetroOrbButton(
+            onClick = onBackClick,
+            color = RetroStone,
+            buttonSize = 44.dp
+        ) {
+            Box(modifier = Modifier.size(24.dp)) {
+                PixelBackIcon(color = RetroText)
+            }
         }
         
         Spacer(modifier = Modifier.width(12.dp))
         
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 48.dp)
-                .background(RetroElementBackground)
-                .drawBehind {
-                    val stroke = 3.dp.toPx()
-                    drawRect(RetroBlack, style = Stroke(stroke * 2f))
-                    drawRect(RetroGold, style = Stroke(stroke), topLeft = Offset(stroke/2, stroke/2), size = Size(size.width - stroke, size.height - stroke))
-                }
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.CenterStart
+        RetroPanel(
+            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+            accentColor = RetroBronzeLight,
+            cornerCut = 9.dp,
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
         ) {
             BasicTextField(
                 value = query,
@@ -208,13 +204,13 @@ fun RetroSearchTopBar(
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 singleLine = true,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, color = RetroText),
                 decorationBox = { innerTextField ->
                     Box {
                         if (query.isEmpty()) {
                             Text(
-                                text = stringResource(R.string.search_bgg_hint).uppercase(),
-                                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText.copy(alpha = 0.5f))
+                                text = stringResource(R.string.search_bgg_hint),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, color = RetroText.copy(alpha = 0.55f))
                             )
                         }
                         innerTextField()
@@ -233,14 +229,11 @@ fun SearchResultCard(
     onAddToWishlist: () -> Unit
 ) {
     if (isRetro) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .rpgGameFrame(
-                    frameColor = if (game.isWishlisted) RetroGold else RetroElementBackground,
-                    thickness = 4.dp
-                )
-                .background(RetroBlack)
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = if (game.isWishlisted) RetroGold else RetroBronze,
+            cornerCut = 10.dp,
+            contentPadding = PaddingValues(0.dp)
         ) {
             Row(
                 modifier = Modifier.padding(12.dp),
@@ -260,7 +253,7 @@ fun SearchResultCard(
                     Text(
                         text = game.title.uppercase(),
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontFamily = FontFamily.Monospace, 
+                            fontFamily = FontFamily.Serif,
                             color = RetroText,
                             fontSize = 14.sp
                         ),
@@ -276,12 +269,12 @@ fun SearchResultCard(
                 }
                 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    RetroSquareIconButton(onClick = onAddToWishlist, color = RetroRed) {
+                    RetroSquareIconButton(onClick = onAddToWishlist, color = RetroOxblood) {
                         Box(modifier = Modifier.size(24.dp)) {
                             PixelHeart24(color = Color.White)
                         }
                     }
-                    RetroSquareIconButton(onClick = onAddToCollection, color = RetroGreen) {
+                    RetroSquareIconButton(onClick = onAddToCollection, color = RetroCrimson) {
                         Box(modifier = Modifier.size(24.dp)) {
                             PixelPlus24(color = Color.White)
                         }

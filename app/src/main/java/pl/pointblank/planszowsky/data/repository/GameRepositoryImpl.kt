@@ -164,13 +164,24 @@ class GameRepositoryImpl @Inject constructor(
         ensureSession()
         return try {
             val searchResponse = api.searchGames(query)
-            val ids = searchResponse.items?.map { it.id }?.take(20) ?: emptyList()
+            val ids = searchResponse.items
+                .orEmpty()
+                .sortedByDescending { item ->
+                    item.names
+                        .orEmpty()
+                        .maxOfOrNull { name -> searchRelevance(name.value, query) }
+                        ?: 0.0
+                }
+                .map { it.id }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .take(20)
             
             if (ids.isEmpty()) return emptyList()
             
             val detailsResponse = api.getGameDetails(ids.joinToString(","))
             detailsResponse.items?.map { item ->
-                val bestName = item.names?.map { it.value }?.maxByOrNull { it.similarity(query) }
+                val bestName = item.names?.map { it.value }?.maxByOrNull { searchRelevance(it, query) }
                     ?: item.names?.find { it.type == "primary" }?.value 
                     ?: item.names?.firstOrNull()?.value 
                     ?: "Unknown"
@@ -190,6 +201,18 @@ class GameRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             firebaseManager.logError(e, "BGG Search Exception: $query")
             throw e
+        }
+    }
+
+    private fun searchRelevance(title: String, query: String): Double {
+        val normalizedTitle = title.decodeHtml().trim().lowercase()
+        val normalizedQuery = query.trim().lowercase()
+
+        return when {
+            normalizedTitle == normalizedQuery -> 1000.0
+            normalizedTitle.startsWith(normalizedQuery) -> 800.0
+            normalizedTitle.contains(normalizedQuery) -> 500.0
+            else -> normalizedTitle.similarity(normalizedQuery) * 100.0
         }
     }
 

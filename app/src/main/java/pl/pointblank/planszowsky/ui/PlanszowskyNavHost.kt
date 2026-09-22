@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
@@ -242,39 +244,60 @@ fun RetroNavigationBar(navController: NavHostController, currentDestination: Nav
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(RetroBackground)
-            .windowInsetsPadding(WindowInsets.navigationBars) // Ensure it respects system nav bar
+            .background(RetroObsidian)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        // Thick top border
-        Box(modifier = Modifier.fillMaxWidth().height(4.dp).background(RetroBlack))
-        
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Top
-        ) {
-            items.forEach { screen ->
-                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                RetroNavItem(
-                    screen = screen,
-                    isSelected = isSelected,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        navController.navigate(screen.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                .pixelFrame(
+                    borderColor = RetroIron,
+                    innerColor = RetroBronze.copy(alpha = 0.75f),
+                    thickness = 2.dp
                 )
+                .background(
+                    Brush.verticalGradient(
+                        listOf(RetroStone, RetroElementBackground, RetroObsidian)
+                    )
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(RetroBlack, RetroBronze, RetroGold, RetroBronze, RetroBlack)
+                        )
+                    )
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Top
+            ) {
+                items.forEach { screen ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                    RetroNavItem(
+                        screen = screen,
+                        isSelected = isSelected,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
             }
         }
-        // Extra bottom padding for "safe area"
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -285,57 +308,59 @@ fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modif
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .padding(horizontal = 4.dp)
-            .then(
-                if (isSelected) {
-                    Modifier
-                        .pixelButtonFrame(isSelected = true, thickness = 2.dp)
-                        .background(RetroElementBackground)
-                } else {
-                    Modifier
-                }
-            )
+            .padding(horizontal = 3.dp)
             .semantics(mergeDescendants = true) {
                 contentDescription = label
                 role = Role.Tab
                 selected = isSelected
             }
             .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 8.dp)
+            .padding(horizontal = 3.dp, vertical = 4.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .alpha(if (isSelected) 1f else 0.55f),
-            contentAlignment = Alignment.Center
-        ) {
-            when (screen) {
-                Screen.Collection -> PixelCollectionIcon(isSelected)
-                Screen.DiceRoller -> PixelDiceIcon(isSelected)
-                Screen.Wishlist -> PixelShinyHeartIcon(isSelected)
-                Screen.Profile -> PixelProfileIcon(isSelected)
+        RetroMedallion(
+            color = if (isSelected) RetroCrimson else RetroStone,
+            buttonSize = if (isSelected) 44.dp else 40.dp,
+            modifier = Modifier.alpha(if (isSelected) 1f else 0.72f),
+            icon = {
+                val iconRes = when (screen) {
+                    Screen.Collection -> R.drawable.retro_icon_collection
+                    Screen.DiceRoller -> R.drawable.retro_icon_dice
+                    Screen.Wishlist -> R.drawable.retro_icon_wishlist
+                    Screen.Profile -> R.drawable.retro_icon_profile
+                }
+                RetroGeneratedIcon(
+                    drawableRes = iconRes,
+                    modifier = Modifier.size(if (isSelected) 40.dp else 36.dp),
+                )
             }
-        }
+        )
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Box(
-            modifier = Modifier.heightIn(min = 32.dp),
+            modifier = Modifier.heightIn(min = 25.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = label.uppercase(),
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected) RetroGold else RetroText,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isSelected) RetroBronzeLight else RetroParchment,
+                    fontFamily = FontFamily.Serif,
+                    letterSpacing = 0.3.sp
                 ),
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
         }
+        Box(
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(width = if (isSelected) 28.dp else 12.dp, height = 2.dp)
+                .background(if (isSelected) RetroGold else Color.Transparent)
+        )
     }
 }

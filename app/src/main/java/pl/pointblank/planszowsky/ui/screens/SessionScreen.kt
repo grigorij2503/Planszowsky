@@ -66,31 +66,43 @@ fun SessionScreen(
         modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        text = (activeSession?.gameTitle ?: stringResource(R.string.active_session)).let { if(isRetro) it.uppercase() else it },
-                        style = if(isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+            if (isRetro) {
+                RetroScreenTitle(
+                    title = activeSession?.gameTitle ?: stringResource(R.string.active_session),
+                    onBackClick = onBackClick,
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp),
+                    trailing = {
+                        Row {
+                            IconButton(onClick = onDiceClick, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.Casino, contentDescription = "Dice", tint = RetroBronzeLight)
+                            }
+                            IconButton(
+                                onClick = { if (activeSession != null) showChat = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = "Expert", tint = RetroBronzeLight)
+                            }
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = onDiceClick) {
-                        Icon(Icons.Default.Casino, contentDescription = "Dice")
-                    }
-                    IconButton(onClick = { if (activeSession != null) showChat = true }) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = "Expert")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = if(isRetro) RetroText else MaterialTheme.colorScheme.onBackground
                 )
-            )
+            } else {
+                TopAppBar(
+                    title = { Text(activeSession?.gameTitle ?: stringResource(R.string.active_session)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onDiceClick) {
+                            Icon(Icons.Default.Casino, contentDescription = "Dice")
+                        }
+                        IconButton(onClick = { if (activeSession != null) showChat = true }) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = "Expert")
+                        }
+                    }
+                )
+            }
         }
     ) { padding ->
         if (activeSession == null) {
@@ -142,16 +154,25 @@ fun SessionScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = { viewModel.endSession(); onBackClick() },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if(isRetro) RetroRed else MaterialTheme.colorScheme.errorContainer,
-                        contentColor = if(isRetro) Color.White else MaterialTheme.colorScheme.onErrorContainer
-                    ),
-                    shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp)
-                ) {
-                    Text(stringResource(R.string.end_session).let { if(isRetro) it.uppercase() else it })
+                if (isRetro) {
+                    RetroSquareButton(
+                        text = stringResource(R.string.end_session).uppercase(),
+                        color = RetroCrimson,
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { viewModel.endSession(); onBackClick() }
+                    )
+                } else {
+                    Button(
+                        onClick = { viewModel.endSession(); onBackClick() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.end_session))
+                    }
                 }
             }
         }
@@ -165,13 +186,7 @@ fun SessionTimerCard(elapsedTime: Long, isRetro: Boolean) {
     val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
     val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
-    ) {
+    val content: @Composable () -> Unit = {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -186,6 +201,23 @@ fun SessionTimerCard(elapsedTime: Long, isRetro: Boolean) {
             )
         }
     }
+    if (isRetro) {
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronzeLight,
+            backgroundColors = listOf(RetroOxblood, RetroElementBackground, RetroIron),
+            cornerCut = 12.dp,
+            contentPadding = PaddingValues(0.dp)
+        ) { content() }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) { content() }
+    }
 }
 
 @Composable
@@ -194,13 +226,7 @@ fun PlayerScoreCard(
     isRetro: Boolean,
     onUpdateScore: (Int) -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = if (isRetro) RectangleShape else RoundedCornerShape(12.dp),
-        color = if (isRetro) RetroElementBackground else MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp,
-        border = if (isRetro) androidx.compose.foundation.BorderStroke(2.dp, RetroBlack) else null
-    ) {
+    val content: @Composable () -> Unit = {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -232,10 +258,36 @@ fun PlayerScoreCard(
             }
         }
     }
+    if (isRetro) {
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronze,
+            cornerCut = 9.dp,
+            contentPadding = PaddingValues(0.dp)
+        ) { content() }
+    } else {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp
+        ) { content() }
+    }
 }
 
 @Composable
 fun ScoreButton(label: String, isRetro: Boolean, onClick: () -> Unit) {
+    if (isRetro) {
+        RetroOrbButton(
+            onClick = onClick,
+            color = if (label == "+") RetroCrimson else RetroStone,
+            icon = {
+                Text(text = label, color = RetroText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            },
+            buttonSize = 36.dp
+        )
+        return
+    }
     Box(
         modifier = Modifier
             .size(36.dp)

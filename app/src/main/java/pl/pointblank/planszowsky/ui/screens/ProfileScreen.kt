@@ -13,13 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -141,6 +137,66 @@ fun ProfileScreen(
                 is ProfileViewModel.ImportResult.Conflict -> {
                     conflictCount = result.count
                     showConflictDialog = true
+                }
+            }
+        }
+    }
+
+    if (isImporting && !showConflictDialog) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = {},
+            properties = androidx.compose.ui.window.DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false,
+            ),
+        ) {
+            if (isRetro) {
+                RetroChunkyBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    accentColor = RetroGold,
+                    backgroundColor = RetroBackground,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularProgressIndicator(color = RetroGold)
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = stringResource(R.string.import_in_progress).uppercase(),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = FontFamily.Serif,
+                                fontWeight = FontWeight.Bold,
+                                color = RetroText,
+                            ),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            } else {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 6.dp,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text(
+                            text = stringResource(R.string.import_in_progress),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         }
@@ -316,10 +372,15 @@ fun ProfileScreen(
             .statusBarsPadding()
             .then(if (isRetro) Modifier.retroBackground() else Modifier.background(MaterialTheme.colorScheme.background))
             .verticalScroll(scrollState)
-            .padding(24.dp),
+            .padding(if (isRetro) 10.dp else 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
+        if (isRetro) {
+            RetroScreenTitle(title = stringResource(R.string.profile_title))
+            Spacer(modifier = Modifier.height(18.dp))
+        } else {
+            Spacer(modifier = Modifier.height(32.dp))
+        }
         
         // Profiles Row
         Row(
@@ -340,9 +401,12 @@ fun ProfileScreen(
                         .then(
                             if (isRetro) {
                                 Modifier
-                                    .background(if (activeCollectionId == "main") RetroGold else RetroElementBackground)
+                                    .rpgGameFrame(
+                                        frameColor = if (activeCollectionId == "main") RetroGold else RetroBronze,
+                                        thickness = 4.dp
+                                    )
+                                    .background(RetroStone)
                                     .clickable { viewModel.setActiveCollection("main") }
-                                    .drawBehind { drawRect(RetroBlack, style = Stroke(4.dp.toPx())) }
                             } else {
                                 Modifier
                                     .background(
@@ -362,11 +426,18 @@ fun ProfileScreen(
                             contentScale = ContentScale.Crop,
                             filterQuality = if(isRetro) FilterQuality.None else FilterQuality.Low
                         )
+                    } else if (isRetro) {
+                        RetroGeneratedIcon(
+                            drawableRes = R.drawable.retro_icon_profile,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(4.dp),
+                        )
                     } else {
                         Icon(
                             Icons.Default.Person,
                             contentDescription = null,
-                            tint = if (isRetro) (if (activeCollectionId == "main") RetroBlack else RetroText) else (if (activeCollectionId == "main") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant),
+                            tint = if (isRetro) (if (activeCollectionId == "main") RetroBronzeLight else RetroText) else (if (activeCollectionId == "main") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant),
                             modifier = Modifier.size(if (otherCollections.isEmpty()) 64.dp else 48.dp)
                         )
                     }
@@ -380,7 +451,7 @@ fun ProfileScreen(
                 ) {
                     Text(
                         text = (mainCollection?.name ?: persistedUsername ?: stringResource(R.string.profile_title)).let { if(isRetro) it.uppercase() else it },
-                        style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, color = RetroGold, fontSize = 14.sp) 
+                        style = if (isRetro) MaterialTheme.typography.titleMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.ExtraBold, color = RetroBronzeLight, fontSize = 14.sp)
                                 else MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         maxLines = 2,
@@ -417,9 +488,12 @@ fun ProfileScreen(
                             .then(
                                 if (isRetro) {
                                     Modifier
-                                        .background(if (activeCollectionId == collection.id) RetroGold else RetroElementBackground)
+                                        .rpgGameFrame(
+                                            frameColor = if (activeCollectionId == collection.id) RetroGold else RetroBronze,
+                                            thickness = 3.dp
+                                        )
+                                        .background(RetroStone)
                                         .clickable { viewModel.setActiveCollection(collection.id) }
-                                        .drawBehind { drawRect(RetroBlack, style = Stroke(3.dp.toPx())) }
                                 } else {
                                     Modifier
                                         .background(
@@ -434,7 +508,7 @@ fun ProfileScreen(
                         Icon(
                             imageVector = Icons.Default.Group,
                             contentDescription = null,
-                            tint = if (isRetro) (if (activeCollectionId == collection.id) RetroBlack else RetroText) else (if (activeCollectionId == collection.id) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant),
+                            tint = if (isRetro) (if (activeCollectionId == collection.id) RetroBronzeLight else RetroText) else (if (activeCollectionId == collection.id) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant),
                             modifier = Modifier.size(28.dp)
                         )
                         
@@ -919,9 +993,10 @@ fun StatsSection(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(modifier = Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-                            PixelStar24(isSelected = true)
-                        }
+                        RetroGeneratedIcon(
+                            drawableRes = R.drawable.retro_icon_favorite,
+                            modifier = Modifier.size(42.dp),
+                        )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
@@ -953,25 +1028,45 @@ fun StatsSection(
                         MiniStat(
                             label = stringResource(R.string.stats_games),
                             value = stats.totalOwned.toString(),
-                            icon = { PixelCollectionIcon(true, color = RetroBlue) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_collection,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             color = RetroBlue
                         )
                         MiniStat(
                             label = stringResource(R.string.stats_favorites),
                             value = stats.favoriteCount.toString(),
-                            icon = { PixelStar24(isSelected = true, color = RetroRed) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_favorite,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             color = RetroRed
                         )
                         MiniStat(
                             label = stringResource(R.string.stats_wishlist),
                             value = stats.wishlistCount.toString(),
-                            icon = { PixelShinyHeart24(isSelected = true, color = RetroGold) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_wishlist,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             color = RetroGold
                         )
                         MiniStat(
                             label = stringResource(R.string.stats_lent),
                             value = stats.lentCount.toString(),
-                            icon = { PixelSwap24(color = RetroOrange) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_lent,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             color = RetroOrange
                         )
                     }
@@ -1025,10 +1120,10 @@ fun StatsSection(
 @Composable
 fun MiniStat(label: String, value: String, icon: @Composable () -> Unit, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(34.dp), contentAlignment = Alignment.Center) {
             icon()
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(
@@ -1068,31 +1163,12 @@ fun ThemeButton(
     onClick: () -> Unit
 ) {
     if (isRetro) {
-        Box(
-            modifier = modifier
-                .heightIn(min = 48.dp)
-                .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
-                .background(if (isSelected) RetroGold else RetroBackground)
-                .clickable(onClick = onClick)
-                .drawBehind {
-                    val stroke = 2.dp.toPx()
-                    drawRect(RetroBlack, style = Stroke(stroke * 2f))
-                    if (isSelected) {
-                        drawRect(Color.White.copy(alpha = 0.3f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
-                    }
-                }
-                .padding(horizontal = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text, 
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontFamily = FontFamily.Monospace, 
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected) RetroBlack else RetroText
-                )
-            )
-        }
+        RetroFilterChip(
+            text = text,
+            isSelected = isSelected,
+            onClick = onClick,
+            modifier = modifier.heightIn(min = 48.dp)
+        )
     } else {
         Button(
             onClick = onClick,
@@ -1117,23 +1193,20 @@ fun FlagButton(
     onClick: () -> Unit
 ) {
     if (isRetro) {
-        Box(
-            modifier = modifier
-                .heightIn(min = 48.dp)
-                .then(if (isSelected) Modifier.drawBehind { drawDitheredShadow(size) } else Modifier)
-                .background(if (isSelected) RetroGold else RetroBackground)
-                .clickable(onClick = onClick)
-                .drawBehind {
-                    val stroke = 2.dp.toPx()
-                    drawRect(RetroBlack, style = Stroke(stroke * 2f))
-                    if (isSelected) {
-                        drawRect(Color.White.copy(alpha = 0.3f), Offset(stroke, stroke), Size(size.width - stroke*2, stroke))
-                    }
-                },
-            contentAlignment = Alignment.Center
+        RetroPanel(
+            modifier = modifier.heightIn(min = 48.dp).clickable(onClick = onClick),
+            accentColor = if (isSelected) RetroBronzeLight else RetroBronzeDark,
+            backgroundColors = if (isSelected) {
+                listOf(RetroEmber, RetroGold, RetroBronze)
+            } else {
+                listOf(RetroStone, RetroElementBackground, RetroIron)
+            },
+            cornerCut = 7.dp,
+            contentPadding = PaddingValues(4.dp)
         ) {
             Text(
                 text = flag, 
+                modifier = Modifier.align(Alignment.Center),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontFamily = FontFamily.Monospace // Keep emoji somewhat standardized
                 )

@@ -56,24 +56,16 @@ fun RandomizerScreen(
 
     Scaffold(
         modifier = Modifier
-            .statusBarsPadding()
+            .then(if (isRetro) Modifier else Modifier.statusBarsPadding())
             .then(if (isRetro) Modifier.retroBackground() else Modifier),
         containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
         topBar = {
             if (isRetro) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-                        PixelBackIcon(color = RetroText)
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        text = stringResource(R.string.randomizer_title).uppercase(),
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
-                    )
-                }
+                RetroScreenTitle(
+                    title = stringResource(R.string.randomizer_title),
+                    onBackClick = onBackClick,
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp)
+                )
             } else {
                 TopAppBar(
                     title = { Text(stringResource(R.string.randomizer_title)) },
@@ -125,7 +117,7 @@ fun RandomizerScreen(
             if (isRetro) {
                 RetroSquareButton(
                     text = if (isSpinning) stringResource(R.string.spinning).uppercase() else stringResource(R.string.spin_button).uppercase(),
-                    color = if (isSpinning || filteredGames.isEmpty()) RetroGrey else RetroGreen,
+                    color = if (isSpinning || filteredGames.isEmpty()) RetroGrey else RetroCrimson,
                     modifier = Modifier.fillMaxWidth(0.7f).padding(bottom = 16.dp),
                     onClick = { if (filteredGames.isNotEmpty()) viewModel.spin() }
                 )
@@ -203,25 +195,12 @@ fun RandomizerFilters(
             items((1..6).toList()) { count ->
                 val isSelected = playerFilter == count
                 if (isRetro) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .background(if (isSelected) RetroGold else RetroElementBackground)
-                            .clickable { onPlayerChange(if (isSelected) null else count) }
-                            .drawBehind {
-                                drawRect(RetroBlack, style = Stroke(2.dp.toPx()))
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = count.toString(),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) RetroBlack else RetroText
-                            )
-                        )
-                    }
+                    RetroFilterChip(
+                        text = count.toString(),
+                        isSelected = isSelected,
+                        onClick = { onPlayerChange(if (isSelected) null else count) },
+                        modifier = Modifier.widthIn(min = 40.dp)
+                    )
                 } else {
                     FilterChip(
                         selected = isSelected,

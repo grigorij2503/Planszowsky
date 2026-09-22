@@ -168,21 +168,25 @@ fun ExpertChatBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (isRetro) {
-                    Box(
+                    RetroPanel(
                         modifier = Modifier
                             .weight(1f)
-                            .heightIn(min = 56.dp)
-                            .background(if (isLimitReached) RetroRed.copy(alpha = 0.2f) else RetroElementBackground)
-                            .drawBehind {
-                                drawRect(RetroBlack, style = Stroke(3.dp.toPx()))
-                            }
-                            .padding(horizontal = 12.dp),
-                        contentAlignment = Alignment.CenterStart
+                            .heightIn(min = 56.dp),
+                        accentColor = if (isLimitReached) RetroRed else RetroBronzeLight,
+                        backgroundColors = if (isLimitReached) {
+                            listOf(RetroOxblood.copy(alpha = 0.72f), RetroStone)
+                        } else {
+                            listOf(RetroStoneLight, RetroStone, RetroObsidian)
+                        },
+                        cornerCut = 9.dp,
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
                     ) {
                         BasicTextField(
                             value = inputText,
                             onValueChange = { if (!isLimitReached) inputText = it },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterStart),
                             singleLine = true,
                             enabled = !isLimitReached,
                             textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText),
@@ -210,7 +214,7 @@ fun ExpertChatBottomSheet(
                     
                     Spacer(modifier = Modifier.width(8.dp))
                     
-                    RetroSquareIconButton(
+                    RetroOrbButton(
                         onClick = {
                             if (inputText.isNotBlank() && !isLimitReached) {
                                 viewModel.sendMessage(inputText)
@@ -218,10 +222,14 @@ fun ExpertChatBottomSheet(
                                 focusManager.clearFocus()
                             }
                         },
-                        color = if (isLimitReached) Color.Gray else RetroBlue,
+                        color = if (isLimitReached) RetroIron else RetroCrimson,
+                        buttonSize = 52.dp,
                         enabled = !isLimitReached
                     ) {
-                        PixelSendIcon()
+                        RetroGeneratedIcon(
+                            drawableRes = R.drawable.retro_icon_send,
+                            modifier = Modifier.size(42.dp),
+                        )
                     }
                 } else {
                     OutlinedTextField(
