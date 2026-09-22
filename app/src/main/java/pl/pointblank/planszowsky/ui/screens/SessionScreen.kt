@@ -1,0 +1,332 @@
+package pl.pointblank.planszowsky.ui.screens
+
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import pl.pointblank.planszowsky.R
+import pl.pointblank.planszowsky.data.local.PlayerScore
+import pl.pointblank.planszowsky.domain.model.AppTheme
+import pl.pointblank.planszowsky.ui.theme.*
+import pl.pointblank.planszowsky.ui.viewmodel.SessionViewModel
+import java.util.concurrent.TimeUnit
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SessionScreen(
+    viewModel: SessionViewModel = hiltViewModel(),
+    onDiceClick: () -> Unit,
+    onBackClick: () -> Unit
+) {
+    val activeSession by viewModel.activeSession.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val isRetro = appTheme == AppTheme.PIXEL_ART
+
+    var showChat by remember { mutableStateOf(false) }
+
+    // Simple Timer State
+    var elapsedTime by remember { mutableLongStateOf(0L) }
+    
+    LaunchedEffect(activeSession) {
+        activeSession?.let { session ->
+            while (true) {
+                elapsedTime = System.currentTimeMillis() - session.startTime
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+    }
+
+    activeSession?.takeIf { showChat }?.let { session ->
+        ExpertChatBottomSheet(
+            gameTitle = session.gameTitle,
+            onDismiss = { showChat = false }
+        )
+    }
+
+    Scaffold(
+        modifier = Modifier.then(if (isRetro) Modifier.retroBackground() else Modifier),
+        containerColor = if (isRetro) Color.Transparent else MaterialTheme.colorScheme.background,
+        topBar = {
+            if (isRetro) {
+                RetroScreenTitle(
+                    title = activeSession?.gameTitle ?: stringResource(R.string.active_session),
+                    onBackClick = onBackClick,
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp),
+                    trailing = {
+                        Row {
+                            IconButton(onClick = onDiceClick, modifier = Modifier.size(36.dp)) {
+                                Icon(Icons.Default.Casino, contentDescription = "Dice", tint = RetroBronzeLight)
+                            }
+                            IconButton(
+                                onClick = { if (activeSession != null) showChat = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = "Expert", tint = RetroBronzeLight)
+                            }
+                        }
+                    }
+                )
+            } else {
+                TopAppBar(
+                    title = { Text(activeSession?.gameTitle ?: stringResource(R.string.active_session)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.Close, contentDescription = "Close")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onDiceClick) {
+                            Icon(Icons.Default.Casino, contentDescription = "Dice")
+                        }
+                        IconButton(onClick = { if (activeSession != null) showChat = true }) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = "Expert")
+                        }
+                    }
+                )
+            }
+        }
+    ) { padding ->
+        if (activeSession == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.no_active_session), color = if(isRetro) RetroText else Color.Unspecified)
+            }
+        } else {
+            val session = activeSession ?: return@Scaffold
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(16.dp)
+            ) {
+                // Timer Card
+                SessionTimerCard(elapsedTime, isRetro)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Players List
+                Text(
+                    text = stringResource(R.string.players_label).let { if(isRetro) it.uppercase() else it },
+                    style = if(isRetro) MaterialTheme.typography.labelLarge.copy(color = RetroGold) else MaterialTheme.typography.labelLarge
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(session.players) { player ->
+                        PlayerScoreCard(
+                            player = player,
+                            isRetro = isRetro,
+                            onUpdateScore = { delta -> viewModel.updateScore(player.id, delta) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Notes Section
+                SessionNotesSection(
+                    notes = session.notes,
+                    isRetro = isRetro,
+                    onNotesChange = { viewModel.updateNotes(it) }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (isRetro) {
+                    RetroSquareButton(
+                        text = stringResource(R.string.end_session).uppercase(),
+                        color = RetroCrimson,
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { viewModel.endSession(); onBackClick() }
+                    )
+                } else {
+                    Button(
+                        onClick = { viewModel.endSession(); onBackClick() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(stringResource(R.string.end_session))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SessionTimerCard(elapsedTime: Long, isRetro: Boolean) {
+    val hours = TimeUnit.MILLISECONDS.toHours(elapsedTime)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(elapsedTime) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(elapsedTime) % 60
+    val timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds)
+
+    val content: @Composable () -> Unit = {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(Icons.Default.Timer, contentDescription = null, tint = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = timeText,
+                style = if(isRetro) MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.headlineMedium,
+                color = if(isRetro) RetroText else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+    if (isRetro) {
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronzeLight,
+            backgroundColors = listOf(RetroOxblood, RetroElementBackground, RetroIron),
+            cornerCut = 12.dp,
+            contentPadding = PaddingValues(0.dp)
+        ) { content() }
+    } else {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) { content() }
+    }
+}
+
+@Composable
+fun PlayerScoreCard(
+    player: PlayerScore,
+    isRetro: Boolean,
+    onUpdateScore: (Int) -> Unit
+) {
+    val content: @Composable () -> Unit = {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .background(Color(player.color), CircleShape)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = player.name.let { if(isRetro) it.uppercase() else it },
+                style = if(isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+                color = if(isRetro) RetroText else Color.Unspecified
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ScoreButton("-", isRetro) { onUpdateScore(-1) }
+                
+                Text(
+                    text = player.score.toString(),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = if(isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace) else MaterialTheme.typography.titleLarge,
+                    color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary
+                )
+
+                ScoreButton("+", isRetro) { onUpdateScore(1) }
+            }
+        }
+    }
+    if (isRetro) {
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronze,
+            cornerCut = 9.dp,
+            contentPadding = PaddingValues(0.dp)
+        ) { content() }
+    } else {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 2.dp
+        ) { content() }
+    }
+}
+
+@Composable
+fun ScoreButton(label: String, isRetro: Boolean, onClick: () -> Unit) {
+    if (isRetro) {
+        RetroOrbButton(
+            onClick = onClick,
+            color = if (label == "+") RetroCrimson else RetroStone,
+            icon = {
+                Text(text = label, color = RetroText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            },
+            buttonSize = 36.dp
+        )
+        return
+    }
+    Box(
+        modifier = Modifier
+            .size(36.dp)
+            .then(if (isRetro) Modifier.background(RetroBlack) else Modifier.background(MaterialTheme.colorScheme.primaryContainer, CircleShape))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = if(isRetro) Color.White else MaterialTheme.colorScheme.onPrimaryContainer,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp
+        )
+    }
+}
+
+@Composable
+fun SessionNotesSection(
+    notes: String,
+    isRetro: Boolean,
+    onNotesChange: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = stringResource(R.string.notes_label).let { if(isRetro) it.uppercase() else it },
+            style = if(isRetro) MaterialTheme.typography.labelLarge.copy(color = RetroGold) else MaterialTheme.typography.labelLarge
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = notes,
+            onValueChange = onNotesChange,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp),
+            placeholder = { Text(stringResource(R.string.tap_to_scribble)) },
+            shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp),
+            colors = if(isRetro) OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = RetroGold,
+                unfocusedBorderColor = RetroText,
+                cursorColor = RetroGold
+            ) else OutlinedTextFieldDefaults.colors()
+        )
+    }
+}

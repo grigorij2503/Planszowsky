@@ -11,8 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import pl.pointblank.planszowsky.domain.model.AppTheme
@@ -23,38 +25,36 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import pl.pointblank.planszowsky.util.LanguageManager
-
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface MainActivityEntryPoint {
-        fun userPreferencesRepository(): UserPreferencesRepository
-    }
+    @Inject
+    lateinit var userPreferencesRepository: UserPreferencesRepository
+
+    @Volatile
+    private var isLocaleReady = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-        
-        // Apply saved language preference using EntryPoint to avoid injection timing issues
-        runBlocking {
-            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
-            val userPreferencesRepository = entryPoint.userPreferencesRepository()
-            
-            val locale = userPreferencesRepository.appLocale.first()
-            if (locale != "system") {
-                LanguageManager.applyLocale(this@MainActivity, locale)
-            }
-        }
+        val splashScreen = installSplashScreen()
+        splashScreen.setKeepOnScreenCondition { !isLocaleReady }
 
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            try {
+                val locale = userPreferencesRepository.appLocale.first()
+                if (LanguageManager.getCurrentLocale(this@MainActivity) != locale) {
+                    LanguageManager.applyLocale(this@MainActivity, locale)
+                }
+            } finally {
+                isLocaleReady = true
+            }
+        }
 
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -62,22 +62,24 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            // We can still use the entry point here or inject a ViewModel that holds it.
-            // But for the theme, we need the repo again. 
-            // Since we removed the field, let's get it from the entry point again or let Hilt inject into the ViewModel.
-            // For the theme flow, we need the repo instance.
-            
-            val entryPoint = EntryPointAccessors.fromApplication(applicationContext, MainActivityEntryPoint::class.java)
-            val userPreferencesRepository = entryPoint.userPreferencesRepository()
-            
-            val appTheme by userPreferencesRepository.appTheme.collectAsState(initial = AppTheme.MODERN)
-            
-            PlanszowskyTheme(appTheme = appTheme) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    PlanszowskyMainContainer(appTheme = appTheme)
+            val appTheme by userPreferencesRepository.appTheme.collectAsStateWithLifecycle(initialValue = AppTheme.MODERN)
+
+            var showCustomSplash by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(true) }
+
+            if (showCustomSplash) {
+                pl.pointblank.planszowsky.ui.screens.PointBlankSplashScreen(
+                    onAnimationFinished = {
+                        showCustomSplash = false
+                    }
+                )
+            } else {
+                PlanszowskyTheme(appTheme = appTheme) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        PlanszowskyMainContainer(appTheme = appTheme)
+                    }
                 }
             }
         }

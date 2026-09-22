@@ -101,7 +101,7 @@ class ExpertViewModel @Inject constructor(
             }
 
             val generativeModel = GenerativeModel(
-                modelName = "gemini-3-flash-preview",
+                modelName = "gemini-3.6-flash",
                 apiKey = BuildConfig.GEMINI_API_KEY,
                 systemInstruction = content {
                     text(app.getString(R.string.expert_system_instruction, gameTitle))
@@ -123,11 +123,11 @@ class ExpertViewModel @Inject constructor(
 
     fun sendMessage(userMessage: String) {
         if (userMessage.isBlank()) return
-        
+
         val app = getApplication<Application>()
         val currentCount = aiUsageCount.value
         val currentLimit = aiDailyLimit.value
-        
+
         if (currentCount >= currentLimit) {
             _messages.value += ChatMessage(
                 text = app.getString(R.string.expert_limit_reached),
@@ -146,13 +146,13 @@ class ExpertViewModel @Inject constructor(
                 val session = chatSession
                 if (session == null) {
                     _messages.value += ChatMessage(
-                        text = "Sesja czatu nie jest aktywna (Błąd klucza API).",
+                        text = app.getString(R.string.expert_session_inactive),
                         isUser = false,
                         isError = true
                     )
                 } else {
                     val response = session.sendMessage(userMessage)
-                    val aiResponseText = response.text ?: "Brak odpowiedzi od modelu."
+                    val aiResponseText = response.text ?: app.getString(R.string.expert_empty_response)
 
                     _messages.value += ChatMessage(
                         text = aiResponseText,
@@ -167,13 +167,13 @@ class ExpertViewModel @Inject constructor(
                 val errorText = e.localizedMessage ?: ""
                 val errorMessage = when {
                     errorText.contains("429") -> 
-                        "Zbyt wiele zapytań (Limit darmowej wersji). Spróbuj ponownie za chwilę."
+                        app.getString(R.string.expert_rate_limit_error)
                     errorText.contains("503") || errorText.contains("high demand") -> 
-                        "Serwery Gemini są teraz przeciążone. Spróbuj ponownie za moment."
+                        app.getString(R.string.expert_unavailable_error)
                     errorText.contains("500") ->
-                        "Błąd serwera Google AI. Spróbuj ponownie później."
+                        app.getString(R.string.expert_server_error)
                     else -> 
-                        "Błąd komunikacji: ${e.localizedMessage}"
+                        app.getString(R.string.expert_communication_error)
                 }
 
                 _messages.value += ChatMessage(

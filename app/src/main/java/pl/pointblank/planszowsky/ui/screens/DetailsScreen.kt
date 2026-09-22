@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import pl.pointblank.planszowsky.R
@@ -47,13 +48,15 @@ import com.google.accompanist.permissions.isGranted
 @Composable
 fun DetailsScreen(
     viewModel: DetailsViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    sessionViewModel: pl.pointblank.planszowsky.ui.viewmodel.SessionViewModel = hiltViewModel(),
+    onBackClick: () -> Unit,
+    onStartSession: () -> Unit
 ) {
-    val game by viewModel.game.collectAsState()
-    val appTheme by viewModel.appTheme.collectAsState()
-    val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsState()
-    val isTranslating by viewModel.isTranslating.collectAsState()
-    val translatedDescription by viewModel.translatedDescription.collectAsState()
+    val game by viewModel.game.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val isExpertChatEnabled by viewModel.isExpertChatEnabled.collectAsStateWithLifecycle()
+    val isTranslating by viewModel.isTranslating.collectAsStateWithLifecycle()
+    val translatedDescription by viewModel.translatedDescription.collectAsStateWithLifecycle()
     val isRetro = appTheme == AppTheme.PIXEL_ART
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -61,6 +64,7 @@ fun DetailsScreen(
     // Image Source Selection State
     var showSourcePicker by rememberSaveable { mutableStateOf(false) }
     var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showSessionDialog by remember { mutableStateOf(false) }
 
     val cameraPermissionState = com.google.accompanist.permissions.rememberPermissionState(
         android.Manifest.permission.CAMERA
@@ -90,6 +94,18 @@ fun DetailsScreen(
     }
 
     var showChat by remember { mutableStateOf(false) }
+
+    game?.takeIf { showSessionDialog }?.let { currentGame ->
+        StartSessionDialog(
+            isRetro = isRetro,
+            onDismiss = { showSessionDialog = false },
+            onConfirm = { players ->
+                sessionViewModel.startSession(currentGame.id, currentGame.title, players)
+                showSessionDialog = false
+                onStartSession()
+            }
+        )
+    }
 
     if (showSourcePicker) {
         AlertDialog(
@@ -151,9 +167,9 @@ fun DetailsScreen(
         }
     }
 
-    if (showChat && game != null) {
+    game?.takeIf { showChat }?.let { currentGame ->
         ExpertChatBottomSheet(
-            gameTitle = game!!.title,
+            gameTitle = currentGame.title,
             onDismiss = { showChat = false }
         )
     }
@@ -164,16 +180,15 @@ fun DetailsScreen(
         floatingActionButton = {
             if (game != null && isExpertChatEnabled) {
                 if (isRetro) {
-                    RetroFloatingButton(
+                    RetroOrbButton(
                         onClick = { showChat = true },
                         color = RetroBlue,
                         icon = { 
                             Box(modifier = Modifier.size(32.dp)) {
-                                PixelChat24(color = RetroBlack) 
+                                PixelChat24(color = RetroText)
                             }
                         },
-                        buttonSize = 64.dp,
-                        shape = RoundedCornerShape(12.dp)
+                        buttonSize = 64.dp
                     )
                 } else {
                     FloatingActionButton(
@@ -191,18 +206,11 @@ fun DetailsScreen(
         },
         topBar = {
             if (isRetro) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-                        PixelBackIcon(color = RetroText)
-                    }
-                }
+                RetroScreenTitle(
+                    title = game?.title ?: stringResource(R.string.app_name),
+                    onBackClick = onBackClick,
+                    modifier = Modifier.statusBarsPadding().padding(horizontal = 10.dp, vertical = 8.dp)
+                )
             }
         }
     ) { paddingValues ->
@@ -263,7 +271,7 @@ fun DetailsScreen(
                         Column(modifier = Modifier.padding(24.dp)) {
                             Text(
                                 text = if (isRetro) g.title.decodeHtml().uppercase() else g.title.decodeHtml(),
-                                style = if (isRetro) MaterialTheme.typography.headlineLarge.copy(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.ExtraBold, color = RetroText)
+                                style = if (isRetro) MaterialTheme.typography.headlineLarge.copy(color = RetroText)
                                         else MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -296,7 +304,7 @@ fun DetailsScreen(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     g.categories.forEach { category ->
-                                        CategoryChip(category, isRetro = isRetro)
+                                        CategoryChip(categoryDisplayName(category), isRetro = isRetro)
                                     }
                                 }
                             }
@@ -318,6 +326,28 @@ fun DetailsScreen(
                                 onUpdateNotes = { viewModel.updateNotes(it) },
                                 onWebsiteClick = { openGameWebsite(g) }
                             )
+
+                            if (!g.isWishlisted) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                if (isRetro) {
+                                    RetroSquareButton(
+                                        text = stringResource(R.string.start_session).uppercase(),
+                                        onClick = { showSessionDialog = true },
+                                        color = RetroGold,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                } else {
+                                    Button(
+                                        onClick = { showSessionDialog = true },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(stringResource(R.string.start_session))
+                                    }
+                                }
+                            }
 
                             if (g.expansions.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(32.dp))
@@ -445,8 +475,14 @@ fun RetroDetailsTopBar(
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RetroSquareIconButton(onClick = onBackClick, color = RetroElementBackground) {
-            PixelBackIcon(color = RetroText)
+        RetroOrbButton(
+            onClick = onBackClick,
+            color = RetroStone,
+            buttonSize = 44.dp
+        ) {
+            Box(modifier = Modifier.size(24.dp)) {
+                PixelBackIcon(color = RetroText)
+            }
         }
     }
 }
@@ -463,50 +499,68 @@ fun GameManagementPanel(
     onWebsiteClick: () -> Unit
 ) {
     if (isRetro) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .pixelButtonFrame(thickness = 2.dp)
-                .background(RetroElementBackground)
+        RetroPanel(
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = RetroBronze,
+            backgroundColors = listOf(RetroStone, RetroElementBackground, RetroIron),
+            cornerCut = 12.dp,
+            contentPadding = PaddingValues(0.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RetroBlack)
-                    .padding(vertical = 6.dp, horizontal = 12.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.item_management),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontFamily = FontFamily.Monospace,
-                        color = RetroGold,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 10.sp
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(RetroBlack)
+                        .padding(vertical = 8.dp, horizontal = 14.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.item_management),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = RetroBronzeLight,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.6.sp
+                        )
                     )
-                )
-            }
+                }
 
-            Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     PixelActionButton(
-                        icon = { PixelStar24(isSelected = game.isFavorite) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_favorite,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_fav),
                         isActive = game.isFavorite,
                         activeColor = RetroGold,
                         onClick = onToggleFavorite
                     )
                     PixelActionButton(
-                        icon = { PixelShinyHeart24(isSelected = game.isWishlisted) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_wishlist,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_wish),
                         isActive = game.isWishlisted,
                         activeColor = RetroRed,
                         onClick = onToggleWishlist
                     )
                     PixelActionButton(
-                        icon = { PixelWeb24(color = RetroText) },
+                        icon = {
+                            RetroGeneratedIcon(
+                                drawableRes = R.drawable.retro_icon_web,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        },
                         label = stringResource(R.string.action_www),
                         isActive = false,
                         activeColor = RetroBlue,
@@ -514,7 +568,12 @@ fun GameManagementPanel(
                     )
                     if (!game.isReadOnly) {
                         PixelActionButton(
-                            icon = { PixelDelete24(color = RetroText) },
+                            icon = {
+                                RetroGeneratedIcon(
+                                    drawableRes = R.drawable.retro_icon_delete,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
                             label = stringResource(R.string.action_del),
                             isActive = false,
                             activeColor = RetroBlack,
@@ -561,7 +620,7 @@ fun GameManagementPanel(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(44.dp)
+                            .heightIn(min = 44.dp)
                             .pixelButtonFrame(isSelected = game.isBorrowed || game.isBorrowedFrom, thickness = 2.dp)
                             .background(if(game.isBorrowed || game.isBorrowedFrom) borrowColor else Color.Transparent)
                             .clickable { showBorrowDialog = true }
@@ -644,6 +703,7 @@ fun GameManagementPanel(
                         onDismiss = { showNotesDialog = false },
                         onSave = onUpdateNotes
                     )
+                }
                 }
             }
         }
@@ -859,21 +919,26 @@ fun PixelActionButton(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable { onClick() }
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .pixelButtonFrame(isSelected = isActive, thickness = 2.dp)
-                .background(if (isActive) activeColor.copy(alpha = 0.2f) else Color.Transparent)
-                .padding(8.dp),
-            contentAlignment = Alignment.Center
+        RetroPanel(
+            modifier = Modifier.size(58.dp),
+            accentColor = if (isActive) activeColor else RetroBronze,
+            backgroundColors = if (isActive) {
+                listOf(activeColor.copy(alpha = 0.8f), activeColor.copy(alpha = 0.45f), RetroIron)
+            } else {
+                listOf(RetroStoneLight, RetroStone, RetroIron)
+            },
+            cornerCut = 8.dp,
+            contentPadding = PaddingValues(5.dp)
         ) {
-            icon()
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                icon()
+            }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label, 
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Monospace,
+                fontFamily = FontFamily.Serif,
                 fontSize = 10.sp,
                 color = RetroText,
                 fontWeight = FontWeight.Bold
@@ -1113,4 +1178,80 @@ fun CategoryChip(category: String, isRetro: Boolean) {
             fontWeight = FontWeight.Medium
         )
     }
+}
+
+@Composable
+fun StartSessionDialog(
+    isRetro: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (List<String>) -> Unit
+) {
+    var playerNames by remember { mutableStateOf(listOf("")) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = if (isRetro) RectangleShape else RoundedCornerShape(28.dp),
+        containerColor = if (isRetro) RetroBackground else MaterialTheme.colorScheme.surface,
+        title = { 
+            Text(
+                text = stringResource(R.string.start_session).let { if(isRetro) it.uppercase() else it },
+                style = if (isRetro) MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.titleLarge
+            ) 
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                playerNames.forEachIndexed { index, name ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { newName ->
+                                playerNames = playerNames.toMutableList().apply { set(index, newName) }
+                            },
+                            modifier = Modifier.weight(1f),
+                            label = { Text(stringResource(R.string.player_name_hint) + " ${index + 1}") },
+                            shape = if(isRetro) RectangleShape else RoundedCornerShape(12.dp),
+                            textStyle = if (isRetro) MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace, color = RetroText) else MaterialTheme.typography.bodyLarge,
+                            colors = if(isRetro) OutlinedTextFieldDefaults.colors(focusedBorderColor = RetroGold, unfocusedBorderColor = RetroText) else OutlinedTextFieldDefaults.colors()
+                        )
+                        if (playerNames.size > 1) {
+                            IconButton(onClick = { playerNames = playerNames.toMutableList().apply { removeAt(index) } }) {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = if(isRetro) RetroRed else MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    }
+                }
+                
+                TextButton(
+                    onClick = { playerNames = playerNames + "" },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.add_player).let { if(isRetro) it.uppercase() else it })
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(playerNames.filter { it.isNotBlank() }.ifEmpty { listOf("Gracz 1") }) }
+            ) {
+                Text(
+                    text = stringResource(R.string.start_game).let { if(isRetro) it.uppercase() else it },
+                    color = if(isRetro) RetroGold else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.cancel_button).let { if(isRetro) it.uppercase() else it },
+                    color = if(isRetro) RetroText else MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    )
 }

@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">"Planszowsky"</string>
     <string name="collection_title">"Your Collection"</string>
+    <string name="scan_title">Game scanner</string>
+    <plurals name="collection_game_count">
+        <item quantity="one">%1$d game</item>
+        <item quantity="other">%1$d games</item>
+    </plurals>
     <string name="search_hint">"Search in your collection…"</string>
     <string name="borrowed_badge">"BORROWED"</string>
     <string name="add_button">"Add"</string>
@@ -67,6 +72,12 @@
     <string name="expert_limit_reached">"Limit reached! You can ask 5 questions per day. The Game Master needs to rest until tomorrow."</string>
     <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
     <string name="expert_limit_short">"Limit reached"</string>
+    <string name="expert_session_inactive">The chat session is not active.</string>
+    <string name="expert_empty_response">The model returned no response.</string>
+    <string name="expert_rate_limit_error">Too many requests. Try again shortly.</string>
+    <string name="expert_unavailable_error">The AI service is currently busy. Try again shortly.</string>
+    <string name="expert_server_error">AI service error. Try again later.</string>
+    <string name="expert_communication_error">Could not connect to the AI service.</string>
     <string name="no_results">No search results found.</string>
     <string name="theme_selection_title">App Appearance</string>
     <string name="theme_modern">Modern</string>
@@ -84,6 +95,7 @@
     <string name="import_button_label">Import</string>
     <string name="import_success">Imported %d games!</string>
     <string name="import_error">Import error</string>
+    <string name="import_in_progress">Importing collection…</string>
     <string name="import_conflict_title">Import Conflict</string>
     <string name="import_conflict_message">Some games (%d) are already in your collection. Do you want to update their data (descriptions, images, notes) with data from BGG?</string>
     <string name="import_conflict_overwrite">Update all</string>
@@ -152,6 +164,35 @@
         <string name="collections_title">Your Collections</string>
         <string name="readonly_notice">Read Only</string>
         <string name="refresh_collection">Refresh</string>
+        <string name="edit_collection">Edit collection name</string>
         <string name="delete_collection_confirm">Delete this collection?</string>
-    </resources>
-    
+
+        <!-- Active Session -->
+        <string name="translator_system_instruction">Translate the board game description from English into Polish. Return only the translated text.</string>
+        <string name="translate_button">Translate to Polish</string>
+        <string name="show_original">Show original</string>
+        <string name="translating">Translating…</string>
+        <string name="active_session">Active Session</string>
+        <string name="no_active_session">No active session.</string>
+        <string name="players_label">Players</string>
+        <string name="end_session">End Session</string>
+        <string name="start_session">Start Session</string>
+        <string name="add_player">Add Player</string>
+        <string name="player_name_hint">Player name</string>
+        <string name="start_game">Play!</string>
+        <string name="category_card_game">Card Game</string>
+        <string name="category_childrens_game">Children\'s Game</string>
+        <string name="category_fantasy">Fantasy</string>
+        <string name="category_economic">Economic</string>
+        <string name="category_war_game">War Game</string>
+        <string name="category_adventure">Adventure</string>
+        <string name="category_dice">Dice</string>
+        <string name="category_party_game">Party Game</string>
+        <string name="category_abstract_strategy">Abstract Strategy</string>
+        <string name="category_horror">Horror</string>
+        <string name="category_science_fiction">Science Fiction</string>
+        <string name="category_medieval">Medieval</string>
+        <string name="category_civilization">Civilization</string>
+        <string name="category_exploration">Exploration</string>
+        <string name="category_ancient">Ancient</string>
+        </resources>

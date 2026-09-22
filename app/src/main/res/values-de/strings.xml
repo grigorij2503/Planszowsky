@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">"Planszowsky"</string>
     <string name="collection_title">"Deine Sammlung"</string>
+    <string name="scan_title">Spielscanner</string>
+    <plurals name="collection_game_count">
+        <item quantity="one">%1$d Spiel</item>
+        <item quantity="other">%1$d Spiele</item>
+    </plurals>
     <string name="search_hint">"In deiner Sammlung suchen…"</string>
     <string name="borrowed_badge">"AUSGELIEHEN"</string>
     <string name="add_button">"Hinzufügen"</string>
@@ -67,6 +72,12 @@
     <string name="expert_limit_reached">"Limit erreicht! Du kannst 5 Fragen pro Tag stellen. Der Spielleiter muss sich bis morgen ausruhen."</string>
     <string name="expert_limit_status">"LIMIT: %1$d / %2$d"</string>
     <string name="expert_limit_short">"Limit erreicht"</string>
+    <string name="expert_session_inactive">Die Chatsitzung ist nicht aktiv.</string>
+    <string name="expert_empty_response">Das Modell hat nicht geantwortet.</string>
+    <string name="expert_rate_limit_error">Zu viele Anfragen. Versuche es gleich erneut.</string>
+    <string name="expert_unavailable_error">Der KI-Dienst ist derzeit ausgelastet. Versuche es gleich erneut.</string>
+    <string name="expert_server_error">Fehler des KI-Dienstes. Versuche es später erneut.</string>
+    <string name="expert_communication_error">Verbindung zum KI-Dienst fehlgeschlagen.</string>
     <string name="no_results">Keine Suchergebnisse gefunden.</string>
     <string name="theme_selection_title">App-Erscheinungsbild</string>
     <string name="theme_modern">Modern</string>
@@ -84,6 +95,7 @@
     <string name="import_button_label">Importieren</string>
     <string name="import_success">%d Spiele importiert!</string>
     <string name="import_error">Importfehler</string>
+    <string name="import_in_progress">Sammlung wird importiert…</string>
     <string name="import_conflict_title">Import-Konflikt</string>
     <string name="import_conflict_message">Einige Spiele (%d) befinden sich bereits in deiner Sammlung. Möchtest du deren Daten (Beschreibungen, Bilder, Notizen) mit Daten von BGG aktualisieren?</string>
     <string name="import_conflict_overwrite">Alle aktualisieren</string>
@@ -152,6 +164,33 @@
         <string name="collections_title">Ihre Sammlungen</string>
         <string name="readonly_notice">Nur Lesezugriff</string>
         <string name="refresh_collection">Aktualisieren</string>
+        <string name="edit_collection">Sammlungsname bearbeiten</string>
         <string name="delete_collection_confirm">Diese Sammlung löschen?</string>
+        <string name="translator_system_instruction">Übersetze die Brettspielbeschreibung aus dem Englischen ins Polnische. Gib nur den übersetzten Text zurück.</string>
+        <string name="translate_button">Ins Polnische übersetzen</string>
+        <string name="show_original">Original anzeigen</string>
+        <string name="translating">Wird übersetzt…</string>
+        <string name="active_session">Aktive Partie</string>
+        <string name="no_active_session">Keine aktive Partie.</string>
+        <string name="players_label">Spieler</string>
+        <string name="end_session">Partie beenden</string>
+        <string name="start_session">Partie starten</string>
+        <string name="add_player">Spieler hinzufügen</string>
+        <string name="player_name_hint">Name des Spielers</string>
+        <string name="start_game">Spielen!</string>
+        <string name="category_card_game">Kartenspiel</string>
+        <string name="category_childrens_game">Kinderspiel</string>
+        <string name="category_fantasy">Fantasy</string>
+        <string name="category_economic">Wirtschaft</string>
+        <string name="category_war_game">Kriegsspiel</string>
+        <string name="category_adventure">Abenteuer</string>
+        <string name="category_dice">Würfelspiel</string>
+        <string name="category_party_game">Partyspiel</string>
+        <string name="category_abstract_strategy">Abstrakte Strategie</string>
+        <string name="category_horror">Horror</string>
+        <string name="category_science_fiction">Science-Fiction</string>
+        <string name="category_medieval">Mittelalter</string>
+        <string name="category_civilization">Zivilisation</string>
+        <string name="category_exploration">Erkundung</string>
+        <string name="category_ancient">Antike</string>
     </resources>
-    

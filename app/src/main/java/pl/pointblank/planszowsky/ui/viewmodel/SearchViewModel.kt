@@ -8,6 +8,7 @@ import pl.pointblank.planszowsky.domain.repository.GameRepository
 import pl.pointblank.planszowsky.domain.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,14 +16,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 import pl.pointblank.planszowsky.util.similarity
 
-@OptIn(FlowPreview::class)
+@OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val repository: GameRepository,
@@ -51,7 +53,7 @@ class SearchViewModel @Inject constructor(
         _searchQuery
             .debounce(1000)
             .distinctUntilChanged()
-            .onEach { query ->
+            .mapLatest { query ->
                 _error.value = null
                 if (query.isNotBlank()) {
                     performSearch(query)
@@ -79,6 +81,8 @@ class SearchViewModel @Inject constructor(
             }
             
             _searchResults.value = rankResults(cleanQuery, results)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (_: Exception) {
             _error.value = "api_error"
             _searchResults.value = emptyList()
@@ -106,24 +110,34 @@ class SearchViewModel @Inject constructor(
     fun addToCollection(game: Game) {
         viewModelScope.launch {
             _isLoading.value = true
-            val fullGame = repository.getRemoteGameDetails(game.id, game.title)
-            if (fullGame != null) {
-                repository.saveGame(fullGame)
-                _additionSuccess.value = true
+            try {
+                val fullGame = repository.getRemoteGameDetails(game.id, game.title)
+                if (fullGame != null) {
+                    repository.saveGame(fullGame)
+                    _additionSuccess.value = true
+                }
+            } catch (_: Exception) {
+                _error.value = "api_error"
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 
     fun addToWishlist(game: Game) {
         viewModelScope.launch {
             _isLoading.value = true
-            val fullGame = repository.getRemoteGameDetails(game.id, game.title)
-            if (fullGame != null) {
-                repository.updateGame(fullGame.copy(isOwned = false, isWishlisted = true))
-                _additionSuccess.value = true
+            try {
+                val fullGame = repository.getRemoteGameDetails(game.id, game.title)
+                if (fullGame != null) {
+                    repository.updateGame(fullGame.copy(isOwned = false, isWishlisted = true))
+                    _additionSuccess.value = true
+                }
+            } catch (_: Exception) {
+                _error.value = "api_error"
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 }

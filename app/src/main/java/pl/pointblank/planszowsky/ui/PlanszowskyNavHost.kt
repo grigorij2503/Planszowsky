@@ -10,7 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +55,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
         Screen.DiceRoller.route,
         Screen.Wishlist.route,
         Screen.Profile.route
-    )
+    ) && currentDestination?.route != "session_dice"
 
     Scaffold(
         bottomBar = {
@@ -144,7 +152,7 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                 ScanScreen(
                     appTheme = appTheme,
                     onTextScanned = { text ->
-                        navController.navigate("search?query=$text") {
+                        navController.navigate("search?query=${android.net.Uri.encode(text)}") {
                             popUpTo("scan") { inclusive = true }
                         }
                     },
@@ -163,7 +171,24 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
                     navArgument("collectionId") { type = NavType.StringType; defaultValue = "main" }
                 )
             ) {
-                DetailsScreen(onBackClick = { navController.popBackStack() })
+                DetailsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onStartSession = { navController.navigate("session") }
+                )
+            }
+
+            composable("session") {
+                SessionScreen(
+                    onDiceClick = { navController.navigate("session_dice") },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("session_dice") {
+                DiceScreen(
+                    appTheme = appTheme,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
         }
     }
@@ -172,10 +197,16 @@ fun PlanszowskyMainContainer(appTheme: AppTheme = AppTheme.MODERN) {
 @Composable
 fun ModernNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val label = stringResource(screen.labelRes)
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                role = Role.Tab
+                selected = isSelected
+            }
             .clickable(onClick = onClick)
             .padding(horizontal = 4.dp, vertical = 8.dp)
     ) {
@@ -193,7 +224,7 @@ fun ModernNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modi
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(screen.labelRes),
+                text = label,
                 style = MaterialTheme.typography.labelMedium.copy( // Changed from labelSmall
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     color = color
@@ -213,75 +244,123 @@ fun RetroNavigationBar(navController: NavHostController, currentDestination: Nav
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(RetroBackground)
-            .windowInsetsPadding(WindowInsets.navigationBars) // Ensure it respects system nav bar
+            .background(RetroObsidian)
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        // Thick top border
-        Box(modifier = Modifier.fillMaxWidth().height(4.dp).background(RetroBlack))
-        
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.Top
-        ) {
-            items.forEach { screen ->
-                val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-                RetroNavItem(
-                    screen = screen,
-                    isSelected = isSelected,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        navController.navigate(screen.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
+                .pixelFrame(
+                    borderColor = RetroIron,
+                    innerColor = RetroBronze.copy(alpha = 0.75f),
+                    thickness = 2.dp
                 )
+                .background(
+                    Brush.verticalGradient(
+                        listOf(RetroStone, RetroElementBackground, RetroObsidian)
+                    )
+                )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(RetroBlack, RetroBronze, RetroGold, RetroBronze, RetroBlack)
+                        )
+                    )
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 5.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Top
+            ) {
+                items.forEach { screen ->
+                    val isSelected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                    RetroNavItem(
+                        screen = screen,
+                        isSelected = isSelected,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            navController.navigate(screen.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
             }
         }
-        // Extra bottom padding for "safe area"
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
 @Composable
 fun RetroNavItem(screen: Screen, isSelected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val label = stringResource(screen.labelRes)
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
+            .padding(horizontal = 3.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                role = Role.Tab
+                selected = isSelected
+            }
             .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 8.dp)
+            .padding(horizontal = 3.dp, vertical = 4.dp)
     ) {
+        RetroMedallion(
+            color = if (isSelected) RetroCrimson else RetroStone,
+            buttonSize = if (isSelected) 44.dp else 40.dp,
+            modifier = Modifier.alpha(if (isSelected) 1f else 0.72f),
+            icon = {
+                val iconRes = when (screen) {
+                    Screen.Collection -> R.drawable.retro_icon_collection
+                    Screen.DiceRoller -> R.drawable.retro_icon_dice
+                    Screen.Wishlist -> R.drawable.retro_icon_wishlist
+                    Screen.Profile -> R.drawable.retro_icon_profile
+                }
+                RetroGeneratedIcon(
+                    drawableRes = iconRes,
+                    modifier = Modifier.size(if (isSelected) 40.dp else 36.dp),
+                )
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(2.dp))
+
         Box(
-            modifier = Modifier.size(32.dp), // Restored to 32.dp
+            modifier = Modifier.heightIn(min = 25.dp),
             contentAlignment = Alignment.Center
         ) {
-            when (screen) {
-                Screen.Collection -> PixelCollectionIcon(true)
-                Screen.DiceRoller -> PixelDiceIcon(true)
-                Screen.Wishlist -> PixelShinyHeartIcon(true)
-                Screen.Profile -> PixelProfileIcon(true)
-            }
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (isSelected) RetroBronzeLight else RetroParchment,
+                    fontFamily = FontFamily.Serif,
+                    letterSpacing = 0.3.sp
+                ),
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
         }
-        
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = stringResource(screen.labelRes).uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 11.sp, // Increased from 9.sp
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (isSelected) RetroGold else RetroText,
-                fontFamily = FontFamily.Monospace
-            ),
-            textAlign = TextAlign.Center,
-            maxLines = 1
+        Box(
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .size(width = if (isSelected) 28.dp else 12.dp, height = 2.dp)
+                .background(if (isSelected) RetroGold else Color.Transparent)
         )
     }
 }
